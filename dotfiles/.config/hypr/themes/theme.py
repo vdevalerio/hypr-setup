@@ -1,0 +1,356 @@
+#!/usr/bin/env python3
+"""Temas de cor do sistema: um tema fixo (palettes/*.txt) ou "auto", gerado a partir do wallpaper.
+
+    theme.py list              temas disponíveis: id, nome e amostras de cor
+    theme.py set <id>          aplica um tema fixo (ex.: catppuccin-mocha)
+    theme.py auto <imagem>     gera e aplica a paleta a partir de uma imagem (quadro do wallpaper)
+    theme.py name <id>         nome legível do tema
+
+Grava as cores em: Hyprland (bordas), hyprlock, Waybar, SwayNC, Rofi, kitty, GTK, fcitx5 e tela de
+login. Quem recarrega os apps é o wallpaper.sh (wallpaper.sh theme <id|auto>).
+
+Todos os temas têm as mesmas 26 cores nomeadas (nomes do Catppuccin): "mauve" é o acento
+principal (bordas, workspace ativo, seleção), "blue" o segundo tom dos gradientes. Para criar um
+tema, copie um arquivo de palettes/ e troque as cores.
+"""
+import colorsys
+import re
+import subprocess
+import sys
+from pathlib import Path
+
+HERE = Path(__file__).resolve().parent
+PALETTES = HERE / "palettes"
+KEYS = ("rosewater flamingo pink mauve lavender blue sapphire sky teal green yellow peach maroon red "
+        "text subtext1 subtext0 overlay2 overlay1 overlay0 surface2 surface1 surface0 base mantle crust").split()
+# Cores com significado (erro, ok, aviso…) no modo automático: fixas, do Catppuccin
+SEMANTIC = ("teal", "green", "yellow", "peach", "maroon", "red")
+
+
+# ── Paletas ───────────────────────────────────────────────────────────
+def load(tid):
+    pal, name = {}, tid
+    for line in (PALETTES / f"{tid}.txt").read_text().splitlines():
+        if m := re.match(r"#\s*name:\s*(.+)", line):
+            name = m.group(1).strip()
+        elif line.strip() and not line.startswith("#"):
+            k, v = line.split()
+            pal[k] = v.lower().lstrip("#")
+    missing = [k for k in KEYS if k not in pal]
+    if missing:
+        sys.exit(f"tema {tid}: faltam cores {missing}")
+    return name, pal
+
+
+def themes():
+    return sorted(p.stem for p in PALETTES.glob("*.txt"))
+
+
+def hexc(h, s, l):
+    r, g, b = colorsys.hls_to_rgb(h % 1.0, max(0, min(1, l)), max(0, min(1, s)))
+    return f"{round(r * 255):02x}{round(g * 255):02x}{round(b * 255):02x}"
+
+
+def hue_dist(a, b):
+    d = abs(a - b) % 1.0
+    return min(d, 1 - d)
+
+
+def auto(image):
+    """Paleta a partir das cores dominantes da imagem (k-means do ImageMagick)."""
+    out = subprocess.run(["magick", f"{image}[0]", "-resize", "160x160", "-kmeans", "10",
+                          "-format", "%c", "histogram:info:-"],
+                         capture_output=True, text=True, check=True).stdout
+    clusters = []
+    for line in out.splitlines():
+        m = re.search(r"^\s*(\d+):.*#([0-9A-Fa-f]{6})", line)
+        if not m:
+            continue
+        count, hx = int(m.group(1)), m.group(2)
+        r, g, b = (int(hx[i:i + 2], 16) / 255 for i in (0, 2, 4))
+        h, l, s = colorsys.rgb_to_hls(r, g, b)
+        chroma = s * (1 - abs(2 * l - 1))
+        clusters.append({"count": count, "h": h, "l": l, "s": s, "chroma": chroma})
+    if not clusters:
+        sys.exit("não consegui ler as cores da imagem")
+    total = sum(c["count"] for c in clusters)
+    for c in clusters:
+        c["score"] = c["chroma"] * (c["count"] / total) ** 0.5
+    ranked = sorted(clusters, key=lambda c: c["score"], reverse=True)
+
+    # Cor dominante (área, com algum peso para cor): tinge o fundo e é o 2º tom dos gradientes.
+    # Acento principal: a cor mais viva que contrasta com a dominante (≥ 40° de matiz, ≥ 2% da
+    # imagem) — o rosa da árvore no céu azul, o vermelho do portal na noite… Sem contraste,
+    # o acento é a própria dominante.
+    dominant = max(clusters, key=lambda c: c["count"] * (0.25 + c["chroma"]))
+    hd = dominant["h"]
+    contrast = [c for c in clusters if c["chroma"] > 0.08 and c["count"] / total >= 0.02
+                and hue_dist(c["h"], hd) >= 40 / 360]
+    accent = max(contrast, key=lambda c: c["chroma"] * (c["count"] / total) ** 0.25) if contrast else None
+    colorful = [c for c in ranked if c["chroma"] > 0.06]
+    if accent:
+        h1, h2 = accent["h"], hd
+    elif colorful:
+        h1, h2 = colorful[0]["h"], colorful[0]["h"] + 50 / 360
+    else:          # wallpaper sem cor (cinza/preto e branco): acento discreto no matiz dominante
+        h1, h2 = hd, hd + 50 / 360
+    # 3º matiz: outra cor da imagem diferente das duas (≥ 30°), senão o acento girado
+    h3 = next((c["h"] for c in colorful
+               if hue_dist(c["h"], h1) >= 30 / 360 and hue_dist(c["h"], h2) >= 30 / 360), h1 - 50 / 360)
+
+    vivid = accent["chroma"] if accent else (colorful[0]["chroma"] if colorful else 0.0)
+    S = max(0.35, min(0.85, 0.35 + vivid * 2.2))     # saturação dos acentos (imagem apagada → acentos discretos)
+    bg = max(0.10, min(0.24, 0.10 + vivid * 0.5))    # quanto o fundo puxa o matiz principal
+
+    pal = {
+        "mauve":     hexc(h1, S, 0.74),
+        "lavender":  hexc(h1, S * 0.8, 0.82),
+        "blue":      hexc(h2, S, 0.73),
+        "sapphire":  hexc(h2, S * 0.9, 0.66),
+        "sky":       hexc(h2, S * 0.8, 0.80),
+        "pink":      hexc(h3, S, 0.78),
+        "flamingo":  hexc(h3, S * 0.7, 0.84),
+        "rosewater": hexc(h3, S * 0.6, 0.90),
+        "text":      hexc(hd, bg * 1.2, 0.89),
+        "subtext1":  hexc(hd, bg, 0.80),
+        "subtext0":  hexc(hd, bg, 0.71),
+        "overlay2":  hexc(hd, bg, 0.62),
+        "overlay1":  hexc(hd, bg, 0.53),
+        "overlay0":  hexc(hd, bg, 0.44),
+        "surface2":  hexc(hd, bg, 0.31),
+        "surface1":  hexc(hd, bg, 0.24),
+        "surface0":  hexc(hd, bg, 0.17),
+        "base":      hexc(hd, bg, 0.10),
+        "mantle":    hexc(hd, bg, 0.08),
+        "crust":     hexc(hd, bg, 0.06),
+    }
+    _, cat = load("catppuccin-mocha")
+    pal.update({k: cat[k] for k in SEMANTIC})
+    return pal
+
+
+# ── Arquivos de saída ─────────────────────────────────────────────────
+HEADER = "GERADO AUTOMATICAMENTE por ~/.config/hypr/themes/theme.py — não edite"
+
+
+def hypr_lua(c):
+    rows = "\n".join(f'    {k:<9} = "{c[k]}",' for k in KEYS)
+    return f"""-- {HEADER}
+local c = {{
+{rows}
+}}
+
+-- c.rgba(c.mauve, "ee") -> "rgba(cba6f7ee)"
+function c.rgba(hex, alpha)
+    return "rgba(" .. hex .. (alpha or "ff") .. ")"
+end
+
+return c
+"""
+
+
+def hyprlock(c):
+    return f"# {HEADER}\n" + "\n".join(f"${k} = rgb({c[k]})" for k in KEYS) + f"\n$base_alpha = rgba({c['base']}cc)\n"
+
+
+def gtk_colors(c):
+    return f"/* {HEADER} */\n" + "\n".join(f"@define-color {k} #{c[k]};" for k in KEYS) + "\n"
+
+
+def rofi(c):
+    rows = "\n".join(f"    {k}: #{c[k]};" for k in KEYS)
+    # Gradiente pronto: o rofi não aceita @cor dentro de linear-gradient()
+    return (f"/* {HEADER} */\n* {{\n{rows}\n    base-alpha: #{c['base']}ee;\n"
+            f"    accent-gradient: linear-gradient(135, #{c['mauve']}, #{c['blue']});\n}}\n")
+
+
+def kitty(c):
+    return f"""# {HEADER}
+foreground              #{c['text']}
+background              #{c['base']}
+selection_foreground    #{c['base']}
+selection_background    #{c['rosewater']}
+cursor                  #{c['mauve']}
+cursor_text_color       #{c['base']}
+url_color               #{c['rosewater']}
+active_border_color     #{c['lavender']}
+inactive_border_color   #{c['overlay0']}
+bell_border_color       #{c['yellow']}
+active_tab_foreground   #{c['crust']}
+active_tab_background   #{c['mauve']}
+inactive_tab_foreground #{c['text']}
+inactive_tab_background #{c['mantle']}
+tab_bar_background      #{c['crust']}
+
+color0  #{c['surface1']}
+color8  #{c['surface2']}
+color1  #{c['red']}
+color9  #{c['red']}
+color2  #{c['green']}
+color10 #{c['green']}
+color3  #{c['yellow']}
+color11 #{c['yellow']}
+color4  #{c['blue']}
+color12 #{c['blue']}
+color5  #{c['mauve']}
+color13 #{c['pink']}
+color6  #{c['teal']}
+color14 #{c['teal']}
+color7  #{c['subtext1']}
+color15 #{c['subtext0']}
+"""
+
+
+def gtk_css(c):
+    return f"""/* {HEADER}. Cores para apps GTK/libadwaita (reabra o app). */
+@define-color accent_color #{c['mauve']};
+@define-color accent_bg_color #{c['mauve']};
+@define-color accent_fg_color #{c['crust']};
+@define-color window_bg_color #{c['base']};
+@define-color window_fg_color #{c['text']};
+@define-color view_bg_color #{c['mantle']};
+@define-color view_fg_color #{c['text']};
+@define-color headerbar_bg_color #{c['crust']};
+@define-color headerbar_fg_color #{c['text']};
+@define-color sidebar_bg_color #{c['mantle']};
+@define-color sidebar_fg_color #{c['text']};
+@define-color card_bg_color #{c['surface0']};
+@define-color card_fg_color #{c['text']};
+@define-color popover_bg_color #{c['surface0']};
+@define-color popover_fg_color #{c['text']};
+@define-color dialog_bg_color #{c['surface0']};
+@define-color dialog_fg_color #{c['text']};
+"""
+
+
+def fcitx5(c):
+    return f"""# {HEADER}. Janela de candidatos do fcitx5 (japonês).
+[Metadata]
+Name=hypr-setup
+Version=1
+Author=hypr-setup
+Description=Cores do tema atual
+ScaleWithDPI=True
+
+[InputPanel]
+NormalColor=#{c['text']}
+HighlightCandidateColor=#{c['crust']}
+HighlightColor=#{c['mauve']}
+HighlightBackgroundColor=#{c['surface1']}
+Spacing=4
+EnableBlur=False
+FullWidthHighlight=True
+
+[InputPanel/TextMargin]
+Left=9
+Right=9
+Top=6
+Bottom=6
+
+[InputPanel/Background]
+Color=#{c['base']}
+BorderColor=#{c['mauve']}
+BorderWidth=2
+
+[InputPanel/Background/Margin]
+Left=2
+Right=2
+Top=2
+Bottom=2
+
+[InputPanel/Highlight]
+Color=#{c['mauve']}
+
+[InputPanel/Highlight/Margin]
+Left=9
+Right=9
+Top=6
+Bottom=6
+
+[Menu]
+NormalColor=#{c['text']}
+HighlightCandidateColor=#{c['crust']}
+Spacing=2
+
+[Menu/Background]
+Color=#{c['base']}
+BorderColor=#{c['surface2']}
+BorderWidth=1
+
+[Menu/Background/Margin]
+Left=2
+Right=2
+Top=2
+Bottom=2
+
+[Menu/Highlight]
+Color=#{c['mauve']}
+
+[Menu/Separator]
+Color=#{c['surface1']}
+
+[Menu/TextMargin]
+Left=8
+Right=8
+Top=6
+Bottom=6
+"""
+
+
+def sddm(c):
+    return f"""# {HEADER}. Cores da tela de login (copiadas para o tema do SDDM
+# por ~/.config/hypr/scripts/sddm-sync.sh).
+[General]
+accent=#{c['mauve']}
+accent2=#{c['blue']}
+text=#{c['text']}
+subtext=#{c['subtext0']}
+base=#{c['base']}
+crust=#{c['crust']}
+red=#{c['red']}
+yellow=#{c['yellow']}
+green=#{c['green']}
+"""
+
+
+OUTPUTS = [
+    ("~/.config/hypr/colors.lua", hypr_lua),
+    ("~/.config/hypr/hyprlock-colors.conf", hyprlock),
+    ("~/.config/waybar/colors.css", gtk_colors),
+    ("~/.config/swaync/colors.css", gtk_colors),
+    ("~/.config/rofi/colors.rasi", rofi),
+    ("~/.config/kitty/colors.conf", kitty),
+    ("~/.config/gtk-3.0/gtk.css", gtk_css),
+    ("~/.config/gtk-4.0/gtk.css", gtk_css),
+    ("~/.local/share/fcitx5/themes/hypr-setup/theme.conf", fcitx5),
+    ("~/.config/hypr/sddm-colors.conf", sddm),
+]
+
+
+def write(pal):
+    for out, fn in OUTPUTS:
+        dest = Path(out).expanduser()
+        dest.parent.mkdir(parents=True, exist_ok=True)
+        tmp = dest.with_name(dest.name + ".tmp")
+        tmp.write_text(fn(pal))
+        tmp.replace(dest)
+
+
+def main(argv):
+    cmd = argv[1] if len(argv) > 1 else ""
+    if cmd == "list":
+        for tid in themes():
+            name, p = load(tid)
+            print(f"{tid}\t{name}\t" + " ".join(p[k] for k in ("mauve", "blue", "pink", "green", "peach")))
+    elif cmd == "set" and len(argv) > 2:
+        write(load(argv[2])[1])
+    elif cmd == "auto" and len(argv) > 2:
+        write(auto(argv[2]))
+    elif cmd == "name" and len(argv) > 2:
+        print("Automatic (wallpaper)" if argv[2] == "auto" else load(argv[2])[0])
+    else:
+        sys.exit(__doc__)
+
+
+if __name__ == "__main__":
+    main(sys.argv)

@@ -1,0 +1,29 @@
+/* Rofi */
+
+configuration {
+    modi:                "drun,run,window,filebrowser";
+    show-icons:          true;
+    icon-theme:          "Papirus-Dark";
+    terminal:            "kitty";
+    drun-display-format: "{name}";
+    display-drun:        "  Apps";
+    display-run:         "  Run";
+    display-window:      "  Windows";
+    display-filebrowser: "  Files";
+    display-emoji:       "  Emoji";
+    display-calc:        "  Calc";
+    window-format:       "{w} · {c} · {t}";
+    sidebar-mode:        true;
+    hover-select:        true;
+    me-select-entry:     "";
+    me-accept-entry:     "MousePrimary";
+    kb-cancel:           "Escape,Control+g";
+    kb-mode-next:        "Control+Tab";
+    kb-mode-previous:    "Control+ISO_Left_Tab";
+    kb-row-up:           "Up,Control+k";
+    kb-row-down:         "Down,Control+j";
+    kb-remove-to-eol:    "";
+    kb-accept-entry:     "Return,KP_Enter";
+}
+
+@theme "~/.config/rofi/theme.rasi"

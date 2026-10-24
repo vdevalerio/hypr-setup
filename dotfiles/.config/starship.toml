@@ -1,0 +1,87 @@
+# Starship — usa as cores ANSI do terminal, então acompanha a paleta do wallpaper.
+# purple = cor principal (primary), blue = secundária, demais são fixas.
+"$schema" = 'https://starship.rs/config-schema.json'
+
+add_newline = true
+command_timeout = 800
+
+format = """
+[╭─](bright-black)$os$directory$git_branch$git_state$git_status$python$conda$docker_context$fill$cmd_duration$time
+[╰─](bright-black)$character"""
+
+[os]
+disabled = false
+style = "bold blue"
+format = "[$symbol ]($style)"
+
+[os.symbols]
+Arch = ""
+
+[directory]
+style = "bold purple"
+read_only = " "
+read_only_style = "red"
+truncation_length = 3
+truncation_symbol = "…/"
+format = "[$path]($style)[$read_only]($read_only_style) "
+
+[directory.substitutions]
+"Documents" = " "
+"Downloads" = " "
+"Projects" = " "
+"Pictures" = " "
+
+[git_branch]
+symbol = " "
+style = "bold blue"
+format = "[on](bright-black) [$symbol$branch]($style) "
+
+[git_status]
+style = "yellow"
+format = "([$all_status$ahead_behind]($style) )"
+conflicted = ""
+ahead = "⇡${count}"
+behind = "⇣${count}"
+diverged = "⇕"
+untracked = "?${count}"
+stashed = ""
+modified = "!${count}"
+staged = "[+${count}](green)"
+deleted = "✘${count}"
+renamed = "»"
+
+[python]
+symbol = " "
+style = "yellow"
+pyenv_version_name = false
+format = "[via](bright-black) [${symbol}${version}( \\($virtualenv\\))]($style) "
+
+[conda]
+symbol = "\uf1b2 "
+style = "green"
+ignore_base = true
+format = "[$symbol$environment]($style) "
+
+[docker_context]
+symbol = " "
+style = "blue"
+format = "[$symbol$context]($style) "
+
+[fill]
+symbol = " "
+
+[cmd_duration]
+min_time = 2000
+style = "bright-black"
+format = "[ $duration]($style) "
+
+[time]
+disabled = false
+style = "bright-black"
+format = "[ $time]($style)"
+time_format = "%H:%M"
+
+[character]
+success_symbol = "[❯](bold purple)"
+error_symbol = "[❯](bold red)"
+vimcmd_symbol = "[❮](bold green)"

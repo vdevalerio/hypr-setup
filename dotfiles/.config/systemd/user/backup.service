@@ -1,0 +1,11 @@
+[Unit]
+Description=Backup dos arquivos (restic → Google Drive)
+After=network-online.target
+
+[Service]
+Type=oneshot
+# Espera a rede (até 2 min) antes de começar
+ExecStartPre=/usr/bin/nm-online -q -t 120
+ExecStart=%h/.config/hypr/scripts/backup.sh run --quiet
+Nice=10
+IOSchedulingClass=idle

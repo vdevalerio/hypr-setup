@@ -1,0 +1,24 @@
+# lsd — substituto do ls com ícones e grade compacta (colunas com largura variável)
+classic: false
+color:
+  when: auto
+  theme: custom          # usa colors.yaml (cores ANSI = paleta do terminal/wallpaper)
+icons:
+  when: auto
+  theme: fancy
+  separator: " "
+date: relative
+dereference: false
+sorting:
+  column: name
+  reverse: false
+  dir-grouping: first
+size: short
+permission: rwx
+no-symlink: false
+symlink-arrow: ""
+header: false
+hyperlink: auto
+truncate-owner:
+  after:
+  marker: ""

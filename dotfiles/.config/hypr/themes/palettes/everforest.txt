@@ -1,0 +1,28 @@
+# name: Everforest
+# Paleta do tema (as mesmas 26 cores em todos os temas; mauve = acento principal)
+rosewater e6e2cc
+flamingo  e69875
+pink      d699b6
+mauve     a7c080
+lavender  d6b8c6
+blue      7fbbb3
+sapphire  7fbbb3
+sky       83c092
+teal      83c092
+green     a7c080
+yellow    dbbc7f
+peach     e69875
+maroon    e67e80
+red       e67e80
+text      d3c6aa
+subtext1  c5c0a8
+subtext0  b0ae98
+overlay2  9da9a0
+overlay1  859289
+overlay0  7a8478
+surface2  56635f
+surface1  475258
+surface0  3d484d
+base      2d353b
+mantle    272e33
+crust     232a2e

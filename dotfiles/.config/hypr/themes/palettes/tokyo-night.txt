@@ -1,0 +1,28 @@
+# name: Tokyo Night
+# Paleta do tema (as mesmas 26 cores em todos os temas; mauve = acento principal)
+rosewater f4dbd6
+flamingo  f7a8b8
+pink      ff9cc4
+mauve     bb9af7
+lavender  b4c2f0
+blue      7aa2f7
+sapphire  7dcfff
+sky       89ddff
+teal      73daca
+green     9ece6a
+yellow    e0af68
+peach     ff9e64
+maroon    db4b4b
+red       f7768e
+text      c0caf5
+subtext1  b4bce6
+subtext0  a9b1d6
+overlay2  8089b3
+overlay1  737aa2
+overlay0  565f89
+surface2  414868
+surface1  3b4261
+surface0  292e42
+base      1a1b26
+mantle    16161e
+crust     111118

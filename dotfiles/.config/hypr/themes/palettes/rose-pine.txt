@@ -1,0 +1,28 @@
+# name: Rosé Pine
+# Paleta do tema (as mesmas 26 cores em todos os temas; mauve = acento principal)
+rosewater f2d5cf
+flamingo  ebbcba
+pink      ebbcba
+mauve     c4a7e7
+lavender  d5c5f0
+blue      9ccfd8
+sapphire  3e8fb0
+sky       9ccfd8
+teal      9ccfd8
+green     95c49a
+yellow    f6c177
+peach     f0a890
+maroon    eb6f92
+red       eb6f92
+text      e0def4
+subtext1  c9c6e2
+subtext0  b4b0cf
+overlay2  908caa
+overlay1  7f7a99
+overlay0  6e6a86
+surface2  524f67
+surface1  403d52
+surface0  26233a
+base      191724
+mantle    16141f
+crust     110f18

@@ -1,0 +1,11 @@
+[Unit]
+Description=Backup diário dos arquivos (restic → Google Drive)
+
+[Timer]
+OnCalendar=daily
+RandomizedDelaySec=30m
+# Notebook desligado no horário: roda assim que ligar
+Persistent=true
+
+[Install]
+WantedBy=timers.target

@@ -1,0 +1,28 @@
+# name: Dracula
+# Paleta do tema (as mesmas 26 cores em todos os temas; mauve = acento principal)
+rosewater ffd1dc
+flamingo  ff92d0
+pink      ff79c6
+mauve     bd93f9
+lavender  caa9fa
+blue      ff79c6
+sapphire  8be9fd
+sky       8be9fd
+teal      8be9fd
+green     50fa7b
+yellow    f1fa8c
+peach     ffb86c
+maroon    ff6e6e
+red       ff5555
+text      f8f8f2
+subtext1  e0e0e0
+subtext0  bfbfbf
+overlay2  9aa2c8
+overlay1  8790bc
+overlay0  6272a4
+surface2  565970
+surface1  44475a
+surface0  343746
+base      282a36
+mantle    21222c
+crust     191a21

@@ -1,0 +1,10 @@
+# Arquivos temporários
+*.swp
+*~
+.DS_Store
+# Gerado em tempo de execução (não faz parte do setup)
+dotfiles/.config/hypr/wallpaper.png
+# Caches gerados pelos programas
+__pycache__/
+*.pyc
+dotfiles/.config/fcitx5/conf/cached_layouts

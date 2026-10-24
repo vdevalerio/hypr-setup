@@ -1,0 +1,221 @@
+// Waybar — cores vêm de colors.css (geradas a partir do wallpaper), tamanhos de font.css (look.sh)
+// Só o essencial fica aqui. O resto (perfil de energia, brilho, bluetooth, wallpaper, aparência,
+// ferramentas...) está na central de controle: botão 󰒓 ou SUPER + A.
+{
+    "layer": "top",
+    "position": "top",
+    "height": 38,
+    "margin-top": 6,
+    "margin-left": 10,
+    "margin-right": 10,
+    "spacing": 8,
+    "reload_style_on_change": true,
+
+    "modules-left":   ["group/left", "hyprland/window"],
+    "modules-center": ["clock", "custom/media"],
+    "modules-right":  ["group/tray-drawer", "group/status", "group/actions"],
+
+    // ── Ilhas ────────────────────────────────────────────────
+    "group/left": {
+        "orientation": "horizontal",
+        "modules": ["custom/launcher", "hyprland/workspaces", "hyprland/submap"]
+    },
+    "group/tray-drawer": {
+        "orientation": "horizontal",
+        "drawer": { "transition-duration": 300, "children-class": "tray-child", "transition-left-to-right": false },
+        "modules": ["custom/tray-toggle", "tray"]
+    },
+    "group/status": {
+        "orientation": "horizontal",
+        "modules": ["custom/keyboard", "network", "pulseaudio", "battery"]
+    },
+    "group/actions": {
+        "orientation": "horizontal",
+        "modules": ["custom/recording", "custom/notification", "custom/control", "custom/power"]
+    },
+
+    // ── Esquerda ─────────────────────────────────────────────
+    "custom/launcher": {
+        "format": "\uf303",
+        "tooltip-format": "Apps (SUPER + Space)\nRight click: keybinds",
+        "on-click": "setsid -f rofi -show drun",
+        "on-click-right": "setsid -f ~/.config/hypr/scripts/keybinds.sh"
+    },
+
+    "hyprland/workspaces": {
+        "format": "{icon}",
+        "format-icons": {
+            // cada monitor tem seus workspaces: 11–20 no 2º monitor, 21–30 no 3º (workspaces.lua)
+            "1": "1", "2": "2", "3": "3", "4": "4", "5": "5",
+            "6": "6", "7": "7", "8": "8", "9": "9", "10": "10",
+            "11": "1", "12": "2", "13": "3", "14": "4", "15": "5",
+            "16": "6", "17": "7", "18": "8", "19": "9", "20": "10",
+            "21": "1", "22": "2", "23": "3", "24": "4", "25": "5",
+            "26": "6", "27": "7", "28": "8", "29": "9", "30": "10",
+            "special": "󰠱",
+            "default": ""
+        },
+        "on-scroll-up": "hyprctl dispatch 'hl.dsp.focus({ workspace = \"m-1\" })'",
+        "on-scroll-down": "hyprctl dispatch 'hl.dsp.focus({ workspace = \"m+1\" })'",
+        "show-special": true,
+        "special-visible-only": true
+    },
+
+    "hyprland/submap": {
+        "format": "󰩨 {}",
+        "tooltip": false
+    },
+
+    "hyprland/window": {
+        "format": "{}",
+        "max-length": 50,
+        "separate-outputs": true,
+        "rewrite": {
+            "(.*) — Mozilla Firefox": "󰈹  $1",
+            "(.*) - Mozilla Firefox": "󰈹  $1",
+            "(.*) - Brave": "󰖟  $1"
+        }
+    },
+
+    // ── Centro ───────────────────────────────────────────────
+    "clock": {
+        "format": "<span alpha='60%'>{:%a %d</span>  %H:%M}",
+        "format-alt": "<span alpha='60%'>{:%A, %B %d %Y</span>  %H:%M:%S}",
+        "interval": 1,
+        "tooltip-format": "<tt><small>{calendar}</small></tt>",
+        "calendar": {
+            "mode": "month",
+            "mode-mon-col": 3,
+            "on-scroll": 1,
+            "format": {
+                "months":   "<span color='#cba6f7'><b>{}</b></span>",
+                "days":     "<span color='#cdd6f4'>{}</span>",
+                "weekdays": "<span color='#89b4fa'><b>{}</b></span>",
+                "today":    "<span color='#f38ba8'><b><u>{}</u></b></span>"
+            }
+        },
+        "actions": {
+            "on-click-right": "mode",
+            "on-scroll-up": "shift_down",
+            "on-scroll-down": "shift_up"
+        }
+    },
+
+    // Música: script com playerctl (o módulo "mpris" embutido travava a barra)
+    "custom/media": {
+        "exec": "~/.config/hypr/scripts/media.sh",
+        "return-type": "json",
+        "escape": true,
+        "on-click": "playerctl play-pause",
+        "on-click-right": "playerctl next",
+        "on-scroll-up": "playerctl previous",
+        "on-scroll-down": "playerctl next"
+    },
+
+    // ── Direita ──────────────────────────────────────────────
+    "custom/tray-toggle": {
+        "format": "󰅁",
+        "tooltip-format": "Hover: background apps (Wi-Fi, Bluetooth...)"
+    },
+    "tray": {
+        "icon-size": 15,
+        "spacing": 10
+    },
+
+    // Idioma do teclado (fcitx5): PT / EN / RU / JA
+    "custom/keyboard": {
+        "exec": "~/.config/hypr/scripts/keyboard.sh status",
+        "return-type": "json",
+        "interval": 2,
+        "signal": 9,
+        "format": "󰌌 {}",
+        "on-click": "~/.config/hypr/scripts/keyboard.sh next",
+        "on-click-right": "setsid -f ~/.config/hypr/scripts/keyboard.sh pick",
+        "on-scroll-up": "~/.config/hypr/scripts/keyboard.sh prev",
+        "on-scroll-down": "~/.config/hypr/scripts/keyboard.sh next"
+    },
+
+    "network": {
+        "format-wifi": "{icon}",
+        "format-ethernet": "󰈀",
+        "format-disconnected": "󰤮",
+        "format-icons": ["󰤟", "󰤢", "󰤥", "󰤨"],
+        "tooltip-format-wifi": "{essid} ({signalStrength}%)\n{ipaddr}\nClick: choose network",
+        "tooltip-format-ethernet": "{ifname}\n{ipaddr}",
+        "tooltip-format-disconnected": "Disconnected\nClick: choose network",
+        "on-click": "setsid -f kitty --class nmtui-float -e nmtui",
+        "on-click-right": "setsid -f nm-connection-editor"
+    },
+
+    "pulseaudio": {
+        "format": "{icon}  {volume}%",
+        "format-muted": "󰝟  muted",
+        "format-bluetooth": "󰂰  {volume}%",
+        "format-icons": {
+            "headphone": "󰋋",
+            "default": ["󰕿", "󰖀", "󰕾"]
+        },
+        "scroll-step": 5,
+        "max-volume": 100,
+        "tooltip-format": "{desc}\nClick: mute · Right click: mixer · Scroll: volume",
+        "on-click": "wpctl set-mute @DEFAULT_AUDIO_SINK@ toggle",
+        "on-click-right": "setsid -f pavucontrol"
+    },
+
+    "battery": {
+        "states": { "warning": 25, "critical": 12 },
+        "format": "{icon}  {capacity}%",
+        "format-charging": "󰂄  {capacity}%",
+        "format-plugged": "󰚥  {capacity}%",
+        "format-icons": ["󰁺", "󰁼", "󰁾", "󰂀", "󰁹"],
+        "tooltip-format": "{timeTo}\n{power:.1f} W\nScroll: brightness of this monitor",
+        "on-scroll-up": "~/.config/hypr/scripts/brightness.sh up cursor",
+        "on-scroll-down": "~/.config/hypr/scripts/brightness.sh down cursor"
+    },
+
+    "custom/notification": {
+        "tooltip-format": "Notifications (SUPER + N)\nRight click: do not disturb",
+        "format": "{icon}",
+        "format-icons": {
+            "notification": "󱅫",
+            "none": "󰂚",
+            "dnd-notification": "󰂛",
+            "dnd-none": "󰂛",
+            "inhibited-notification": "󱅫",
+            "inhibited-none": "󰂚",
+            "dnd-inhibited-notification": "󰂛",
+            "dnd-inhibited-none": "󰂛"
+        },
+        "return-type": "json",
+        "exec-if": "which swaync-client",
+        "exec": "swaync-client -swb",
+        "on-click": "swaync-client -t -sw",
+        "on-click-right": "swaync-client -d -sw",
+        "escape": true
+    },
+
+    // Mostra só o que foge do normal (tela sempre acesa, luz noturna, perfil de energia, BT conectado)
+    "custom/control": {
+        "exec": "~/.config/hypr/scripts/controlcenter.sh status",
+        "return-type": "json",
+        "interval": 15,
+        "signal": 8,
+        "on-click": "setsid -f ~/.config/hypr/scripts/controlcenter.sh",
+        "on-click-right": "setsid -f ~/.config/hypr/scripts/controlcenter.sh look"
+    },
+
+    // Gravação de tela em andamento (some quando não está gravando)
+    "custom/recording": {
+        "exec": "~/.config/hypr/scripts/record.sh status",
+        "return-type": "json",
+        "interval": 1,
+        "signal": 10,
+        "on-click": "~/.config/hypr/scripts/record.sh stop"
+    },
+
+    "custom/power": {
+        "format": "󰐥",
+        "tooltip-format": "Power (SUPER + X)",
+        "on-click": "setsid -f ~/.config/hypr/scripts/powermenu.sh"
+    }
+}

@@ -1,0 +1,143 @@
+/* Waybar — cores dinâmicas (colors.css vem do tema atual, gerado por ~/.config/hypr/themes/theme.py)
+   Tamanhos das fontes em font.css (gerado por ~/.config/hypr/scripts/look.sh): não use font-size aqui. */
+@import "colors.css";
+@import "font.css";
+
+* {
+    font-family: "JetBrainsMono Nerd Font Propo", "JetBrainsMono Nerd Font", "Noto Sans", sans-serif;
+    font-weight: 600;
+    min-height: 0;
+    border: none;
+    border-radius: 0;
+}
+
+window#waybar {
+    background: transparent;
+    color: @text;
+}
+
+tooltip {
+    background: alpha(@base, 0.96);
+    border: 1px solid alpha(@mauve, 0.35);
+    border-radius: 12px;
+}
+tooltip label { color: @text; padding: 2px 4px; }
+
+/* ── Ilhas ──────────────────────────────────────────────────── */
+#left,
+#clock,
+#custom-media,
+#tray-drawer,
+#status,
+#actions {
+    background: alpha(@base, 0.80);
+    border: 1px solid alpha(@mauve, 0.30);   /* borda tingida pelo acento do tema */
+    border-radius: 12px;
+    padding: 0 4px;
+    margin: 2px 0;
+    box-shadow: 0 2px 6px alpha(black, 0.25);
+}
+
+/* Itens dentro das ilhas: chip com hover */
+#custom-launcher, #workspaces, #submap,
+#custom-tray-toggle, #tray,
+#custom-keyboard, #network, #pulseaudio, #battery,
+#custom-recording, #custom-notification, #custom-control, #custom-power {
+    background: transparent;
+    padding: 0 9px;
+    margin: 4px 0;
+    border-radius: 8px;
+    transition: background 0.2s ease, color 0.2s ease;
+}
+
+#custom-launcher:hover, #custom-tray-toggle:hover,
+#custom-keyboard:hover, #network:hover, #pulseaudio:hover, #battery:hover,
+#custom-notification:hover, #custom-control:hover, #custom-power:hover,
+#clock:hover, #custom-media:hover {
+    background: alpha(@mauve, 0.18);
+}
+
+/* ── Esquerda ───────────────────────────────────────────────── */
+#custom-launcher { color: @mauve; padding: 0 11px 0 9px; }
+
+#workspaces { padding: 0 2px; }
+#workspaces button {
+    color: @overlay1;
+    background: transparent;
+    padding: 0 7px;
+    margin: 0 1px;
+    border-radius: 7px;
+    transition: all 0.25s cubic-bezier(0.23, 1, 0.32, 1);
+}
+#workspaces button.empty { color: alpha(@overlay0, 0.55); }
+#workspaces button:hover {
+    background: alpha(@surface1, 0.85);
+    color: @text;
+    box-shadow: none;
+    text-shadow: none;
+}
+/* Workspace aberto num monitor que não está em foco */
+#workspaces button.visible {
+    color: @text;
+    background: alpha(@surface2, 0.9);
+    padding: 0 14px;
+}
+#workspaces button.active {
+    color: @crust;
+    background: linear-gradient(90deg, @mauve, @blue);
+    padding: 0 14px;
+}
+#workspaces button.urgent { color: @crust; background: @red; }
+#workspaces button.special { color: @yellow; }
+
+#submap { color: @crust; background: @peach; margin: 4px 4px 4px 0; }
+
+#window { color: @subtext0; font-weight: 500; padding: 0 6px; }
+
+/* ── Centro ─────────────────────────────────────────────────── */
+#clock { color: @mauve; font-weight: 700; padding: 0 14px; }
+#custom-media { color: @pink; font-weight: 500; padding: 0 14px; }
+#custom-media.paused { color: @overlay1; }
+
+/* ── Direita ────────────────────────────────────────────────── */
+#custom-tray-toggle { color: @overlay1; }
+#tray > .passive { -gtk-icon-effect: dim; }
+#tray > .needs-attention { -gtk-icon-effect: highlight; background: alpha(@red, 0.6); border-radius: 6px; }
+
+#custom-keyboard { color: @mauve; }
+#custom-keyboard.en { color: @teal; }
+#custom-keyboard.ru { color: @peach; }
+#custom-keyboard.ja { color: @pink; }
+#network    { color: @blue; }
+#network.disconnected { color: @red; }
+#pulseaudio { color: @pink; }
+#pulseaudio.muted { color: @overlay0; }
+
+#battery { color: @green; }
+#battery.charging, #battery.plugged { color: @teal; }
+#battery.warning:not(.charging) { color: @peach; }
+#battery.critical:not(.charging) {
+    color: @crust;
+    background: @red;
+    animation: blink 1s steps(12) infinite alternate;
+}
+@keyframes blink {
+    to { background: alpha(@red, 0.4); }
+}
+
+#custom-notification { color: @blue; }
+#custom-notification.notification,
+#custom-notification.inhibited-notification { color: @peach; }
+#custom-notification.dnd-none,
+#custom-notification.dnd-notification,
+#custom-notification.dnd-inhibited-none,
+#custom-notification.dnd-inhibited-notification { color: @overlay1; }
+
+#custom-control { color: @mauve; }
+#custom-control.active { color: @yellow; }
+
+#custom-recording { color: @red; animation: rec 1s steps(10) infinite alternate; }
+@keyframes rec { to { color: alpha(@red, 0.45); } }
+
+#custom-power { color: @red; padding: 0 11px 0 9px; }
+#custom-power:hover { background: alpha(@red, 0.2); }

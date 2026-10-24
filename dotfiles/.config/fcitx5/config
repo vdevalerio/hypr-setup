@@ -1,0 +1,53 @@
+# fcitx5 — a troca de idioma é feita pelo Hyprland (SUPER + CTRL + Espaço, keyboard.sh),
+# então os atalhos próprios do fcitx5 ficam em teclas que não existem no ABNT2
+# (Ctrl+Espaço livre para o Neovim; Shift sozinho não troca nada).
+[Hotkey]
+EnumerateWithTriggerKeys=False
+EnumerateSkipFirst=False
+ModifierOnlyKeyTimeout=250
+
+[Hotkey/TriggerKeys]
+0=Zenkaku_Hankaku
+
+[Hotkey/AltTriggerKeys]
+0=Hangul
+
+[Hotkey/EnumerateForwardKeys]
+0=Hangul_Hanja
+
+[Hotkey/EnumerateBackwardKeys]
+0=Hangul_Banja
+
+[Hotkey/EnumerateGroupForwardKeys]
+0=Hangul_Start
+
+[Hotkey/EnumerateGroupBackwardKeys]
+0=Hangul_End
+
+[Hotkey/PrevPage]
+0=Up
+
+[Hotkey/NextPage]
+0=Down
+
+[Hotkey/PrevCandidate]
+0=Shift+Tab
+
+[Hotkey/NextCandidate]
+0=Tab
+
+[Behavior]
+# Mesmo idioma em todos os apps (o indicador da barra vale para tudo)
+ActiveByDefault=False
+ShareInputState=All
+PreeditEnabledByDefault=True
+ShowInputMethodInformation=False
+showInputMethodInformationWhenFocusIn=False
+CompactInputMethodInformation=True
+ShowFirstInputMethodInformation=False
+DefaultPageSize=7
+OverrideXkbOption=False
+PreloadInputMethod=True
+AllowInputMethodForPassword=False
+ShowPreeditForPassword=False
+AutoSavePeriod=30

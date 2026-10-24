@@ -1,0 +1,27 @@
+#!/bin/sh
+# Xsetup do hypr-setup: roda como root antes da tela de login (SDDM, X11).
+# Notebook híbrido: os monitores ligados na placa NVIDIA só aparecem no login se as saídas dela
+# forem ligadas à GPU principal ("reverse PRIME"). Depois, liga todos os monitores ESPELHADOS
+# (mesma imagem em todos: a senha aparece em qualquer tela). Só vale na tela de login; a sessão
+# usa o arranjo da central de controle → Displays. Instalado por: install.sh sddm
+command -v xrandr >/dev/null || exit 0
+
+main=$(xrandr --listproviders | sed -n 's/^Provider 0: id: \(0x[0-9a-fA-F]*\).*/\1/p')
+for p in $(xrandr --listproviders | sed -n 's/^Provider [1-9][0-9]*: id: \(0x[0-9a-fA-F]*\).*Sink Output.*/\1/p'); do
+    xrandr --setprovideroutputsource "$p" "$main"
+done
+xrandr --auto
+
+# Tela principal: a do notebook (eDP/LVDS), senão a primeira conectada
+outs=$(xrandr --query | awk '/ connected/ { if ($1 ~ /^(eDP|LVDS)/) print; else rest = rest $1 "\n" }
+                             END { printf "%s", rest }' | awk '{ print $1 }')
+main_out=$(echo "$outs" | head -1)
+[ -n "$main_out" ] || exit 0
+xrandr --output "$main_out" --auto --primary --pos 0x0
+# Modo atual da principal; os outros copiam o mesmo modo (se não suportarem, usam o deles)
+mode=$(xrandr --query | awk -v o="$main_out" '$1 == o { f = 1; next } f && /^[^ ]/ { exit } f && /\*/ { print $1; exit }')
+for o in $(echo "$outs" | tail -n +2); do
+    xrandr --output "$o" --mode "$mode" --same-as "$main_out" 2>/dev/null ||
+        xrandr --output "$o" --auto --same-as "$main_out"
+done
+exit 0

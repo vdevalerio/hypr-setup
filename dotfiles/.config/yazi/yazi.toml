@@ -1,0 +1,16 @@
+#:schema https://yazi-rs.github.io/schemas/yazi.json
+# Yazi — gerenciador de arquivos (SUPER + E). Pressione F1 ou ~ dentro dele para ver os atalhos.
+
+[mgr]
+ratio          = [ 1, 3, 4 ]       # pastas pai · atual · pré-visualização
+sort_by        = "natural"         # arquivo2 antes de arquivo10
+sort_dir_first = true
+linemode       = "size"
+show_hidden    = false             # "." alterna arquivos ocultos
+scrolloff      = 5
+mouse_events   = [ "click", "scroll", "drag" ]
+
+[preview]
+max_width     = 1200
+max_height    = 1600
+image_quality = 85

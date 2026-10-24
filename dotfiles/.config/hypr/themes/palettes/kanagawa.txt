@@ -1,0 +1,28 @@
+# name: Kanagawa
+# Paleta do tema (as mesmas 26 cores em todos os temas; mauve = acento principal)
+rosewater f2ecbc
+flamingo  e6a796
+pink      d27e99
+mauve     957fb8
+lavender  9cabca
+blue      7e9cd8
+sapphire  7fb4ca
+sky       a3d4d5
+teal      7aa89f
+green     98bb6c
+yellow    e6c384
+peach     ffa066
+maroon    c34043
+red       e46876
+text      dcd7ba
+subtext1  d5cea3
+subtext0  c8c093
+overlay2  a6a69c
+overlay1  8a8980
+overlay0  727169
+surface2  54546d
+surface1  363646
+surface0  2a2a37
+base      1f1f28
+mantle    1a1a22
+crust     16161d
