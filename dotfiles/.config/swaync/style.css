@@ -10,14 +10,30 @@
 .notification-row { outline: none; margin: 4px 0; }
 .notification-row:focus, .notification-row:hover { background: transparent; }
 
+/* Borda em gradiente (como o rofi e as janelas): fundo na padding-box por cima do gradiente na border-box */
 .notification {
-    background: alpha(@base, 0.92);
-    border: 1px solid alpha(@surface1, 0.8);
+    border: 2px solid transparent;
+    background-color: transparent;
+    background-image: linear-gradient(alpha(@base, 0.94), alpha(@base, 0.94)),
+                      linear-gradient(135deg, @mauve, @blue);
+    background-origin: border-box;
+    background-clip: padding-box, border-box;
     border-radius: 14px;
     padding: 6px;
     box-shadow: 0 4px 14px alpha(black, 0.35);
 }
-.notification.critical { border-color: @red; }
+.notification.critical {
+    background-image: linear-gradient(alpha(@base, 0.94), alpha(@base, 0.94)),
+                      linear-gradient(135deg, @red, @maroon);
+}
+
+/* Barra de nível (OSD de volume/brilho) */
+.notification progressbar trough { background: @surface1; border-radius: 8px; min-height: 6px; }
+.notification progressbar progress {
+    background: linear-gradient(90deg, @mauve, @blue);
+    border-radius: 8px;
+    min-height: 6px;
+}
 
 .notification-content { padding: 6px; }
 .summary   { color: @text; font-weight: 700; }
@@ -53,8 +69,12 @@
 
 /* Central de notificações */
 .control-center {
-    background: alpha(@base, 0.9);
-    border: 2px solid @mauve;
+    border: 2px solid transparent;
+    background-color: transparent;
+    background-image: linear-gradient(alpha(@base, 0.92), alpha(@base, 0.92)),
+                      linear-gradient(135deg, @mauve, @blue);
+    background-origin: border-box;
+    background-clip: padding-box, border-box;
     border-radius: 18px;
     padding: 12px;
     color: @text;
@@ -79,7 +99,7 @@
     background: @surface0;
     border-radius: 12px;
 }
-.widget-dnd > switch:checked { background: @mauve; }
+.widget-dnd > switch:checked { background: linear-gradient(90deg, @mauve, @blue); }
 .widget-dnd > switch slider { background: @text; border-radius: 12px; }
 
 .widget-mpris-player {

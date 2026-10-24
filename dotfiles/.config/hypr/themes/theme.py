@@ -260,18 +260,26 @@ Right=9
 Top=6
 Bottom=6
 
+# Fundo e destaque são imagens (fcitx5_images): borda e seleção em gradiente, como o rofi.
+# Margin = cantos que não esticam (9-slice); ContentMargin = onde o texto começa.
 [InputPanel/Background]
+Image=panel.png
 Color=#{c['base']}
-BorderColor=#{c['mauve']}
-BorderWidth=2
 
 [InputPanel/Background/Margin]
-Left=2
-Right=2
-Top=2
-Bottom=2
+Left=12
+Right=12
+Top=12
+Bottom=12
+
+[InputPanel/ContentMargin]
+Left=3
+Right=3
+Top=3
+Bottom=3
 
 [InputPanel/Highlight]
+Image=highlight.png
 Color=#{c['mauve']}
 
 [InputPanel/Highlight/Margin]
@@ -297,6 +305,7 @@ Top=2
 Bottom=2
 
 [Menu/Highlight]
+Image=highlight.png
 Color=#{c['mauve']}
 
 [Menu/Separator]
@@ -341,6 +350,26 @@ OUTPUTS = [
 ]
 
 
+def fcitx5_images(c):
+    """Imagens do tema do fcitx5: painel com borda em gradiente e destaque em gradiente (ImageMagick)."""
+    d = Path("~/.local/share/fcitx5/themes/hypr-setup").expanduser()
+    grad = lambda size, angle: ["(", "-size", size, "-define", f"gradient:angle={angle}",
+                                f"gradient:#{c['mauve']}-#{c['blue']}", ")"]
+    mask = lambda w, h, r, inset=0: ["(", "-size", f"{w}x{h}", "xc:none", "-fill", "white", "-draw",
+                                     f"roundrectangle {inset},{inset} {w-1-inset},{h-1-inset} {r},{r}", ")"]
+    try:
+        # Painel 64x64: gradiente arredondado (borda) com o fundo por cima, 2px para dentro
+        subprocess.run(["magick", *grad("64x64", 135), *mask(64, 64, 10), "-compose", "CopyOpacity", "-composite",
+                        "(", "-size", "64x64", "xc:none", "-fill", f"#{c['base']}", "-draw",
+                        "roundrectangle 2,2 61,61 8,8", ")", "-compose", "Over", "-composite",
+                        str(d / "panel.png")], check=True, capture_output=True)
+        # Destaque 40x24: pílula em gradiente horizontal
+        subprocess.run(["magick", *grad("40x24", 90), *mask(40, 24, 6), "-compose", "CopyOpacity", "-composite",
+                        str(d / "highlight.png")], check=True, capture_output=True)
+    except (OSError, subprocess.CalledProcessError):
+        pass  # sem ImageMagick: o fcitx5 usa as cores sólidas (Color=) do theme.conf
+
+
 def write(pal):
     for out, fn in OUTPUTS:
         dest = Path(out).expanduser()
@@ -348,6 +377,7 @@ def write(pal):
         tmp = dest.with_name(dest.name + ".tmp")
         tmp.write_text(fn(pal))
         tmp.replace(dest)
+    fcitx5_images(pal)
     # qt6ct só aceita caminho absoluto para o esquema de cores (o arquivo versionado usa ~)
     conf = Path("~/.config/qt6ct/qt6ct.conf").expanduser()
     if conf.exists():

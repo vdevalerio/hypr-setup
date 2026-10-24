@@ -170,8 +170,16 @@ bind("XF86AudioRaiseVolume",  hl.dsp.exec_cmd(scripts .. "osd.sh volume up"), "V
 bind("XF86AudioLowerVolume",  hl.dsp.exec_cmd(scripts .. "osd.sh volume down"), "Volume down", { locked = true, repeating = true })
 bind("XF86AudioMute",         hl.dsp.exec_cmd(scripts .. "osd.sh volume mute"), "Mute",            { locked = true })
 bind("XF86AudioMicMute",      hl.dsp.exec_cmd(scripts .. "osd.sh mic mute"), "Mute microphone", { locked = true })
--- Caps Lock: só avisa (non_consuming = a tecla continua funcionando; release = lê o LED já trocado)
-bind("Caps_Lock", hl.dsp.exec_cmd(scripts .. "osd.sh caps"), "Caps Lock indicator", { locked = true, release = true, non_consuming = true })
+-- Caps Lock: só avisa. Não é bind: o próprio Caps Lock muda os modificadores e a bind não casa.
+-- Evento cru da tecla (keycode xkb 66 = Caps Lock); ao soltar, o LED já está no estado novo.
+-- O evento chega em dobro (teclado físico + teclado virtual do fcitx5) com o mesmo horário: ignora o repetido.
+local last_caps
+hl.on("input.keyboard.key", function(keycode, time, state)
+    if keycode == 66 and tostring(state) == "0" and time ~= last_caps then
+        last_caps = time
+        hl.exec_cmd(scripts .. "osd.sh caps")
+    end
+end)
 -- Brilho: do monitor em foco (notebook ou externo com DDC/CI), veja scripts/brightness.sh
 bind("XF86MonBrightnessUp",   hl.dsp.exec_cmd(scripts .. "brightness.sh up"),   "Brightness up (focused monitor)", { locked = true, repeating = true })
 bind("XF86MonBrightnessDown", hl.dsp.exec_cmd(scripts .. "brightness.sh down"), "Brightness down (focused monitor)", { locked = true, repeating = true })
