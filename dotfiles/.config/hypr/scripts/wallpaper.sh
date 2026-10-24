@@ -68,8 +68,9 @@ show() {
             # 9>&- e setsid: o mpvpaper não herda a trava do script nem o terminal
             local out
             for out in $(hyprctl monitors -j | jq -r '.[].name'); do
-                setsid -f mpvpaper -f -p \
-                    -o "no-audio --loop-file=inf --hwdec=auto --panscan=1.0 --really-quiet" \
+                # igpu.sh + vaapi: decodifica na GPU integrada; na NVIDIA ela nunca desligaria
+                setsid -f ~/.config/hypr/scripts/igpu.sh mpvpaper -f -p \
+                    -o "no-audio --loop-file=inf --hwdec=vaapi,auto-safe --panscan=1.0 --really-quiet" \
                     "$out" "$f" </dev/null >/dev/null 2>&1 9>&-
             done
             sleep 0.8 # deixa o vídeo aparecer antes de tirar a imagem anterior (sem piscar)

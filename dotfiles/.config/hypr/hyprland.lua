@@ -98,7 +98,7 @@ end
 
 hl.on("hyprland.start", function()
     hl.exec_cmd("~/.config/hypr/scripts/bar.sh") -- Waybar (reinicia sozinha se travar)
-    hl.exec_cmd("swaync")
+    hl.exec_cmd("~/.config/hypr/scripts/igpu.sh swaync") -- notificações (na GPU integrada)
     hl.exec_cmd("~/.config/hypr/scripts/wallpaper.sh restore") -- wallpaper animado + cores
     hl.exec_cmd("hypridle")
     hl.exec_cmd("~/.config/hypr/scripts/battery-watch.sh") -- avisos de bateria baixa
@@ -318,5 +318,6 @@ hl.on("monitor.added", function()
 end)
 hl.on("monitor.removed", function()
     workspaces.setup()
+    hl.exec_cmd("~/.config/hypr/scripts/wallpaper.sh restore") -- encerra o mpvpaper do monitor que saiu
     hl.exec_cmd("~/.config/hypr/scripts/lid.sh check") -- tampa fechada e tirou o monitor: liga a tela do notebook
 end)

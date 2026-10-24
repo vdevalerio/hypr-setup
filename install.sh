@@ -59,6 +59,7 @@ MANAGED=(
     .local/share/fcitx5/themes/hypr-setup
     .config/systemd/user/backup.service
     .config/systemd/user/backup.timer
+    .config/systemd/user/hyprpolkitagent.service.d/igpu.conf
     .config/brave-flags.conf
     .config/claude-desktop-flags.conf
     .config/mimeapps.list
