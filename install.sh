@@ -72,7 +72,7 @@ SAVE_EXCLUDE=(.config/hypr/wallpaper.png .config/hypr/themes/__pycache__ .config
 # ── Pacotes (repositórios oficiais) ─────────────────────────────────────
 PKGS_HYPR=(hyprland hyprlock hypridle hyprpolkitagent hyprpicker hyprsunset hyprland-guiutils hyprshutdown
            xdg-desktop-portal-hyprland xdg-desktop-portal-gtk xdg-user-dirs xdg-utils qt5-wayland qt6-wayland)
-PKGS_DESKTOP=(waybar rofi rofi-emoji rofi-calc swaync libnotify awww ffmpeg file)
+PKGS_DESKTOP=(rofi rofi-emoji rofi-calc swaync libnotify awww ffmpeg file)
 PKGS_APPS=(kitty yazi poppler resvg 7zip unzip gvfs gvfs-mtp ffmpegthumbnailer file-roller
            firefox mpv imv btop fastfetch)
 PKGS_AUDIO=(pipewire pipewire-pulse pipewire-alsa pipewire-jack wireplumber pavucontrol playerctl sof-firmware)
@@ -91,7 +91,10 @@ PKGS_SHELL=(zsh zsh-autosuggestions zsh-syntax-highlighting zsh-completions zsh-
             starship fzf zoxide lsd eza bat fd ripgrep lazygit git-delta
             atuin direnv mise tealdeer plocate)
 PKGS_DEV=(neovim git github-cli base-devel python-pip python-pynvim uv ipython nodejs npm tree-sitter-cli luarocks)
-AUR_PKGS=(mpvpaper bibata-cursor-theme-bin)
+# waybar-git: a 0.15.0 manda comandos no formato antigo e o Hyprland com config em Lua recusa
+# (clicar num workspace não faz nada). Corrigido no código do Waybar em 2026-08; volte para o
+# pacote "waybar" (em PKGS_DESKTOP) quando sair a 0.16.
+AUR_PKGS=(mpvpaper bibata-cursor-theme-bin waybar-git)
 # Limite de carga da bateria (só notebooks Acer; em outros, a instalação só avisa e segue)
 AUR_BATTERY=(acer-wmi-battery-dkms-git)
 
