@@ -165,6 +165,22 @@ bind(M("mouse_up"),       hl.dsp.focus({ workspace = "m-1" }),           "Previo
 bind(M("mouse:272"),      hl.dsp.window.drag(),   "Drag window (left button)",  { mouse = true })
 bind(M("mouse:273"),      hl.dsp.window.resize(), "Resize window (right button)",     { mouse = true })
 
+-- ── Menus do rofi fecham ao clicar fora ─────────────────────
+-- O rofi (camada do Wayland) só recebe cliques na própria área, então o "click-to-exit" dele
+-- nunca dispara. Esta bind não consome o clique: só fecha o menu se o cursor estiver fora dele.
+local function close_rofi_if_outside()
+    local p = hl.get_cursor_pos()
+    if not p then return end
+    for _, l in ipairs(hl.get_layers({ namespace = "rofi" })) do
+        if l.mapped and (p.x < l.x or p.x >= l.x + l.w or p.y < l.y or p.y >= l.y + l.h) then
+            hl.exec_cmd("pkill -x rofi")
+            return
+        end
+    end
+end
+bind("mouse:272", close_rofi_if_outside, "Close menu when clicking outside it", { non_consuming = true })
+bind("mouse:273", close_rofi_if_outside, "Close menu when clicking outside it", { non_consuming = true })
+
 -- ── Teclas de mídia do notebook ─────────────────────────────
 bind("XF86AudioRaiseVolume",  hl.dsp.exec_cmd(scripts .. "osd.sh volume up"), "Volume up", { locked = true, repeating = true })
 bind("XF86AudioLowerVolume",  hl.dsp.exec_cmd(scripts .. "osd.sh volume down"), "Volume down", { locked = true, repeating = true })
