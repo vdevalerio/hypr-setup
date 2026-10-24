@@ -8,7 +8,7 @@ mas com tudo clicável para quem usa mouse.
   Ou um tema fixo: Catppuccin, Tokyo Night, Gruvbox, Nord, Rosé Pine, Everforest, Kanagawa, Dracula.
 - **Ajustes ao vivo:** tamanho das fontes, espaço entre janelas e escala da tela por atalho,
   e uma central de controle com o resto (a barra fica só com o essencial).
-- **Terminal:** kitty transparente + zsh com Starship, autosugestões e fzf.
+- **Terminal:** kitty transparente + zsh com Starship, autosugestões, fzf, atuin (histórico), direnv e mise.
 - **Editor:** Neovim (LazyVim) como IDE de Python / ciência de dados, com células estilo Jupyter.
 - **Arquivos:** yazi. **Sistema:** em inglês, teclado ABNT2.
 - **Idiomas do teclado:** português (ABNT2), inglês, russo e japonês (fcitx5 + Mozc).
@@ -62,7 +62,9 @@ O script detecta o hardware sozinho:
 - **GPU:** AMD, Intel ou NVIDIA. Para NVIDIA usa o `nvidia-open`, que pede placa Turing
   (GTX 16xx / RTX 20xx) ou mais nova. Em kernels além do `linux` padrão, usa a versão `-dkms`.
 - **Notebook híbrido** (integrada + NVIDIA): o desktop roda na GPU integrada para poupar bateria.
-  Para usar a NVIDIA num app, abra com `prime-run <app>`. Também ativa a suspensão correta da NVIDIA.
+  Para usar a NVIDIA num app, abra com `prime-run <app>`. Também ativa a suspensão correta da NVIDIA e o
+  RTD3: parada, a NVIDIA desliga sozinha (`cat /sys/bus/pci/devices/<id>/power/runtime_status` →
+  `suspended`). Com monitor ligado na saída dela (HDMI deste notebook) ela fica ligada — é esperado.
 
 Testado em: Ryzen 7 7735HS + Radeon 680M + RTX 4050 (notebook), Hyprland 0.56.
 
@@ -143,17 +145,46 @@ Testado em: Ryzen 7 7735HS + Radeon 680M + RTX 4050 (notebook), Hyprland 0.56.
   `system/etc/nftables.conf`, que também explica como abrir uma porta.
 - **Automático:** TRIM do SSD (semanal), limpeza do cache do pacman (guarda as 3 últimas versões) e
   verificação de firmware (fwupd).
+- **Antes de cada atualização** o pacman guarda a lista de pacotes (com versões) e uma cópia do `/etc` em
+  `/var/backups/hypr-setup/` (as 10 últimas). Para voltar um pacote: `sudo pacman -U
+  /var/cache/pacman/pkg/<pacote>-<versão>...`.
+- **Kernel reserva** (`linux-lts`): se uma atualização do kernel quebrar o boot ou a NVIDIA, escolha
+  *Advanced options → linux-lts* no GRUB. A NVIDIA e o limite de bateria usam DKMS e funcionam nos dois.
+- **Mirrors:** o reflector escolhe toda semana os mais rápidos (Brasil + EUA, em
+  `system/etc/xdg/reflector/reflector.conf`).
 - **zram:** swap comprimida na memória (metade da RAM), usada antes da swap em disco. Deixa o sistema mais
   fluido quando a memória aperta.
 
 ## Notebook
 
+- **Teclas de volume, mudo, microfone, brilho e Caps Lock** mostram um aviso rápido com o nível
+  (`scripts/osd.sh`).
 - **Bateria baixa:** aviso em 15%, alerta em 8% e suspensão automática em 4% (se continuar na bateria).
 - **Tampa fechada com monitor externo:** desliga só a tela do notebook e você continua no monitor; ao abrir,
   ela volta com os seus workspaces. Sem monitor externo, fechar a tampa suspende (e bloqueia).
 - **Limite de carga em 80%** (Acer, módulo `acer-wmi-battery`): prolonga a vida útil da bateria. Para
   carregar até 100% numa viagem: `echo 0 | sudo tee /sys/bus/wmi/drivers/acer-wmi-battery/health_mode`
   (volta a 80% no próximo boot, ou com `echo 1`).
+
+## Git, SSH e terminal
+
+- **Git** (`~/.config/git/config`): branch `main`, `pull` com rebase, `push` cria o upstream sozinho,
+  diffs com **delta** (cores do tema), conflitos com o trecho original (zdiff3) e commits **assinados com a
+  chave SSH**. Para o GitHub mostrar "Verified", suba a chave como chave de assinatura:
+  `gh auth refresh -s admin:ssh_signing_key && gh ssh-key add ~/.ssh/id_ed25519.pub --type signing`.
+  Ajustes só desta máquina (ex.: outro e-mail numa pasta do trabalho) vão em `~/.config/git/local`:
+  ```ini
+  [includeIf "gitdir:~/Projects/Trabalho/"]
+      path = ~/.config/git/trabalho
+  ```
+- **Agente SSH** do gnome-keyring: carrega as chaves de `~/.ssh` e lembra a senha delas (o login destrava o
+  chaveiro). Recomendado pôr senha na chave: `ssh-keygen -p -f ~/.ssh/id_ed25519`.
+- **Ctrl+R** = atuin: histórico pesquisável com pasta, duração e se deu erro; dentro dele, Ctrl+R de novo
+  filtra por sessão/pasta. Só local (sem conta). ↑ continua buscando pelo que já foi digitado.
+- **direnv:** um `.envrc` na pasta do projeto carrega variáveis ao entrar e descarrega ao sair
+  (`direnv allow` na primeira vez). **mise:** versões de Node/Python/Go… por projeto (`mise use node@22`).
+- `help <comando>` (tldr) mostra exemplos curtos; `locate <nome>` acha arquivos no disco todo na hora.
+- **Pendrives/HDs externos** montam sozinhos em `/run/media/$USER/` (udiskie) com notificação.
 
 ## Gravação, texto da tela e reuniões
 
@@ -287,7 +318,7 @@ Script: `~/.config/hypr/scripts/controlcenter.sh` (`status`, ou o nome de um sub
 ## Fontes, espaço entre janelas e escala
 
 - **Fontes** (SUPER + ALT + `=` / `-`): em passos de 10%, de 50% a 200%. Muda barra, menus, notificações,
-  terminais (inclusive os abertos) e apps GTK (os já abertos atualizam ao reabrir).
+  terminais (inclusive os abertos) e apps GTK e Qt (os já abertos atualizam ao reabrir).
 - **Espaço entre janelas** (SUPER + CTRL + `=` / `-`): o espaço até a borda da tela acompanha.
 - **Escala da tela** (SUPER + CTRL + ALT + `=` / `-`): aumenta ou diminui **tudo** (fontes, ícones,
   janelas). Neste notebook (1920×1080) a escala automática é 1.5. Se tudo parece grande, experimente

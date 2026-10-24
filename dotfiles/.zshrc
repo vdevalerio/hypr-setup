@@ -4,6 +4,7 @@
 # ╰──────────────────────────────────────────────────────────╯
 
 export EDITOR=nvim VISUAL=nvim PAGER=less MANPAGER="nvim +Man!"
+export SSH_AUTH_SOCK="${SSH_AUTH_SOCK:-$XDG_RUNTIME_DIR/gcr/ssh}"   # agente SSH do gnome-keyring (também no TTY)
 typeset -U path PATH
 path=(~/.local/bin $path)
 
@@ -74,6 +75,12 @@ fi
 # ── Ferramentas ──────────────────────────────────────────────
 (( $+commands[zoxide] )) && eval "$(zoxide init zsh)"   # z <parte do nome> pula para pastas usadas
 export BAT_THEME=ansi                                     # bat usa as cores do terminal
+# atuin: Ctrl+R = histórico pesquisável (pasta, sessão, código de saída); ↑ continua igual
+(( $+commands[atuin] )) && eval "$(atuin init zsh --disable-up-arrow)"
+# direnv: carrega/descarrega variáveis do .envrc ao entrar/sair da pasta (direnv allow na 1ª vez)
+(( $+commands[direnv] )) && eval "$(direnv hook zsh)"
+# mise: versões de node/python/go/... por projeto (mise.toml ou .tool-versions)
+(( $+commands[mise] )) && eval "$(mise activate zsh)"
 
 # ── Aliases ──────────────────────────────────────────────────
 # lsd: grade com colunas de largura variável (ocupa toda a largura antes de quebrar linha)
@@ -92,6 +99,7 @@ fi
 alias grep='grep --color=auto'
 alias v='nvim' vim='nvim'
 alias lg='lazygit'
+alias help='tldr'                                       # exemplos curtos de um comando: help tar
 alias ..='cd ..' ...='cd ../..'
 # Sistema: atualização segura (notícias do Arch + pacotes + .pacnew + firmware) e backup
 alias update='~/.config/hypr/scripts/update.sh'

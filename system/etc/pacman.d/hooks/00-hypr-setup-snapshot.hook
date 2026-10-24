@@ -1,0 +1,11 @@
+# Guarda lista de pacotes + /etc antes de atualizar/remover (veja /usr/local/bin/hypr-setup-snapshot)
+[Trigger]
+Operation = Upgrade
+Operation = Remove
+Type = Package
+Target = *
+
+[Action]
+Description = Snapshot of package list and /etc (hypr-setup)...
+When = PreTransaction
+Exec = /usr/local/bin/hypr-setup-snapshot

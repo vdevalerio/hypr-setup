@@ -63,6 +63,8 @@ EOF
     [ -f ~/.config/fcitx5/conf/classicui.conf ] &&
         sed -i "s/^Font=.*/Font=\"Noto Sans CJK JP $(px 11)\"/; s/^MenuFont=.*/MenuFont=\"Noto Sans $(px 10)\"/" \
             ~/.config/fcitx5/conf/classicui.conf
+    [ -f ~/.config/qt6ct/qt6ct.conf ] &&
+        sed -i -E "s/^(general|fixed)=\"([^,]+),[^,]+,/\\1=\"\\2,$(pt 11),/" ~/.config/qt6ct/qt6ct.conf
     printf '# GERADO por scripts/look.sh — não edite (SUPER + ALT + = / -)\nfont_size %s\n' "$(pt 11.5)" \
         > ~/.config/kitty/font.conf
     gsettings set org.gnome.desktop.interface text-scaling-factor \

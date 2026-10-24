@@ -1,0 +1,4 @@
+[updates]
+# Baixa as páginas do tldr sozinho (e atualiza a cada 30 dias)
+auto_update = true
+auto_update_interval_hours = 720

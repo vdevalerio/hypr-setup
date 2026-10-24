@@ -48,8 +48,12 @@ hl.env("HYPRCURSOR_SIZE", "24")
 hl.env("EDITOR", "nvim")
 hl.env("VISUAL", "nvim")
 
+-- Agente SSH do gnome-keyring (gcr-ssh-agent.socket): carrega as chaves de ~/.ssh e guarda a senha
+-- no chaveiro, que o SDDM destrava no login. git/ssh pedem a senha da chave no máximo uma vez.
+hl.env("SSH_AUTH_SOCK", (os.getenv("XDG_RUNTIME_DIR") or "/run/user/1000") .. "/gcr/ssh")
+
 hl.env("QT_QPA_PLATFORM",    "wayland;xcb")
-hl.env("QT_QPA_PLATFORMTHEME", "gtk3")
+hl.env("QT_QPA_PLATFORMTHEME", "qt6ct") -- cores do tema em ~/.config/qt6ct (geradas por theme.py)
 hl.env("QT_WAYLAND_DISABLE_WINDOWDECORATION", "1")
 hl.env("GDK_BACKEND",        "wayland,x11,*")
 hl.env("SDL_VIDEODRIVER",    "wayland,x11")
@@ -105,6 +109,7 @@ hl.on("hyprland.start", function()
     hl.exec_cmd("systemctl --user start hyprpolkitagent")
     hl.exec_cmd("nm-applet --indicator")
     hl.exec_cmd("blueman-applet")
+    hl.exec_cmd("udiskie --no-tray") -- monta pendrive/HD externo sozinho (avisa por notificação)
     hl.exec_cmd("wl-paste --type text  --watch cliphist store")
     hl.exec_cmd("wl-paste --type image --watch cliphist store")
     -- Tema escuro para apps GTK/libadwaita

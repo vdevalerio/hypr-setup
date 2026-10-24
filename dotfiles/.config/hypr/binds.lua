@@ -166,10 +166,12 @@ bind(M("mouse:272"),      hl.dsp.window.drag(),   "Drag window (left button)",  
 bind(M("mouse:273"),      hl.dsp.window.resize(), "Resize window (right button)",     { mouse = true })
 
 -- ── Teclas de mídia do notebook ─────────────────────────────
-bind("XF86AudioRaiseVolume",  hl.dsp.exec_cmd("wpctl set-volume -l 1 @DEFAULT_AUDIO_SINK@ 5%+"), "Volume up", { locked = true, repeating = true })
-bind("XF86AudioLowerVolume",  hl.dsp.exec_cmd("wpctl set-volume @DEFAULT_AUDIO_SINK@ 5%-"),      "Volume down", { locked = true, repeating = true })
-bind("XF86AudioMute",         hl.dsp.exec_cmd("wpctl set-mute @DEFAULT_AUDIO_SINK@ toggle"),     "Mute",            { locked = true })
-bind("XF86AudioMicMute",      hl.dsp.exec_cmd("wpctl set-mute @DEFAULT_AUDIO_SOURCE@ toggle"),   "Mute microphone", { locked = true })
+bind("XF86AudioRaiseVolume",  hl.dsp.exec_cmd(scripts .. "osd.sh volume up"), "Volume up", { locked = true, repeating = true })
+bind("XF86AudioLowerVolume",  hl.dsp.exec_cmd(scripts .. "osd.sh volume down"), "Volume down", { locked = true, repeating = true })
+bind("XF86AudioMute",         hl.dsp.exec_cmd(scripts .. "osd.sh volume mute"), "Mute",            { locked = true })
+bind("XF86AudioMicMute",      hl.dsp.exec_cmd(scripts .. "osd.sh mic mute"), "Mute microphone", { locked = true })
+-- Caps Lock: só avisa (non_consuming = a tecla continua funcionando; release = lê o LED já trocado)
+bind("Caps_Lock", hl.dsp.exec_cmd(scripts .. "osd.sh caps"), "Caps Lock indicator", { locked = true, release = true, non_consuming = true })
 -- Brilho: do monitor em foco (notebook ou externo com DDC/CI), veja scripts/brightness.sh
 bind("XF86MonBrightnessUp",   hl.dsp.exec_cmd(scripts .. "brightness.sh up"),   "Brightness up (focused monitor)", { locked = true, repeating = true })
 bind("XF86MonBrightnessDown", hl.dsp.exec_cmd(scripts .. "brightness.sh down"), "Brightness down (focused monitor)", { locked = true, repeating = true })

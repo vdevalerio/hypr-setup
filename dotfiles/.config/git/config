@@ -1,0 +1,64 @@
+# Git do hypr-setup. Ajustes de uma máquina só (ex.: e-mail do trabalho por pasta) vão em
+# ~/.config/git/local, que não é versionado — veja o [include] no fim.
+[user]
+	name = Marcos Valério
+	email = marcosvalerio.dev255@gmail.com
+	# Assina commits/tags com a chave SSH (sobe no GitHub como "signing key")
+	signingkey = ~/.ssh/id_ed25519.pub
+[gpg]
+	format = ssh
+[gpg "ssh"]
+	allowedSignersFile = ~/.config/git/allowed_signers
+[commit]
+	gpgsign = true
+	verbose = true
+[tag]
+	gpgsign = true
+	sort = version:refname
+
+[init]
+	defaultBranch = main
+[pull]
+	rebase = true
+[push]
+	autoSetupRemote = true
+	followTags = true
+[fetch]
+	prune = true
+	pruneTags = true
+[rebase]
+	autoStash = true
+	autoSquash = true
+	updateRefs = true
+[merge]
+	conflictstyle = zdiff3
+[rerere]
+	enabled = true
+	autoupdate = true
+[diff]
+	algorithm = histogram
+	colorMoved = default
+	mnemonicPrefix = true
+	renames = true
+[branch]
+	sort = -committerdate
+[column]
+	ui = auto
+[help]
+	autocorrect = prompt
+[core]
+	pager = delta
+[interactive]
+	diffFilter = delta --color-only
+[delta]
+	# syntax-theme ansi = usa as cores do terminal, então acompanha o tema do desktop
+	syntax-theme = ansi
+	navigate = true
+	line-numbers = true
+	hyperlinks = true
+
+[url "git@github.com:"]
+	pushInsteadOf = https://github.com/
+
+[include]
+	path = ~/.config/git/local

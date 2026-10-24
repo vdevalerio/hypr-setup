@@ -1,0 +1,17 @@
+# atuin (Ctrl+R). Só local: sem conta, sem sincronização.
+auto_sync = false
+update_check = false
+style = "compact"
+inline_height = 20
+show_preview = true
+# Enter coloca o comando na linha (para editar); Tab também. Não executa direto.
+enter_accept = false
+# Começa no histórico todo; dentro da busca, Ctrl+R alterna: global → host → sessão → pasta
+filter_mode = "global"
+search_mode = "fuzzy"
+# Não guarda comandos com segredos óbvios
+secrets_filter = true
+history_filter = ["^export .*(TOKEN|KEY|SECRET|PASSWORD)"]
+
+[stats]
+common_prefix = ["sudo"]

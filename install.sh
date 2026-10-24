@@ -9,7 +9,7 @@
 # │  ./install.sh nvim       só prepara o Neovim (plugins, LSPs)         │
 # │  ./install.sh save       copia as configs ATUAIS da home para cá     │
 # │  ./install.sh sddm       (re)instala o tema da tela de login         │
-# │  ./install.sh extras     firewall, zram, manutenção, tampa, bateria  │
+# │  ./install.sh extras     firewall, zram, kernel reserva, bateria...  │
 # ╰──────────────────────────────────────────────────────────────────────╯
 set -euo pipefail
 
@@ -41,6 +41,12 @@ MANAGED=(
     .config/lsd
     .config/nvim
     .config/starship.toml
+    .config/git/config
+    .config/git/ignore
+    .config/qt6ct/qt6ct.conf
+    .config/atuin/config.toml
+    .config/direnv/direnv.toml
+    .config/tealdeer/config.toml
     .config/gtk-3.0/settings.ini
     .config/gtk-3.0/gtk.css
     .config/gtk-4.0/settings.ini
@@ -71,16 +77,18 @@ PKGS_APPS=(kitty yazi poppler resvg 7zip unzip gvfs gvfs-mtp ffmpegthumbnailer f
 PKGS_AUDIO=(pipewire pipewire-pulse pipewire-alsa pipewire-jack wireplumber pavucontrol playerctl sof-firmware)
 PKGS_SYSTEM=(networkmanager network-manager-applet bluez bluez-utils blueman power-profiles-daemon brightnessctl
              ddcutil    # brilho de monitores externos (DDC/CI)
+             udiskie udisks2 reflector
              nftables zram-generator pacman-contrib fwupd linux-headers dkms)
 PKGS_CAPTURE=(grim slurp satty wl-clipboard cliphist jq imagemagick gpu-screen-recorder
               tesseract tesseract-data-eng tesseract-data-por tesseract-data-jpn tesseract-data-rus)
 PKGS_BACKUP=(restic rclone)
 PKGS_LOOK=(ttf-jetbrains-mono-nerd ttf-nerd-fonts-symbols noto-fonts noto-fonts-emoji noto-fonts-cjk adwaita-fonts
-           papirus-icon-theme adw-gtk-theme nwg-look)
+           papirus-icon-theme adw-gtk-theme nwg-look qt6ct)
 PKGS_INPUT=(fcitx5 fcitx5-mozc fcitx5-gtk fcitx5-qt fcitx5-configtool)   # idiomas: PT, EN, RU, JA
 PKGS_LOGIN=(sddm xorg-server xorg-xrandr qt6-multimedia qt6-multimedia-ffmpeg qt6-svg qt6-declarative gnome-keyring)
 PKGS_SHELL=(zsh zsh-autosuggestions zsh-syntax-highlighting zsh-completions zsh-history-substring-search
-            starship fzf zoxide lsd eza bat fd ripgrep lazygit)
+            starship fzf zoxide lsd eza bat fd ripgrep lazygit git-delta
+            atuin direnv mise tealdeer plocate)
 PKGS_DEV=(neovim git github-cli base-devel python-pip python-pynvim uv ipython nodejs npm tree-sitter-cli luarocks)
 AUR_PKGS=(mpvpaper bibata-cursor-theme-bin)
 # Limite de carga da bateria (só notebooks Acer; em outros, a instalação só avisa e segue)
@@ -186,6 +194,8 @@ setup_system() {
         step "NVIDIA: suspensão e economia de energia"
         sudo systemctl enable nvidia-suspend.service nvidia-hibernate.service nvidia-resume.service
         echo 'options nvidia "NVreg_DynamicPowerManagement=0x02"' | sudo tee /etc/modprobe.d/nvidia-pm.conf >/dev/null
+        sudo install -Dm644 "$REPO/system/etc/udev/rules.d/80-nvidia-pm.rules" /etc/udev/rules.d/80-nvidia-pm.rules
+        echo auto | sudo tee /sys/bus/pci/devices/$NV_ID/power/control >/dev/null || true
     fi
 
     step "Brilho de monitores externos (DDC/CI): módulo i2c-dev"
@@ -248,6 +258,26 @@ setup_extras() {
     step "Manutenção automática: TRIM do SSD, cache do pacman, firmware"
     sudo systemctl enable --now fstrim.timer paccache.timer fwupd-refresh.timer
 
+    step "Rede de segurança: snapshot de pacotes + /etc antes de cada atualização"
+    sudo install -Dm755 "$REPO/system/usr/local/bin/hypr-setup-snapshot" /usr/local/bin/hypr-setup-snapshot
+    sudo install -Dm644 "$REPO/system/etc/pacman.d/hooks/00-hypr-setup-snapshot.hook" /etc/pacman.d/hooks/00-hypr-setup-snapshot.hook
+
+    step "Kernel reserva (linux-lts): se uma atualização quebrar o boot, escolha-o no GRUB (Advanced options)"
+    sudo pacman -S --needed --noconfirm linux-lts linux-lts-headers linux-headers
+    if pacman -Qq nvidia-open &>/dev/null; then
+        info "NVIDIA: nvidia-open → nvidia-open-dkms (módulo compilado para os dois kernels)"
+        sudo pacman -S --needed --noconfirm --ask=4 nvidia-open-dkms   # --ask=4: aceita remover o conflitante
+    fi
+    if command -v grub-mkconfig >/dev/null && [[ -f /boot/grub/grub.cfg ]]; then
+        sudo grub-mkconfig -o /boot/grub/grub.cfg
+    fi
+
+    step "Mirrors do pacman: os mais rápidos (Brasil + EUA), atualizados toda semana"
+    sudo pacman -S --needed --noconfirm reflector plocate
+    sudo install -Dm644 "$REPO/system/etc/xdg/reflector/reflector.conf" /etc/xdg/reflector/reflector.conf
+    sudo systemctl enable reflector.timer plocate-updatedb.timer
+    sudo systemctl start plocate-updatedb.service || true
+
     step "zram (swap comprimida na memória)"
     sudo install -Dm644 "$REPO/system/etc/systemd/zram-generator.conf" /etc/systemd/zram-generator.conf
     sudo install -Dm644 "$REPO/system/etc/sysctl.d/99-zram.conf" /etc/sysctl.d/99-zram.conf
@@ -300,6 +330,17 @@ deploy_dotfiles() {
     local d
     for d in Desktop Documents Downloads Music Pictures Projects Public Templates Videos; do mkdir -p "$HOME/$d"; done
     mkdir -p "$HOME/Pictures/Screenshots"
+
+    # Git: assinatura de commits com a chave SSH (se existir) e agente SSH do gnome-keyring
+    if [[ -f $HOME/.ssh/id_ed25519.pub ]]; then
+        printf '%s %s\n' "$(git config --get user.email)" "$(cut -d' ' -f1,2 "$HOME/.ssh/id_ed25519.pub")" \
+            > "$HOME/.config/git/allowed_signers"
+    else
+        warn "Sem ~/.ssh/id_ed25519: commits não serão assinados. Crie com: ssh-keygen -t ed25519 (veja README)"
+        git config --file "$HOME/.config/git/local" commit.gpgsign false
+        git config --file "$HOME/.config/git/local" tag.gpgsign false
+    fi
+    systemctl --user enable gcr-ssh-agent.socket 2>/dev/null || true
 
     # Yazi abre pastas
     update-desktop-database "$HOME/.local/share/applications" 2>/dev/null || true

@@ -1,0 +1,8 @@
+# Ignorados em todos os repositórios
+.venv/
+__pycache__/
+.ipynb_checkpoints/
+.direnv/
+.envrc.local
+.DS_Store
+*.swp

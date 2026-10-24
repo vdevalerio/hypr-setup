@@ -6,8 +6,8 @@
     theme.py auto <imagem>     gera e aplica a paleta a partir de uma imagem (quadro do wallpaper)
     theme.py name <id>         nome legível do tema
 
-Grava as cores em: Hyprland (bordas), hyprlock, Waybar, SwayNC, Rofi, kitty, GTK, fcitx5 e tela de
-login. Quem recarrega os apps é o wallpaper.sh (wallpaper.sh theme <id|auto>).
+Grava as cores em: Hyprland (bordas), hyprlock, Waybar, SwayNC, Rofi, kitty, GTK, Qt (qt6ct), fcitx5
+e tela de login. Quem recarrega os apps é o wallpaper.sh (wallpaper.sh theme <id|auto>).
 
 Todos os temas têm as mesmas 26 cores nomeadas (nomes do Catppuccin): "mauve" é o acento
 principal (bordas, workspace ativo, seleção), "blue" o segundo tom dos gradientes. Para criar um
@@ -223,6 +223,19 @@ def gtk_css(c):
 """
 
 
+def qt6ct(c):
+    # Ordem dos papéis do QPalette: WindowText Button Light Midlight Dark Mid Text BrightText ButtonText
+    # Base Window Shadow Highlight HighlightedText Link LinkVisited AlternateBase NoRole ToolTipBase
+    # ToolTipText PlaceholderText Accent
+    roles = ("text surface0 surface2 surface1 mantle surface1 text text text mantle base crust mauve crust "
+             "blue lavender base base surface0 text overlay1 mauve").split()
+    dim = {0: "overlay0", 6: "overlay0", 8: "overlay0", 12: "surface1", 13: "overlay1"}
+    row = lambda r: ", ".join(f"#ff{c[k]}" for k in r)
+    disabled = [dim.get(i, k) for i, k in enumerate(roles)]
+    return (f"# {HEADER}. Cores dos apps Qt (qt6ct; reabra o app).\n[ColorScheme]\n"
+            f"active_colors={row(roles)}\ndisabled_colors={row(disabled)}\ninactive_colors={row(roles)}\n")
+
+
 def fcitx5(c):
     return f"""# {HEADER}. Janela de candidatos do fcitx5 (japonês).
 [Metadata]
@@ -322,6 +335,7 @@ OUTPUTS = [
     ("~/.config/kitty/colors.conf", kitty),
     ("~/.config/gtk-3.0/gtk.css", gtk_css),
     ("~/.config/gtk-4.0/gtk.css", gtk_css),
+    ("~/.config/qt6ct/colors/hypr-setup.conf", qt6ct),
     ("~/.local/share/fcitx5/themes/hypr-setup/theme.conf", fcitx5),
     ("~/.config/hypr/sddm-colors.conf", sddm),
 ]
@@ -334,6 +348,11 @@ def write(pal):
         tmp = dest.with_name(dest.name + ".tmp")
         tmp.write_text(fn(pal))
         tmp.replace(dest)
+    # qt6ct só aceita caminho absoluto para o esquema de cores (o arquivo versionado usa ~)
+    conf = Path("~/.config/qt6ct/qt6ct.conf").expanduser()
+    if conf.exists():
+        scheme = Path("~/.config/qt6ct/colors/hypr-setup.conf").expanduser()
+        conf.write_text(re.sub(r"(?m)^color_scheme_path=.*$", f"color_scheme_path={scheme}", conf.read_text()))
 
 
 def main(argv):
