@@ -269,6 +269,12 @@ setup_extras() {
         sudo pacman -S --needed --noconfirm --ask=4 nvidia-open-dkms   # --ask=4: aceita remover o conflitante
     fi
     if command -v grub-mkconfig >/dev/null && [[ -f /boot/grub/grub.cfg ]]; then
+        # O GRUB ordena os kernels pelo nome e poria o linux-lts como entrada principal
+        if grep -q '^#\?GRUB_TOP_LEVEL=' /etc/default/grub; then
+            sudo sed -i 's|^#\?GRUB_TOP_LEVEL=.*|GRUB_TOP_LEVEL="/boot/vmlinuz-linux"|' /etc/default/grub
+        else
+            echo 'GRUB_TOP_LEVEL="/boot/vmlinuz-linux"' | sudo tee -a /etc/default/grub >/dev/null
+        fi
         sudo grub-mkconfig -o /boot/grub/grub.cfg
     fi
 
