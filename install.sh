@@ -243,7 +243,7 @@ setup_extras() {
     step "Firewall (bloqueia o que entra, libera o que sai)"
     sudo install -Dm644 "$REPO/system/etc/nftables.conf" /etc/nftables.conf
     sudo systemctl enable --now nftables.service
-    sudo systemctl reload nftables.service || true
+    sudo systemctl restart nftables.service   # aplica as regras novas (não tem "reload")
 
     step "Manutenção automática: TRIM do SSD, cache do pacman, firmware"
     sudo systemctl enable --now fstrim.timer paccache.timer fwupd-refresh.timer
