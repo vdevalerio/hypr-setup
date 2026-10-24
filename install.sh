@@ -10,6 +10,7 @@
 # │  ./install.sh save       copia as configs ATUAIS da home para cá     │
 # │  ./install.sh sddm       (re)instala o tema da tela de login         │
 # │  ./install.sh extras     firewall, zram, kernel reserva, bateria...  │
+# │  ./install.sh data       perfil de dados: SQL, DuckDB, Docker...     │
 # ╰──────────────────────────────────────────────────────────────────────╯
 set -euo pipefail
 
@@ -94,6 +95,11 @@ PKGS_DEV=(neovim git github-cli base-devel python-pip python-pynvim uv ipython n
 # waybar-git: a 0.15.0 manda comandos no formato antigo e o Hyprland com config em Lua recusa
 # (clicar num workspace não faz nada). Corrigido no código do Waybar em 2026-08; volte para o
 # pacote "waybar" (em PKGS_DESKTOP) quando sair a 0.16.
+# Perfil de dados (./install.sh data — fora da instalação completa): análise, SQL, relatórios
+PKGS_DATA=(dbeaver postgresql mariadb-clients pgcli duckdb libreoffice-fresh
+           docker docker-compose docker-buildx)
+UV_TOOLS_DATA=("harlequin[postgres,mysql]" mycli)   # IDE de SQL no terminal; cliente MySQL
+
 AUR_PKGS=(mpvpaper bibata-cursor-theme-bin waybar-git)
 # Limite de carga da bateria (só notebooks Acer; em outros, a instalação só avisa e segue)
 AUR_BATTERY=(acer-wmi-battery-dkms-git)
@@ -310,6 +316,27 @@ setup_extras() {
     fi
 }
 
+# Perfil de dados: clientes SQL, DuckDB, LibreOffice (abrir .xlsx de terceiros) e Docker para
+# bancos locais de teste. O servidor do PostgreSQL vem junto do pacote, mas fica desligado (só o psql).
+setup_data() {
+    step "Perfil de dados: pacotes"
+    sudo pacman -S --needed --noconfirm "${PKGS_DATA[@]}"
+
+    step "Docker (liga sob demanda, pelo socket)"
+    sudo systemctl enable --now docker.socket
+    # Grupo docker = poder de root via Docker; é o padrão em máquinas de desenvolvimento
+    if ! id -nG "$USER" | grep -qw docker; then
+        sudo usermod -aG docker "$USER"
+        info "Você entrou no grupo docker: vale no próximo login"
+    fi
+
+    step "Ferramentas de terminal (uv tool)"
+    local t
+    for t in "${UV_TOOLS_DATA[@]}"; do
+        uv tool install --quiet "$t" 2>/dev/null || uv tool upgrade --quiet "${t%%[*}" || warn "$t falhou"
+    done
+}
+
 deploy_dotfiles() {
     step "Copiando configs para a home"
     [[ -d $DOTS ]] || { echo "Pasta $DOTS não encontrada." >&2; exit 1; }
@@ -421,7 +448,7 @@ save_dotfiles() {
     info "Pronto. Tamanho: $(du -sh "$DOTS" | cut -f1)"
 }
 
-usage() { sed -n '2,13p' "$0" | sed 's/^# \{0,1\}//'; }
+usage() { sed -n '2,14p' "$0" | sed 's/^# \{0,1\}//'; }
 
 # ── Principal ───────────────────────────────────────────────────────────
 case "${1:-all}" in
@@ -446,6 +473,7 @@ case "${1:-all}" in
     save)     need_user; save_dotfiles ;;
     sddm)     need_user; setup_sddm ;;
     extras)   need_user; sudo_keepalive; setup_extras ;;
+    data)     need_user; sudo_keepalive; setup_data ;;
     -h|--help|help) usage ;;
     *) usage; exit 1 ;;
 esac
