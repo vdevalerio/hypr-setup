@@ -262,6 +262,8 @@ para trocar), layout do teclado e botões de suspender, reiniciar e desligar.
 ### Mouse
 - **Barra:** tudo é clicável.
   - Logo do Arch: apps (direito: atalhos). Relógio: calendário (direito: data completa).
+  - Workspaces: os que têm janelas ficam com o número claro e um tracinho embaixo; clique direito
+    lista as janelas de cada workspace (Enter vai para a janela).
   - Música (aparece quando algo toca): clique = play/pause, direito = próxima, roda = anterior/próxima.
   - `󰅁` à direita: passe o mouse para ver os apps em segundo plano (Wi-Fi, Bluetooth…).
   - `󰌌 PT` idioma do teclado: clique = próximo, direito = escolher, roda = trocar.

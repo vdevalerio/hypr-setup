@@ -55,6 +55,8 @@
             "special": "󰠱",
             "default": ""
         },
+        // Clique direito: lista das janelas abertas em cada workspace
+        "on-click-right": "setsid -f ~/.config/hypr/scripts/windows.sh",
         "on-scroll-up": "hyprctl dispatch 'hl.dsp.focus({ workspace = \"m-1\" })'",
         "on-scroll-down": "hyprctl dispatch 'hl.dsp.focus({ workspace = \"m+1\" })'",
         "show-special": true,

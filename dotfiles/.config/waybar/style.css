@@ -69,9 +69,17 @@ tooltip label { color: @text; padding: 2px 4px; }
     border-radius: 7px;
     transition: all 0.25s cubic-bezier(0.23, 1, 0.32, 1);
 }
-#workspaces button.empty { color: alpha(@overlay0, 0.55); }
+/* Workspace com janelas: número claro + tracinho em gradiente embaixo (não muda a largura) */
+#workspaces button:not(.empty) {
+    color: @subtext1;
+    background-image: linear-gradient(90deg, @mauve, @blue);
+    background-size: 9px 2px;
+    background-position: center 90%;
+    background-repeat: no-repeat;
+}
+#workspaces button.empty { color: alpha(@overlay0, 0.55); background-image: none; }
 #workspaces button:hover {
-    background: alpha(@surface1, 0.85);
+    background-color: alpha(@surface1, 0.85);
     color: @text;
     box-shadow: none;
     text-shadow: none;
@@ -79,7 +87,7 @@ tooltip label { color: @text; padding: 2px 4px; }
 /* Workspace aberto num monitor que não está em foco */
 #workspaces button.visible {
     color: @text;
-    background: alpha(@surface2, 0.9);
+    background-color: alpha(@surface2, 0.9);
     padding: 0 14px;
 }
 #workspaces button.active {
