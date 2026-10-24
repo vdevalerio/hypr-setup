@@ -256,6 +256,7 @@ setup_extras() {
 
     step "Firewall (bloqueia o que entra, libera o que sai)"
     sudo install -Dm644 "$REPO/system/etc/nftables.conf" /etc/nftables.conf
+    sudo install -d /etc/nftables.d/input   # regras extras por máquina (veja nftables.conf)
     sudo systemctl enable --now nftables.service
     sudo systemctl restart nftables.service   # aplica as regras novas (não tem "reload")
 
@@ -373,13 +374,14 @@ setup_nvim() {
     nvim --headless "+Lazy! restore" +qa >/dev/null 2>&1 || nvim --headless "+Lazy! sync" +qa >/dev/null 2>&1 || true
 
     step "Neovim: parsers de sintaxe"
+    # grep -o: o progresso do nvim-treesitter não quebra linha, então o resultado sai colado no fim
     local ts_list mason_list
     ts_list=$(printf '"%s",' "${TS_PARSERS[@]}")
     nvim --headless -c "lua vim.defer_fn(function()
         local ts = require('nvim-treesitter')
         ts.install({${ts_list}}):wait(600000)
         print('parsers: ' .. #ts.get_installed())
-        vim.cmd('qa!') end, 1000)" 2>&1 | grep -E '^parsers' || warn "parsers: verifique com :checkhealth"
+        vim.cmd('qa!') end, 1000)" 2>&1 | grep -oE 'parsers: [0-9]+' || warn "parsers: verifique com :checkhealth"
 
     step "Neovim: servidores de linguagem e ferramentas (Mason)"
     mason_list=$(printf '"%s",' "${MASON_PKGS[@]}")
@@ -401,7 +403,7 @@ setup_nvim() {
             else vim.defer_fn(wait, 1000) end
           end
           wait()
-        end)" 2>&1 | grep -E '^mason' || warn "mason: verifique com :Mason"
+        end)" 2>&1 | grep -oE 'mason: .*' || warn "mason: verifique com :Mason"
 }
 
 save_dotfiles() {

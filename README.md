@@ -477,6 +477,25 @@ no `look.conf`) já entra; senão entra o padrão.
 
 Se passar a configurar um app novo, acrescente o caminho dele ao array `MANAGED` no `install.sh`.
 
+## Testar numa VM
+
+`test/vm.sh` instala tudo do zero numa máquina virtual (QEMU/KVM, UEFI, vídeo 3D), sem tocar no
+seu sistema. Os arquivos ficam em `~/VMs/hypr-setup-test`; a VM tem 4 vCPUs, 6 GB e SSH em `localhost:2222`.
+
+```bash
+test/vm.sh deps            # mostra o comando do QEMU com vídeo 3D (rode com sudo)
+test/vm.sh iso             # baixa a ISO do Arch e confere o sha256
+test/vm.sh create          # disco de 40 GB + NVRAM do UEFI
+test/vm.sh live            # liga pela ISO; a chave SSH entra sozinha (cloud-init)
+test/vm.sh install         # Arch base: GRUB UEFI, ext4, usuário tester/tester (test/arch-base.sh)
+test/vm.sh ssh poweroff && test/vm.sh run    # religa pelo disco
+test/vm.sh setup           # copia este repositório e roda ./install.sh (log: test/vm.sh ssh tail -f install.log)
+test/vm.sh destroy         # apaga a VM (a ISO fica)
+```
+
+Ao final, faça login na janela da VM (tester / tester). O sudo da VM não pede senha e a porta 22 fica
+liberada no firewall (`/etc/nftables.d/input/ssh.nft`) — só na VM de teste.
+
 ## Dicas e problemas conhecidos
 
 - **Config do Hyprland:** desde a 0.55 é em **Lua** (`hyprland.lua`), não mais `hyprland.conf`.
