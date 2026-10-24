@@ -1,6 +1,8 @@
 #!/usr/bin/env bash
 # Backup dos seus arquivos: restic (criptografado, incremental) no Google Drive, via rclone.
 #   backup.sh setup      primeira vez: autoriza o Google Drive e cria o repositório
+#   backup.sh drive-client   usa a SUA credencial do Google (client ID): a compartilhada do rclone
+#                            está sendo desativada e estoura o limite (erro "Quota exceeded")
 #   backup.sh run        faz o backup agora (o timer diário roda sozinho: backup.timer)
 #   backup.sh status     último backup, tamanho e quantas versões existem
 #   backup.sh list       versões salvas (snapshots)
@@ -8,7 +10,7 @@
 #
 # A senha do repositório fica em ~/.config/restic/password. SEM ELA NÃO DÁ PARA RECUPERAR NADA:
 # guarde uma cópia no KeePassXC. Mantém 7 diários, 4 semanais e 6 mensais.
-export RESTIC_REPOSITORY="rclone:gdrive:Backups/restic-$(hostname)"
+export RESTIC_REPOSITORY="rclone:gdrive:Backups/restic-$(uname -n)"   # uname: o comando hostname nem sempre vem instalado
 export RESTIC_PASSWORD_FILE="$HOME/.config/restic/password"
 STATUS=~/.cache/backup-last
 
@@ -19,6 +21,26 @@ EXCLUDES=(node_modules .venv venv __pycache__ .mypy_cache .ruff_cache .pytest_ca
 
 existing() { local p; for p in "${PATHS[@]}"; do [ -e "$p" ] && printf '%s\n' "$p"; done; }
 ready() { [ -s "$RESTIC_PASSWORD_FILE" ] && rclone listremotes 2>/dev/null | grep -qx 'gdrive:'; }
+
+drive_client() {
+    cat <<'MSG'
+Crie a sua credencial (uma vez, grátis) em https://console.cloud.google.com :
+  1. Crie um projeto (ex.: "rclone backup").
+  2. APIs e serviços → Biblioteca → "Google Drive API" → Ativar.
+  3. Tela de consentimento OAuth (Google Auth Platform): tipo Externo, preencha nome e e-mail,
+     e em Público-alvo clique em "Publicar app" (com o escopo drive.file não precisa de verificação;
+     em modo "Teste" a autorização expira a cada 7 dias).
+  4. Clientes → Criar cliente → tipo "App para computador" → copie o ID e a chave secreta.
+MSG
+    local id secret
+    read -rp "Client ID: " id
+    read -rp "Client secret: " secret
+    [ -n "$id" ] && [ -n "$secret" ] || { echo "Cancelado."; exit 1; }
+    rclone config update gdrive client_id "$id" client_secret "$secret" >/dev/null || exit 1
+    echo "Autorize de novo no navegador com a credencial nova…"
+    rclone config reconnect gdrive: || exit 1
+    echo "Pronto. Teste com: backup.sh run"
+}
 
 setup() {
     if ! rclone listremotes 2>/dev/null | grep -qx 'gdrive:'; then
@@ -67,6 +89,7 @@ status() {
 
 case "${1:-}" in
     setup)   setup ;;
+    drive-client) drive_client ;;
     run)     run "${2:-}" ;;
     status)  status ;;
     list)    restic snapshots ;;

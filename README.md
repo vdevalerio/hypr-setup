@@ -134,7 +134,9 @@ Testado em: Ryzen 7 7735HS + Radeon 680M + RTX 4050 (notebook), Hyprland 0.56.
 - **Backup:** restic, criptografado e incremental, no **Google Drive** (pasta `Backups/`), todo dia
   (ou assim que ligar, se perdeu o horário). Copia Documents, Projects, Desktop, Pictures, Music, chaves SSH,
   GPG e o chaveiro, sem `node_modules`, `.venv` e caches. Mantém 7 diários, 4 semanais e 6 mensais.
-  - Primeira vez: `backup setup` (autoriza o Drive no navegador e cria a senha).
+  - Primeira vez: `backup setup` (autoriza o Drive no navegador e cria a senha) e depois
+    `backup drive-client`: cadastra a **sua** credencial do Google (passo a passo no próprio comando).
+    A credencial compartilhada do rclone está sendo desativada e dá erro "Quota exceeded".
   - **Guarde a senha** (`~/.config/restic/password`) no KeePassXC: sem ela não há como recuperar nada.
   - `backup run` (agora), `backup status`, `backup list`, `backup restore latest ~/Restaurado`.
 - **Firewall** (nftables): bloqueia conexões que chegam e libera as que saem. Regras em
