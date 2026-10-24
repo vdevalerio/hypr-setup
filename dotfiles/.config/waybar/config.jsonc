@@ -55,8 +55,6 @@
             "special": "󰠱",
             "default": ""
         },
-        // Clique direito: lista das janelas abertas em cada workspace
-        "on-click-right": "setsid -f ~/.config/hypr/scripts/windows.sh",
         "on-scroll-up": "hyprctl dispatch 'hl.dsp.focus({ workspace = \"m-1\" })'",
         "on-scroll-down": "hyprctl dispatch 'hl.dsp.focus({ workspace = \"m+1\" })'",
         "show-special": true,
@@ -72,6 +70,10 @@
         "format": "{}",
         "max-length": 50,
         "separate-outputs": true,
+        // Clique no título: janelas abertas em cada workspace (os botões dos workspaces não aceitam
+        // clique extra: o Waybar entrega o clique ao botão, nunca ao módulo)
+        "on-click": "setsid -f ~/.config/hypr/scripts/windows.sh",
+        "on-click-right": "setsid -f ~/.config/hypr/scripts/windows.sh",
         "rewrite": {
             "(.*) — Mozilla Firefox": "󰈹  $1",
             "(.*) - Mozilla Firefox": "󰈹  $1",

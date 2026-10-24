@@ -101,6 +101,7 @@ tooltip label { color: @text; padding: 2px 4px; }
 #submap { color: @crust; background: @peach; margin: 4px 4px 4px 0; }
 
 #window { color: @subtext0; font-weight: 500; padding: 0 6px; }
+#window:hover { color: @text; background: alpha(@surface1, 0.6); border-radius: 8px; }   /* clique: lista de janelas */
 
 /* ── Centro ─────────────────────────────────────────────────── */
 #clock { color: @mauve; font-weight: 700; padding: 0 14px; }
