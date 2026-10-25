@@ -457,22 +457,28 @@ setup_nvim() {
     mason_list=$(printf '"%s",' "${MASON_PKGS[@]}")
     nvim --headless -c 'Lazy load mason.nvim' -c "lua
         local reg = require('mason-registry')
-        local pending, failed = 0, {}
+        local names, deadline = {${mason_list}}, vim.uv.now() + 900000
         reg.refresh(function()
-          for _, name in ipairs({${mason_list}}) do
+          -- o LazyVim já instala sozinho parte da lista (ensure_installed) ao carregar o Mason:
+          -- pacote em instalação não aceita outro install (assert), então só espera por ele
+          for _, name in ipairs(names) do
             local ok, p = pcall(reg.get_package, name)
-            if ok and not p:is_installed() then
-              pending = pending + 1
-              p:install({}, function(success) if not success then table.insert(failed, name) end; pending = pending - 1 end)
+            if ok and not p:is_installed() and not p:is_installing() then
+              pcall(p.install, p)
             end
           end
           local function wait()
-            if pending == 0 then
-              print('mason: ' .. #reg.get_installed_package_names() .. ' instalados' .. (#failed > 0 and (' | falharam: ' .. table.concat(failed, ' ')) or ''))
+            local busy = vim.tbl_filter(function(n)
+              local ok, p = pcall(reg.get_package, n); return ok and p:is_installing() end, names)
+            if #busy == 0 or vim.uv.now() > deadline then
+              local missing = vim.tbl_filter(function(n)
+                local ok, p = pcall(reg.get_package, n); return not (ok and p:is_installed()) end, names)
+              print('mason: ' .. #reg.get_installed_package_names() .. ' instalados'
+                .. (#missing > 0 and (' | faltando: ' .. table.concat(missing, ' ')) or ''))
               vim.cmd('qa!')
             else vim.defer_fn(wait, 1000) end
           end
-          wait()
+          vim.defer_fn(wait, 1000)
         end)" 2>&1 | grep -oE 'mason: .*' || warn "mason: verifique com :Mason"
 }
 
