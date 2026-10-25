@@ -101,6 +101,7 @@ hl.on("hyprland.start", function()
     hl.exec_cmd("~/.config/hypr/scripts/igpu.sh swaync") -- notificações (na GPU integrada)
     hl.exec_cmd("~/.config/hypr/scripts/wallpaper.sh restore") -- wallpaper animado + cores
     hl.exec_cmd("hypridle")
+    hl.exec_cmd("~/.config/hypr/scripts/overview.sh start") -- visão geral dos workspaces (SUPER + Tab)
     hl.exec_cmd("~/.config/hypr/scripts/battery-watch.sh") -- avisos de bateria baixa
     hl.exec_cmd("~/.config/hypr/scripts/power.sh")         -- tomada × bateria: 165/60 Hz e perfil de energia
     hl.exec_cmd("~/.config/hypr/scripts/lid.sh check")     -- ligou com a tampa fechada e monitor externo

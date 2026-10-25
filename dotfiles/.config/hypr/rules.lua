@@ -102,7 +102,7 @@ hl.window_rule({
 ---------------------
 -- Desfoque (blur) atrás da barra, menus e notificações
 
-for _, ns in ipairs({ "waybar", "rofi", "swaync-control-center", "swaync-notification-window" }) do
+for _, ns in ipairs({ "waybar", "rofi", "swaync-control-center", "swaync-notification-window", "quickshell-overview" }) do
     hl.layer_rule({
         name  = "blur-" .. ns,
         match = { namespace = "^" .. ns .. "$" },
@@ -110,6 +110,13 @@ for _, ns in ipairs({ "waybar", "rofi", "swaync-control-center", "swaync-notific
         ignore_alpha = 0.3,
     })
 end
+
+-- Visão geral (Quickshell): a animação de abrir/fechar é dela
+hl.layer_rule({
+    name    = "overview-no-anim",
+    match   = { namespace = "^quickshell-overview$" },
+    no_anim = true,
+})
 
 hl.layer_rule({
     name  = "dim-rofi",

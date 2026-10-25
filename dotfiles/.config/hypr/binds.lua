@@ -25,6 +25,7 @@ bind(M("Space"),         hl.dsp.exec_cmd("pkill -x rofi || rofi -show drun"), "A
 bind(M("D"),             hl.dsp.exec_cmd("pkill -x rofi || rofi -show drun"), "App launcher")
 bind(M("SHIFT + Space"), hl.dsp.exec_cmd("pkill -x rofi || rofi -show run"),  "Run command")
 bind("ALT + Tab",        hl.dsp.exec_cmd("pkill -x rofi || rofi -show window"), "Switch window (list)")
+bind(M("Tab"),           hl.dsp.exec_cmd("~/.config/hypr/scripts/overview.sh"), "Workspace overview")
 bind(M("E"),             hl.dsp.exec_cmd(fileManager),                   "File manager")
 bind(M("B"),             hl.dsp.exec_cmd(browser),                       "Web browser")
 bind(M("V"),             hl.dsp.exec_cmd(scripts .. "clipboard.sh"),     "Clipboard history")
@@ -91,8 +92,8 @@ bind(M("C"),             hl.dsp.window.center(),                         "Center
 bind(M("P"),             hl.dsp.window.pin({ action = "toggle" }),       "Pin to all workspaces")
 bind(M("Y"),             hl.dsp.layout("togglesplit"),                   "Toggle split direction")
 bind(M("G"),             hl.dsp.group.toggle(),                          "Toggle tab group")
-bind(M("Tab"),           hl.dsp.group.next(),                            "Next tab in group")
-bind(M("SHIFT + Tab"),   hl.dsp.group.prev(),                            "Previous tab in group")
+bind(M("ALT + Tab"),     hl.dsp.group.next(),                            "Next tab in group")
+bind(M("ALT + SHIFT + Tab"), hl.dsp.group.prev(),                        "Previous tab in group")
 
 -- Foco: setas ou h/j/k/l (estilo vim)
 local dirs = {

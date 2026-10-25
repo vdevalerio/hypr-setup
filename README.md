@@ -103,6 +103,7 @@ Testado em: Ryzen 7 7735HS + Radeon 680M + RTX 4050 (notebook), Hyprland 0.56.
 | SUPER + Enter | Terminal |
 | SUPER + Espaço (ou D) | Menu de apps |
 | SUPER + SHIFT + Espaço | Executar comando |
+| SUPER + Tab | Visão geral dos workspaces (miniaturas ao vivo) |
 | ALT + Tab | Lista de janelas |
 | SUPER + E / B | Arquivos (yazi) / navegador |
 | SUPER + V | Histórico da área de transferência |
@@ -242,7 +243,7 @@ para trocar), layout do teclado e botões de suspender, reiniciar e desligar.
 | SUPER + T | Flutuante ↔ lado a lado |
 | SUPER + C / P | Centralizar / fixar em todos os workspaces |
 | SUPER + Y | Alternar divisão horizontal/vertical |
-| SUPER + G, Tab, SHIFT + Tab | Agrupar em abas, próxima/anterior aba |
+| SUPER + G, ALT + Tab, ALT + SHIFT + Tab | Agrupar em abas, próxima/anterior aba |
 | SUPER + setas ou `h j k l` | Mover o foco |
 | SUPER + SHIFT + setas/hjkl | Mover a janela |
 | SUPER + CTRL + setas/hjkl | Redimensionar (ou SUPER + R, setas, Esc) |
@@ -365,6 +366,21 @@ O idioma vale para todos os apps ao mesmo tempo, e o ícone do fcitx5 na bandeja
   Electron/Chromium, abra com `--enable-wayland-ime --wayland-text-input-version=3`.
 - A janela de candidatos do japonês segue as cores do wallpaper e o tamanho de fonte do `look.sh`.
 - **Problemas:** `fcitx5-diagnose` mostra o que falta. Script: `~/.config/hypr/scripts/keyboard.sh`.
+
+## Visão geral dos workspaces
+
+**SUPER + Tab** mostra os workspaces de cada monitor em grade: os fixos (1–5), os ocupados e um `+` para
+um workspace novo. As janelas aparecem na posição e no tamanho reais, em miniatura ao vivo, inclusive
+as dos workspaces escondidos. Janelas paradas (que não redesenham) mostram o ícone do app.
+
+- **Mouse:** clique num workspace para ir até ele e numa janela para focá-la. **Arraste uma janela**
+  para outro workspace (ou para o `+`) para movê-la sem sair da visão geral.
+- **Teclado:** setas ou Tab escolhem, Enter vai, 1–9/0 vão direto ao workspace. **Digitar filtra**
+  as janelas pelo título ou app (Enter foca a primeira que combina). Esc limpa o filtro e depois fecha.
+  SUPER + Tab de novo, ou um clique fora dos cartões, também fecham.
+- Feita em Quickshell (`~/.config/quickshell/overview.qml` + `OverviewScreen.qml`), com as cores do tema.
+  Fica aberta em segundo plano, na GPU integrada, para abrir na hora. Script:
+  `~/.config/hypr/scripts/overview.sh [toggle|open|close|start]` (inicia o processo se ele tiver caído).
 
 ## Tela de bloqueio
 
