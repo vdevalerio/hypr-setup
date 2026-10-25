@@ -37,6 +37,7 @@ MANAGED=(
     .config/waybar
     .config/rofi
     .config/swaync
+    .config/quickshell
     .config/kitty
     .config/fcitx5
     .config/yazi
@@ -75,7 +76,7 @@ DEFAULT_WALLS=(Pictures/Wallpapers/aurora.mp4 Pictures/Wallpapers/catppuccin-mou
 SAVE_EXCLUDE=(.config/hypr/wallpaper.png .config/hypr/themes/__pycache__ .config/fcitx5/conf/cached_layouts)
 
 # ── Pacotes (repositórios oficiais) ─────────────────────────────────────
-PKGS_HYPR=(hyprland hyprlock hypridle hyprpolkitagent hyprpicker hyprsunset hyprland-guiutils hyprshutdown
+PKGS_HYPR=(hyprland hyprlock hypridle quickshell qt6-multimedia qt6-multimedia-ffmpeg hyprpolkitagent hyprpicker hyprsunset hyprland-guiutils hyprshutdown
            xdg-desktop-portal-hyprland xdg-desktop-portal-gtk xdg-user-dirs xdg-utils qt5-wayland qt6-wayland)
 PKGS_DESKTOP=(rofi rofi-emoji rofi-calc swaync libnotify awww ffmpeg file)
 PKGS_APPS=(kitty yazi poppler resvg 7zip unzip gvfs gvfs-mtp ffmpegthumbnailer file-roller

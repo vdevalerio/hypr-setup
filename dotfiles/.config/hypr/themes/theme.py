@@ -7,7 +7,7 @@
     theme.py name <id>         nome legível do tema
 
 Grava as cores em: Hyprland (bordas), hyprlock, Waybar, SwayNC, Rofi, kitty, GTK, Qt (qt6ct), btop,
-fcitx5 e tela de login. lazygit e yazi usam as cores do terminal (nomes ANSI) e seguem sozinhos. Quem recarrega os apps é o wallpaper.sh (wallpaper.sh theme <id|auto>).
+Quickshell (bloqueio, visão geral), fcitx5 e tela de login. lazygit e yazi usam as cores do terminal (nomes ANSI) e seguem sozinhos. Quem recarrega os apps é o wallpaper.sh (wallpaper.sh theme <id|auto>).
 
 Todos os temas têm as mesmas 26 cores nomeadas (nomes do Catppuccin): "mauve" é o acento
 principal (bordas, workspace ativo, seleção), "blue" o segundo tom dos gradientes. Para criar um
@@ -258,6 +258,11 @@ def btop(c):
     return f"# {HEADER}. Tema do btop (reabra o btop).\n" + "\n".join(rows) + "\n"
 
 
+def quickshell(c):
+    import json
+    return json.dumps({k: f"#{c[k]}" for k in KEYS}, indent=1) + "\n"
+
+
 def fcitx5(c):
     return f"""# {HEADER}. Janela de candidatos do fcitx5 (japonês).
 [Metadata]
@@ -368,6 +373,7 @@ OUTPUTS = [
     ("~/.config/gtk-4.0/gtk.css", gtk_css),
     ("~/.config/qt6ct/colors/hypr-setup.conf", qt6ct),
     ("~/.config/btop/themes/hypr-setup.theme", btop),
+    ("~/.config/quickshell/colors.json", quickshell),
     ("~/.local/share/fcitx5/themes/hypr-setup/theme.conf", fcitx5),
     ("~/.config/hypr/sddm-colors.conf", sddm),
 ]

@@ -157,6 +157,9 @@ hl.config({
 
         active_opacity   = 1.0,
         inactive_opacity = 0.95,
+        -- Janelas sem foco levemente escurecidas: a ativa se destaca sem mudar de cor
+        dim_inactive = true,
+        dim_strength = 0.12,
 
         shadow = {
             enabled      = true,
@@ -254,6 +257,8 @@ hl.config({
         mouse_move_enables_dpms = true,
         key_press_enables_dpms  = true,
         vrr                     = 2,   -- taxa adaptativa só em tela cheia (jogos, vídeo): sem tremulação no desktop
+        -- Se a tela de bloqueio (Quickshell) cair, outra (hyprlock) pode assumir a sessão ainda bloqueada
+        allow_session_lock_restore = true,
     },
 
     binds = {

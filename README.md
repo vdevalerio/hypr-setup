@@ -79,7 +79,7 @@ Testado em: Ryzen 7 7735HS + Radeon 680M + RTX 4050 (notebook), Hyprland 0.56.
 | Lançador, emoji, calculadora, clipboard, menus | Rofi |
 | Notificações | SwayNC |
 | Idiomas do teclado | fcitx5 (+ Mozc para japonês) |
-| Bloqueio de tela / inatividade | hyprlock / hypridle |
+| Bloqueio de tela / inatividade | Quickshell (lock.qml, hyprlock de reserva) / hypridle |
 | Luz noturna | hyprsunset |
 | Wallpaper | awww (imagens e GIFs) e mpvpaper (vídeos) |
 | Temas de cor (automático pelo wallpaper ou fixos) | theme.py (próprio) |
