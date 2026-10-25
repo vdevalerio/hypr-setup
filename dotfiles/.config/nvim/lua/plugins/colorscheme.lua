@@ -24,12 +24,26 @@ local transparent_groups = {
   "FoldColumn", "LineNr", "CursorLineNr", "EndOfBuffer", "StatusLine", "StatusLineNC",
   "WinBar", "WinBarNC", "MsgArea", "WinSeparator",
 }
+-- Column ruler: the theme's mauve accent mixed into the base color, so it follows the wallpaper
+local function ruler_highlight()
+  local ok, p = pcall(function() return require("catppuccin.palettes").get_palette("mocha") end)
+  if not ok or not p.mauve or not p.base then
+    return
+  end
+  local function rgb(hex) return { tonumber(hex:sub(2, 3), 16), tonumber(hex:sub(4, 5), 16), tonumber(hex:sub(6, 7), 16) } end
+  local a, b, mix = rgb(p.mauve), rgb(p.base), 0.35
+  local out = {}
+  for i = 1, 3 do out[i] = math.floor(a[i] * mix + b[i] * (1 - mix) + 0.5) end
+  vim.api.nvim_set_hl(0, "ColorColumn", { bg = ("#%02x%02x%02x"):format(out[1], out[2], out[3]) })
+end
+
 local function clear_backgrounds()
   for _, group in ipairs(transparent_groups) do
     local hl = vim.api.nvim_get_hl(0, { name = group, link = false })
     hl.bg, hl.ctermbg = nil, nil
     vim.api.nvim_set_hl(0, group, hl)
   end
+  ruler_highlight()
 end
 
 return {
