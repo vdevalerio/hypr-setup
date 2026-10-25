@@ -1,0 +1,6 @@
+[Unit]
+Description=Disk health (SMART) summary for the desktop
+
+[Service]
+Type=oneshot
+ExecStart=/usr/local/bin/hypr-setup-smart

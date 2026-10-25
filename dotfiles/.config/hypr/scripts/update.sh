@@ -34,6 +34,15 @@ echo
 read -rp "Continue with the update? [Y/n] " ok
 [[ ${ok,,} == n* ]] && exit 0
 
+if command -v hypr-setup-rollback >/dev/null; then
+    b "Rollback point (Timeshift)"
+    echo "    Snapshot of the system before updating (the first takes a few minutes; /home is not included)."
+    sudo hypr-setup-rollback create pre-update || {
+        read -rp "The snapshot failed. Update anyway? [y/N] " ok
+        [[ ${ok,,} == y* ]] || exit 1
+    }
+fi
+
 b "Packages (official + AUR)"
 yay -Syu || { echo "The update failed; see the messages above."; read -rp "Enter to close"; exit 1; }
 date +%s > "$STAMP"

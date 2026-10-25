@@ -14,6 +14,7 @@
 # │  ./install.sh boot       GRUB theme + Plymouth splash for the theme  │
 # │  ./install.sh claude     Claude Code: status line + settings merge    │
 # │  ./install.sh tts        natural voices (Piper) for Foliate & co.    │
+# │  ./install.sh gaming     Steam, GameMode, MangoHud (needs multilib)  │
 # ╰──────────────────────────────────────────────────────────────────────╯
 set -euo pipefail
 
@@ -68,6 +69,8 @@ MANAGED=(
     .local/share/applications/yazi-kitty.desktop
     .local/share/applications/speechify.desktop
     .local/bin/foliate-sentences
+    .local/bin/game
+    .config/gamemode.ini
     .local/share/piper-speechd
     .local/share/fcitx5/themes/hypr-setup
     .config/systemd/user/backup.service
@@ -275,7 +278,8 @@ setup_sddm() {
 setup_extras() {
     step "Packages: firewall, zram, maintenance, screen recording, OCR, backup, GitHub"
     sudo pacman -S --needed --noconfirm nftables zram-generator pacman-contrib fwupd linux-headers dkms \
-        gpu-screen-recorder tesseract tesseract-data-{eng,por,jpn,rus} restic rclone github-cli
+        gpu-screen-recorder tesseract tesseract-data-{eng,por,jpn,rus} restic rclone github-cli \
+        timeshift rsync smartmontools jq wireguard-tools tailscale
 
     step "Firewall (blocks inbound, allows outbound)"
     sudo install -Dm644 "$REPO/system/etc/nftables.conf" /etc/nftables.conf
@@ -289,6 +293,27 @@ setup_extras() {
     step "Safety net: package + /etc snapshot before every update"
     sudo install -Dm755 "$REPO/system/usr/local/bin/hypr-setup-snapshot" /usr/local/bin/hypr-setup-snapshot
     sudo install -Dm644 "$REPO/system/etc/pacman.d/hooks/00-hypr-setup-snapshot.hook" /etc/pacman.d/hooks/00-hypr-setup-snapshot.hook
+
+    step "Rollback points: Timeshift (rsync) snapshot of / before every update (update.sh)"
+    sudo install -Dm755 "$REPO/system/usr/local/bin/hypr-setup-rollback" /usr/local/bin/hypr-setup-rollback
+    sudo install -d /etc/timeshift
+    sed "s/@ROOT_UUID@/$(findmnt -no UUID /)/" "$REPO/system/etc/timeshift/timeshift.json" | sudo tee /etc/timeshift/timeshift.json >/dev/null
+    info "Snapshots live in /timeshift on the root partition (/home is not included: backup.sh covers it)."
+    info "Create one now: sudo hypr-setup-rollback create · restore: sudo hypr-setup-rollback restore"
+
+    step "Disk health: SMART summary every 6 h (warnings come from health-watch.sh)"
+    sudo install -Dm755 "$REPO/system/usr/local/bin/hypr-setup-smart" /usr/local/bin/hypr-setup-smart
+    sudo install -Dm644 "$REPO/system/etc/systemd/system/hypr-setup-smart.service" /etc/systemd/system/hypr-setup-smart.service
+    sudo install -Dm644 "$REPO/system/etc/systemd/system/hypr-setup-smart.timer" /etc/systemd/system/hypr-setup-smart.timer
+    sudo systemctl daemon-reload
+    sudo systemctl enable --now hypr-setup-smart.timer
+
+    step "VPN: WireGuard (through NetworkManager) and Tailscale"
+    sudo systemctl enable tailscaled.service
+    sudo systemctl restart tailscaled.service   # nftables.conf flushed the ruleset: tailscaled rebuilds its rules
+    sleep 2
+    sudo tailscale set --operator "$USER" || warn "tailscale: run 'sudo tailscale set --operator \$USER' later"
+    info "Add a WireGuard tunnel: control center → Tools → VPN → Import. Tailscale: same menu (signs in once)."
 
     step "Fallback kernel (linux-lts): if an update breaks boot, pick it in GRUB (Advanced options)"
     sudo pacman -S --needed --noconfirm linux-lts linux-lts-headers linux-headers
@@ -476,6 +501,27 @@ deploy_dotfiles() {
     fi
 }
 
+# Gaming (not part of the full install: Steam brings a lot of 32-bit libraries). Needs the multilib
+# repository. Steam itself runs on the integrated GPU (igpu.sh) so the desktop keeps the NVIDIA GPU asleep;
+# each game opts in with the Steam launch option `game %command%` (dGPU + GameMode + MangoHud).
+setup_gaming() {
+    step "Gaming: multilib repository"
+    if ! grep -q '^\[multilib\]' /etc/pacman.conf; then
+        sudo sed -i '/^#\[multilib\]/,/^#Include/ s/^#//' /etc/pacman.conf
+        sudo pacman -Sy
+    fi
+    step "Gaming: Steam, GameMode, MangoHud"
+    sudo pacman -S --needed --noconfirm steam gamemode lib32-gamemode mangohud lib32-mangohud \
+        lib32-nvidia-utils lib32-vulkan-radeon lib32-mesa
+    # Steam launcher override: the Steam window itself must not wake the NVIDIA GPU
+    mkdir -p "$HOME/.local/share/applications"
+    if [[ -f /usr/share/applications/steam.desktop ]]; then
+        sed "s|^Exec=\(/usr/bin/\)\?steam|Exec=$HOME/.config/hypr/scripts/igpu.sh /usr/bin/steam|" /usr/share/applications/steam.desktop \
+            > "$HOME/.local/share/applications/steam.desktop"
+    fi
+    info "In Steam: game → Properties → Launch options →  game %command%"
+}
+
 # Natural text-to-speech: Piper plus our own speech-dispatcher module. The stock sd_generic module
 # strips SSML, so clients (Foliate) never get index marks and cannot highlight the word being read;
 # .local/share/piper-speechd/sd_piper emits them. Voice per language: SUPER + SHIFT + V (voice.sh).
@@ -608,6 +654,7 @@ case "${1:-all}" in
     boot)     need_user; sudo_keepalive; setup_boot ;;
     claude)   need_user; setup_claude ;;
     tts)      need_user; setup_tts ;;
+    gaming)   need_user; sudo_keepalive; setup_gaming ;;
     -h|--help|help) usage ;;
     *) usage; exit 1 ;;
 esac

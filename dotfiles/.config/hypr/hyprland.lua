@@ -103,6 +103,7 @@ hl.on("hyprland.start", function()
     hl.exec_cmd("hypridle")
     hl.exec_cmd("~/.config/hypr/scripts/overview.sh start") -- workspace overview (SUPER + Tab)
     hl.exec_cmd("~/.config/hypr/scripts/battery-watch.sh") -- low battery warnings
+    hl.exec_cmd("~/.config/hypr/scripts/health-watch.sh")  -- hot CPU/SSD, failing disk, disk full warnings
     hl.exec_cmd("~/.config/hypr/scripts/power.sh")         -- plugged in vs battery: 165/60 Hz and power profile
     hl.exec_cmd("~/.config/hypr/scripts/lid.sh check")     -- booted with the lid closed and an external monitor
     hl.exec_cmd("fcitx5 -d --replace") -- keyboard languages (SUPER + CTRL + Space)

@@ -281,6 +281,7 @@ tools_menu() {
     add "󰍛" "System monitor"      "btop"             "setsid -f kitty --class btop-float -e btop"
     add "󰌌" "Keybinds"            "SUPER+F1"         "$S/keybinds.sh"
     add "󰚰" "System update"       "update"           "setsid -f kitty --class btop-float -e $S/update.sh"
+    add "󰖂" "VPN"              "$(~/.config/hypr/scripts/vpn.sh status | jq -r '.tooltip | split("\n")[0] | select(. != "") // "off"')" "setsid -f $S/vpn.sh menu"
     add "󰁯" "Backup now"          "$(cut -d' ' -f2- ~/.cache/backup-last 2>/dev/null || echo never)" "setsid -f $S/backup.sh run"
     show "Tools" tools
 }

@@ -1,0 +1,10 @@
+#!/usr/bin/env bash
+# Runs a game on the NVIDIA GPU with GameMode (performance mode) and MangoHud (FPS overlay).
+#   Steam: right click the game → Properties → Launch options:   game %command%
+#   Anything else:   game ./some-game
+# The desktop keeps the dGPU asleep (igpu.sh), and Steam inherits that: undo it for this game only.
+unset __EGL_VENDOR_LIBRARY_FILENAMES __GLX_VENDOR_LIBRARY_NAME VK_DRIVER_FILES CUDA_VISIBLE_DEVICES
+cmd=(prime-run)
+command -v gamemoderun >/dev/null && cmd+=(gamemoderun)
+command -v mangohud >/dev/null && cmd+=(mangohud)
+exec "${cmd[@]}" "$@"

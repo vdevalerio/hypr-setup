@@ -1,0 +1,20 @@
+#!/usr/bin/env bash
+# Disk health summary for the desktop (health-watch.sh reads it). smartctl needs root,
+# so this runs from hypr-setup-smart.timer and leaves a world-readable JSON.
+set -uo pipefail
+OUT=/var/lib/hypr-setup/smart.json
+mkdir -p "${OUT%/*}"
+for dev in /dev/nvme[0-9]n1 /dev/sd[a-z]; do
+    [[ -b $dev ]] && { smartctl -a -j "$dev" || true; }   # exit status is a bitmask, not a failure
+done | jq -s '[.[] | select(.device) | {
+        device: .device.name,
+        model: (.model_name // "disk"),
+        passed: (.smart_status.passed != false),   # not '// true': jq takes false as empty
+        temp: (.temperature.current // null),
+        used: (.nvme_smart_health_information_log.percentage_used // null),
+        media_errors: (.nvme_smart_health_information_log.media_errors // 0),
+        critical: (.nvme_smart_health_information_log.critical_warning // 0),
+        reallocated: ([.ata_smart_attributes.table[]? | select(.id == 5) | .raw.value][0] // 0)
+    }]' > "$OUT.tmp"
+chmod 644 "$OUT.tmp"
+mv "$OUT.tmp" "$OUT"

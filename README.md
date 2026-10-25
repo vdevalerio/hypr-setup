@@ -43,7 +43,8 @@ If you already have configs in your home, the script moves the ones that differ 
 | `./install.sh nvim` | Only sets up Neovim (plugins, parsers, language servers) |
 | `./install.sh save` | Copies the **current** configs from your home into `dotfiles/` (use after customizing) |
 | `./install.sh sddm` | (Re)installs the login screen theme (asks for sudo) |
-| `./install.sh extras` | Firewall, zram, automatic maintenance, lid and battery limit (asks for sudo) |
+| `./install.sh extras` | Firewall, zram, automatic maintenance, rollback snapshots, disk health, VPN, lid and battery limit (asks for sudo) |
+| `./install.sh gaming` | Steam, GameMode and MangoHud; enables multilib (asks for sudo, not part of the full install) |
 
 ### What to adjust before running
 
@@ -134,6 +135,8 @@ Tested on: Ryzen 7 7735HS + Radeon 680M + RTX 4050 (laptop), Hyprland 0.56.
 - **Updating the system:** the `update` command (or control center → Tools → System update). It shows the
   Arch news since the last update (sometimes they require a manual step), updates packages and the AUR, and
   then warns about `.pacnew` files, new firmware, orphaned packages and whether a reboot is needed.
+  Before upgrading it takes a rollback snapshot (below). When updates are pending, `󰚰 N` shows on the
+  bar (checked every 30 minutes; click to update; hover for the list).
 - **Backup:** restic, encrypted and incremental, to **Google Drive** (`Backups/` folder), every day
   (or as soon as you power on, if it missed the time). It copies Documents, Projects, Desktop, Pictures, Music, SSH keys,
   GPG and the keyring, excluding `node_modules`, `.venv` and caches. Keeps 7 daily, 4 weekly and 6 monthly.
@@ -149,12 +152,33 @@ Tested on: Ryzen 7 7735HS + Radeon 680M + RTX 4050 (laptop), Hyprland 0.56.
 - **Before every update** pacman saves the package list (with versions) and a copy of `/etc` in
   `/var/backups/hypr-setup/` (the last 10). To roll a package back: `sudo pacman -U
   /var/cache/pacman/pkg/<package>-<version>...`.
+- **Rollback snapshots:** Timeshift (rsync mode, since the disk is ext4) copies `/` — not `/home`, which
+  `backup` covers — to `/timeshift` before every `update`; the last 5 are kept. Hard links make all but the
+  first one fast and small. A copy of `/boot` (a separate partition) travels inside each snapshot.
+  - `sudo hypr-setup-rollback create` (now) · `list` · `restore [name]` (asks to confirm, restores `/` and
+    `/boot`, then reboot). If the system doesn't boot at all, boot a live USB, mount the root
+    partition and run `timeshift --restore` from there.
+  - Package version rollback is still possible with the pacman cache (see above).
+- **Hardware warnings** (notifications): CPU hot for 3+ minutes (90 °C), SSD at 70 °C / 80 °C, SMART failing or
+  with errors, SSD wear at 90 %, `/` at 90 % / 95 % full. SMART is read as root every 6 hours
+  (`hypr-setup-smart.timer`) because `smartctl` needs it. The NVIDIA GPU is never queried: that would wake it.
 - **Fallback kernel** (`linux-lts`): if a kernel update breaks boot or NVIDIA, pick
   *Advanced options → linux-lts* in GRUB. NVIDIA and the battery limit use DKMS and work on both.
 - **Mirrors:** reflector picks the fastest ones every week (Brazil + US, in
   `system/etc/xdg/reflector/reflector.conf`).
 - **zram:** swap compressed in memory (half of the RAM), used before disk swap. Makes the system feel
   smoother when memory gets tight.
+
+## VPN and games
+
+- **VPN:** WireGuard (through NetworkManager) and Tailscale. Control center → Tools → VPN lists your
+  tunnels; click one to connect or disconnect, or import a `.conf` (`nmcli` stores it, so it also shows up
+  in `nm-connection-editor`). `󰖂` shows on the bar while a VPN is connected (click to manage). Tailscale signs
+  in once, in the browser. The firewall still blocks **incoming** connections on the VPN interface too.
+- **Games** (`./install.sh gaming`): Steam runs on the integrated GPU like everything else, so the NVIDIA GPU
+  stays off. For a game, set its Steam launch option to `game %command%` (right click → Properties):
+  it runs on the NVIDIA GPU with GameMode (performance power profile while playing) and MangoHud
+  (FPS overlay, `Right Shift + F12` toggles it). Outside Steam: `game ./some-game`.
 
 ## Laptop
 

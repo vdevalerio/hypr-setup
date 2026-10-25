@@ -31,7 +31,7 @@
     },
     "group/status": {
         "orientation": "horizontal",
-        "modules": ["pulseaudio", "battery"]
+        "modules": ["custom/updates", "custom/vpn", "pulseaudio", "battery"]
     },
     "group/actions": {
         "orientation": "horizontal",
@@ -233,6 +233,22 @@
     },
 
     // Screen recording in progress (hidden when not recording)
+    "custom/updates": {
+        "exec": "~/.config/hypr/scripts/updates.sh status",
+        "return-type": "json",
+        "interval": 1800,
+        "signal": 11,
+        "format": "{}",
+        "on-click": "setsid -f ~/.config/hypr/scripts/updates.sh run"
+    },
+    "custom/vpn": {
+        "exec": "~/.config/hypr/scripts/vpn.sh status",
+        "return-type": "json",
+        "interval": 15,
+        "signal": 12,
+        "format": "{}",
+        "on-click": "setsid -f ~/.config/hypr/scripts/vpn.sh menu"
+    },
     "custom/recording": {
         "exec": "~/.config/hypr/scripts/record.sh status",
         "return-type": "json",

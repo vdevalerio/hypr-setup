@@ -1,0 +1,45 @@
+#!/usr/bin/env bash
+# Rollback points for the system. ext4 has no snapshots, so Timeshift runs in rsync mode:
+# it copies / (not /home: backup.sh covers your files) and keeps hard links between snapshots.
+# /boot is a separate partition, so a copy of it travels inside each snapshot; without it a
+# restore would bring back old kernel modules next to a newer kernel image.
+#   hypr-setup-rollback create [comment]   snapshot now (the update does it for you); keeps the last 5
+#   hypr-setup-rollback list               snapshots
+#   hypr-setup-rollback restore [name]     restore / and /boot from a snapshot, then reboot
+set -euo pipefail
+[[ $EUID -eq 0 ]] || exec sudo "$0" "$@"
+
+KEEP=5
+SNAPS=/timeshift/snapshots
+BOOT_COPY=/var/lib/hypr-setup/boot-backup
+
+case "${1:-}" in
+create)
+    mkdir -p "$BOOT_COPY"
+    rsync -rltD --delete /boot/ "$BOOT_COPY/"      # FAT32 has no owners or permissions
+    timeshift --create --scripted --comments "${2:-manual}"
+    # on-demand snapshots are never rotated by Timeshift: keep only the newest $KEEP
+    mapfile -t old < <(ls -1 "$SNAPS" 2>/dev/null | sort | head -n -"$KEEP")
+    for s in "${old[@]}"; do
+        [[ -n $s ]] && timeshift --delete --scripted --snapshot "$s"
+    done ;;
+list)
+    timeshift --list ;;
+restore)
+    name=${2:-}
+    if [[ -z $name ]]; then
+        timeshift --list
+        read -rp "Snapshot to restore (name, e.g. 2026-10-25_11-00-00): " name
+    fi
+    [[ -d $SNAPS/$name ]] || { echo "No such snapshot: $name" >&2; exit 1; }
+    echo "This replaces system files (not /home) with the state of $name."
+    read -rp "Type 'restore' to continue: " ok
+    [[ $ok == restore ]] || exit 1
+    timeshift --restore --scripted --skip-grub --snapshot "$name" --target-device "$(findmnt -no SOURCE /)"
+    # the boot copy inside the restored system matches that snapshot
+    rsync -rltD --delete "$BOOT_COPY/" /boot/
+    echo "Done. Reboot now."
+    ;;
+*)
+    sed -n '2,10p' "$0" | sed 's/^# \{0,1\}//'; exit 1 ;;
+esac
