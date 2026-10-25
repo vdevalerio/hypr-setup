@@ -154,6 +154,26 @@ def hyprlock(c):
     return f"# {HEADER}\n" + "\n".join(f"${k} = rgb({c[k]})" for k in KEYS) + f"\n$base_alpha = rgba({c['base']}cc)\n"
 
 
+def zathura(c):
+    q = lambda key, col: f'set {key:<24}"#{c[col]}"'
+    rows = [
+        q("default-bg", "base"), q("default-fg", "text"),
+        q("statusbar-bg", "surface0"), q("statusbar-fg", "text"),
+        q("inputbar-bg", "surface0"), q("inputbar-fg", "text"),
+        q("notification-bg", "surface0"), q("notification-fg", "text"),
+        q("notification-error-bg", "surface0"), q("notification-error-fg", "red"),
+        q("notification-warning-bg", "surface0"), q("notification-warning-fg", "yellow"),
+        q("completion-bg", "surface0"), q("completion-fg", "text"),
+        q("completion-group-bg", "surface1"), q("completion-group-fg", "mauve"),
+        q("completion-highlight-bg", "mauve"), q("completion-highlight-fg", "base"),
+        q("index-bg", "base"), q("index-fg", "text"),
+        q("index-active-bg", "mauve"), q("index-active-fg", "base"),
+        q("highlight-color", "yellow"), q("highlight-active-color", "mauve"),
+        q("recolor-lightcolor", "base"), q("recolor-darkcolor", "text"),
+    ]
+    return f"# {HEADER}\n" + "\n".join(rows) + "\n"
+
+
 def gtk_colors(c):
     return f"/* {HEADER} */\n" + "\n".join(f"@define-color {k} #{c[k]};" for k in KEYS) + "\n"
 
@@ -374,6 +394,7 @@ OUTPUTS = [
     ("~/.config/gtk-4.0/gtk.css", gtk_css),
     ("~/.config/qt6ct/colors/hypr-setup.conf", qt6ct),
     ("~/.config/btop/themes/hypr-setup.theme", btop),
+    ("~/.config/zathura/colors", zathura),
     ("~/.config/quickshell/colors.json", quickshell),
     ("~/.local/share/fcitx5/themes/hypr-setup/theme.conf", fcitx5),
     ("~/.config/hypr/sddm-colors.conf", sddm),

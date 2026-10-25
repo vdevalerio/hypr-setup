@@ -1,0 +1,8 @@
+[Desktop Entry]
+Name=Speechify
+Comment=Text-to-speech reader (web app, uses the Speechify subscription)
+Icon=audio-headphones
+Exec=brave --app=https://app.speechify.com --class=speechify
+Terminal=false
+Type=Application
+Categories=Office;Audio;Education;

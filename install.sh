@@ -42,6 +42,7 @@ MANAGED=(
     .config/kitty
     .config/fcitx5
     .config/yazi
+    .config/zathura
     .config/lsd
     .config/nvim
     .config/starship.toml
@@ -64,6 +65,7 @@ MANAGED=(
     .config/markdownlint
     .icons/default/index.theme
     .local/share/applications/yazi-kitty.desktop
+    .local/share/applications/speechify.desktop
     .local/share/fcitx5/themes/hypr-setup
     .config/systemd/user/backup.service
     .config/systemd/user/backup.timer
@@ -86,7 +88,8 @@ PKGS_HYPR=(hyprland hyprlock hypridle quickshell qt6-multimedia qt6-multimedia-f
            xdg-desktop-portal-hyprland xdg-desktop-portal-gtk xdg-user-dirs xdg-utils qt5-wayland qt6-wayland)
 PKGS_DESKTOP=(rofi rofi-emoji rofi-calc swaync libnotify awww ffmpeg file)
 PKGS_APPS=(kitty yazi poppler resvg 7zip unzip gvfs gvfs-mtp ffmpegthumbnailer file-roller
-           firefox mpv imv btop fastfetch libva-utils)
+           firefox mpv imv btop fastfetch libva-utils
+           foliate zathura zathura-pdf-mupdf speech-dispatcher espeak-ng)   # document readers (+ TTS for Foliate)
 PKGS_AUDIO=(pipewire pipewire-pulse pipewire-alsa pipewire-jack wireplumber pavucontrol playerctl sof-firmware)
 PKGS_SYSTEM=(networkmanager network-manager-applet bluez bluez-utils blueman power-profiles-daemon brightnessctl
              ddcutil    # external monitor brightness (DDC/CI)
@@ -454,7 +457,14 @@ deploy_dotfiles() {
 
     # Yazi opens folders
     update-desktop-database "$HOME/.local/share/applications" 2>/dev/null || true
-    if command -v xdg-mime >/dev/null; then xdg-mime default yazi-kitty.desktop inode/directory; fi
+    if command -v xdg-mime >/dev/null; then
+        xdg-mime default yazi-kitty.desktop inode/directory
+        # Document readers: PDF in Zathura, e-books in Foliate (only when their desktop files exist)
+        local apps=/usr/share/applications
+        [[ -f $apps/org.pwmt.zathura-pdf-mupdf.desktop ]] && xdg-mime default org.pwmt.zathura-pdf-mupdf.desktop application/pdf
+        [[ -f $apps/com.github.johnfactotum.Foliate.desktop ]] &&
+            xdg-mime default com.github.johnfactotum.Foliate.desktop application/epub+zip application/x-mobipocket-ebook
+    fi
 }
 
 setup_shell() {

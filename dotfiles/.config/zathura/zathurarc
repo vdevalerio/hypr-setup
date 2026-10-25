@@ -1,0 +1,13 @@
+# Zathura: PDF viewer (keyboard-driven). Colors come from the system theme (generated file).
+include colors
+
+set selection-clipboard clipboard
+set adjust-open         best-fit
+set scroll-step         80
+set statusbar-h-padding 12
+set statusbar-v-padding 6
+set page-padding        8
+set guioptions          sv
+
+# Ctrl+R: recolor the pages with the theme colors (night reading)
+map <C-r> recolor
