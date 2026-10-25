@@ -495,6 +495,13 @@ hypr-setup/
 - **Fewer prompts**: read-only commands (git status/diff/log, rg, ls, hyprctl queries…) are pre-approved.
 - **Waybar chip** (monitor island, 󰚩): 5-hour plan usage while a session is open, otherwise today's tokens; tooltip shows today / 7 days by model. Click for the `ccusage` report. In the terminal: `ccu daily`, `ccu blocks --active`.
 
+### Skill forge (self-improving skills per repository)
+
+- `/forge-skills` explores the current repo (via the cheap `pesquisador` agent) and writes 2-4 lean skills to `<repo>/.claude/skills/` (workflow, architecture, gotchas), kept out of git through `.git/info/exclude`.
+- The `friction-log.mjs` hook (tool failures and user corrections) appends short lines to `~/.claude/forge/friction/<repo>.jsonl`. No output and no model calls, so it costs no tokens.
+- `/retro` clusters the new friction and proposes **diffs** to the forged skills, the repo's `CLAUDE.md`, and the `forge-skills`/`retro` skills themselves. Nothing is applied without your approval.
+- Not connected to Growth Opera on purpose. `install.sh claude` merges the hooks without touching existing ones.
+
 Start `claude` inside `~/Projects/Personal/hypr-setup` when working on the desktop so `CLAUDE.md` (workflow and gotchas) and the `desktop-verifier` agent (cheap Haiku post-change checks) are loaded. Restart Claude Code after `install.sh claude`.
 
 ## Keeping it up to date (GitHub)

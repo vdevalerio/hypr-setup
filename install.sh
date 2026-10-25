@@ -71,6 +71,9 @@ MANAGED=(
     .config/claude-desktop-flags.conf
     .config/mimeapps.list
     .claude/statusline.sh
+    .claude/hooks/friction-log.mjs
+    .claude/skills/forge-skills
+    .claude/skills/retro
 )
 # Default wallpapers: only copied at install time (if missing). Your own wallpapers, profile
 # picture and other personal files are not part of the package.
@@ -387,15 +390,19 @@ setup_boot() {
 # ~/.claude/settings.json. Merged, not copied: other tools (e.g. the company's Growth Opera
 # installer) keep their own hooks there. Objects are merged deeply; permissions.allow is a union.
 setup_claude() {
-    step "Claude Code: status line and settings"
+    step "Claude Code: status line, settings, forge skills"
     command -v jq >/dev/null || sudo pacman -S --needed --noconfirm jq
     install -Dm755 "$DOTS/.claude/statusline.sh" "$HOME/.claude/statusline.sh"
+    install -Dm755 "$DOTS/.claude/hooks/friction-log.mjs" "$HOME/.claude/hooks/friction-log.mjs"
+    mkdir -p "$HOME/.claude/skills" && cp -r "$DOTS/.claude/skills/." "$HOME/.claude/skills/"
     local cur="$HOME/.claude/settings.json" tmp
     [[ -s $cur ]] || echo '{}' > "$cur"
     cp "$cur" "$cur.bak.hypr-setup"
     tmp=$(mktemp)
     jq -s '.[0] as $cur | .[1] as $new
-        | ($cur * ($new | del(.permissions)))
+        | ($cur * ($new | del(.permissions, .hooks)))
+        | .hooks = (reduce (($new.hooks // {}) | to_entries[]) as $e ($cur.hooks // {};
+            .[$e.key] = ((.[$e.key] // []) + $e.value | unique)))
         | .permissions.allow = ((($cur.permissions.allow // []) + ($new.permissions.allow // [])) | unique)' \
         "$cur" "$REPO/claude/settings.json" > "$tmp" && mv "$tmp" "$cur"
     info "Merged into $cur (backup: settings.json.bak.hypr-setup). Restart Claude Code to apply."
