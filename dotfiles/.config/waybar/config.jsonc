@@ -5,9 +5,9 @@
     "layer": "top",
     "position": "top",
     "height": 38,
-    "margin-top": 6,
-    "margin-left": 10,
-    "margin-right": 10,
+    "margin-top": 5,      // margens = gaps_out das janelas (atualizadas pelo look.sh gaps)
+    "margin-left": 5,
+    "margin-right": 5,
     "spacing": 8,
     "reload_style_on_change": true,
 
@@ -31,7 +31,7 @@
     },
     "group/status": {
         "orientation": "horizontal",
-        "modules": ["custom/keyboard", "network", "pulseaudio", "battery"]
+        "modules": ["pulseaudio", "battery"]
     },
     "group/actions": {
         "orientation": "horizontal",
@@ -165,31 +165,6 @@
         "states": { "warning": 80, "critical": 92 },
         "tooltip-format": "<b>/</b>  {used} used of {total}\n{free} free\n\nClick: btop",
         "on-click": "setsid -f ~/.config/hypr/scripts/sysmon.sh top"
-    },
-
-    // Idioma do teclado (fcitx5): PT / EN / RU / JA
-    "custom/keyboard": {
-        "exec": "~/.config/hypr/scripts/keyboard.sh status",
-        "return-type": "json",
-        "interval": 2,
-        "signal": 9,
-        "format": "󰌌 {}",
-        "on-click": "~/.config/hypr/scripts/keyboard.sh next",
-        "on-click-right": "setsid -f ~/.config/hypr/scripts/keyboard.sh pick",
-        "on-scroll-up": "~/.config/hypr/scripts/keyboard.sh prev",
-        "on-scroll-down": "~/.config/hypr/scripts/keyboard.sh next"
-    },
-
-    "network": {
-        "format-wifi": "{icon}",
-        "format-ethernet": "󰈀",
-        "format-disconnected": "󰤮",
-        "format-icons": ["󰤟", "󰤢", "󰤥", "󰤨"],
-        "tooltip-format-wifi": "{essid} ({signalStrength}%)\n{ipaddr}\nClick: choose network",
-        "tooltip-format-ethernet": "{ifname}\n{ipaddr}",
-        "tooltip-format-disconnected": "Disconnected\nClick: choose network",
-        "on-click": "setsid -f kitty --class nmtui-float -e nmtui",
-        "on-click-right": "setsid -f nm-connection-editor"
     },
 
     "pulseaudio": {

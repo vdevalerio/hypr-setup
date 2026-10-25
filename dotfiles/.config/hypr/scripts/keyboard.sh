@@ -34,7 +34,6 @@ osd() {
 
 switch_to() {
     fcitx5-remote -s "$1"
-    pkill -RTMIN+9 -x waybar 2>/dev/null
     osd "$1"
 }
 

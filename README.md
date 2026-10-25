@@ -308,7 +308,7 @@ para trocar), layout do teclado e botões de suspender, reiniciar e desligar.
 ## Barra e central de controle
 
 A barra mostra só o essencial, em "ilhas": workspaces e janela ativa à esquerda; relógio e música no
-centro; apps em segundo plano (bandeja), monitoramento, idioma, Wi-Fi, volume, bateria, notificações, central de controle e energia à direita.
+centro; bandeja (Wi-Fi, Bluetooth, idioma e outros apps em segundo plano), monitoramento, volume, bateria, notificações, central de controle e energia à direita.
 
 A ilha de **monitoramento** mostra o uso de CPU, o uso da GPU mais ocupada, a temperatura da CPU, a RAM e
 o disco `/`. Cada item fica amarelo ou vermelho com carga ou calor. O tooltip traz os detalhes de cada
@@ -349,7 +349,7 @@ Script: `~/.config/hypr/scripts/controlcenter.sh` (`status`, ou o nome de um sub
 ## Idiomas do teclado
 
 Quatro idiomas, gerenciados pelo **fcitx5**: português (ABNT2), inglês (`us`), russo (`ru`) e japonês (Mozc).
-O idioma vale para todos os apps ao mesmo tempo, e a barra mostra o atual (`PT` / `EN` / `RU` / `JA`).
+O idioma vale para todos os apps ao mesmo tempo, e o ícone do fcitx5 na bandeja (menu `󰅁` da barra) mostra o atual.
 
 - **Trocar:** SUPER + CTRL + Espaço, SUPER + CTRL + 1…4, clique na barra ou central de controle → Keyboard.
 - **Atalhos do sistema** continuam no layout ABNT2, qualquer que seja o idioma (SUPER + Q fecha mesmo em russo).

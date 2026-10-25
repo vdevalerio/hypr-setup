@@ -24,7 +24,11 @@ tooltip {
 tooltip label { color: @text; padding: 2px 4px; }
 
 /* ── Ilhas ──────────────────────────────────────────────────── */
+/* Medidas únicas: ilha com 5px de padding lateral; chip com 9px; ilha de um item só (relógio,
+   música, título) com 14px = 5 + 9, para o texto ficar à mesma distância da borda em todas.
+   Margem da barra = gaps_out das janelas (look.sh gaps atualiza o config.jsonc). */
 #left,
+#window,
 #monitor,
 #clock,
 #custom-media,
@@ -34,16 +38,21 @@ tooltip label { color: @text; padding: 2px 4px; }
     background: alpha(@base, 0.80);
     border: 1px solid alpha(@mauve, 0.30);   /* borda tingida pelo acento do tema */
     border-radius: 12px;
-    padding: 0 4px;
+    padding: 0 5px;
     margin: 2px 0;
     box-shadow: 0 2px 6px alpha(black, 0.25);
 }
+#window, #clock, #custom-media { padding: 0 14px; }
+window#waybar.empty #window { background: transparent; border-color: transparent; box-shadow: none; }
+/* O título encolhe até encostar no centro: folga igual ao "spacing" entre ilhas */
+.modules-left { margin-right: 8px; }
+.modules-right { margin-left: 8px; }
 
 /* Itens dentro das ilhas: chip com hover */
 #custom-launcher, #workspaces, #submap,
 #cpu, #custom-gpu, #custom-temp, #memory, #disk,
 #custom-tray-toggle, #tray,
-#custom-keyboard, #network, #pulseaudio, #battery,
+#pulseaudio, #battery,
 #custom-recording, #custom-notification, #custom-control, #custom-power {
     background: transparent;
     padding: 0 9px;
@@ -54,16 +63,16 @@ tooltip label { color: @text; padding: 2px 4px; }
 
 #custom-launcher:hover, #custom-tray-toggle:hover,
 #cpu:hover, #custom-gpu:hover, #custom-temp:hover, #memory:hover, #disk:hover,
-#custom-keyboard:hover, #network:hover, #pulseaudio:hover, #battery:hover,
+#pulseaudio:hover, #battery:hover, #window:hover,
 #custom-notification:hover, #custom-control:hover, #custom-power:hover,
 #clock:hover, #custom-media:hover {
     background: alpha(@mauve, 0.18);
 }
 
 /* ── Esquerda ───────────────────────────────────────────────── */
-#custom-launcher { color: @mauve; padding: 0 11px 0 9px; }
+#custom-launcher { color: @mauve; }
 
-#workspaces { padding: 0 2px; }
+#workspaces { padding: 0; }
 #workspaces button {
     color: @overlay1;
     background: transparent;
@@ -103,17 +112,16 @@ tooltip label { color: @text; padding: 2px 4px; }
 
 #submap { color: @crust; background: @peach; margin: 4px 4px 4px 0; }
 
-#window { color: @subtext0; font-weight: 500; padding: 0 6px; }
-#window:hover { color: @text; background: alpha(@surface1, 0.6); border-radius: 8px; }   /* clique: lista de janelas */
+#window { color: @subtext0; font-weight: 500; }   /* clique: lista de janelas */
+#window:hover { color: @text; }
 
 /* ── Centro ─────────────────────────────────────────────────── */
-#clock { color: @mauve; font-weight: 700; padding: 0 14px; }
-#custom-media { color: @pink; font-weight: 500; padding: 0 14px; }
+#clock { color: @mauve; font-weight: 700; }
+#custom-media { color: @pink; font-weight: 500; }
 #custom-media.paused { color: @overlay1; }
 
 /* ── Direita ────────────────────────────────────────────────── */
-/* Monitoramento: chips mais justos; cor sobe para amarelo/vermelho com carga ou calor */
-#cpu, #custom-gpu, #custom-temp, #memory, #disk { padding: 0 7px; }
+/* Monitoramento: cor sobe para amarelo/vermelho com carga ou calor */
 #cpu        { color: @mauve; }
 #custom-gpu { color: @green; }
 #custom-temp { color: @teal; }
@@ -128,12 +136,6 @@ tooltip label { color: @text; padding: 2px 4px; }
 #tray > .passive { -gtk-icon-effect: dim; }
 #tray > .needs-attention { -gtk-icon-effect: highlight; background: alpha(@red, 0.6); border-radius: 6px; }
 
-#custom-keyboard { color: @mauve; }
-#custom-keyboard.en { color: @teal; }
-#custom-keyboard.ru { color: @peach; }
-#custom-keyboard.ja { color: @pink; }
-#network    { color: @blue; }
-#network.disconnected { color: @red; }
 #pulseaudio { color: @pink; }
 #pulseaudio.muted { color: @overlay0; }
 
@@ -163,5 +165,5 @@ tooltip label { color: @text; padding: 2px 4px; }
 #custom-recording { color: @red; animation: rec 1s steps(10) infinite alternate; }
 @keyframes rec { to { color: alpha(@red, 0.45); } }
 
-#custom-power { color: @red; padding: 0 11px 0 9px; }
+#custom-power { color: @red; }
 #custom-power:hover { background: alpha(@red, 0.2); }

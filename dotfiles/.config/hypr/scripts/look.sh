@@ -92,6 +92,13 @@ font() {
 # gaps_out acompanha gaps_in na proporção 5 → 12 (mesma conta no hyprland.lua)
 gaps_out() { awk -v g="$1" 'BEGIN { printf "%d", g * 2.4 + 0.5 }'; }
 
+# Margens da barra = gaps_out (as ilhas alinham com a borda das janelas); mínimo 4 px sem gaps
+bar_margin() {
+    local m=$(( $1 < 4 ? 4 : $1 ))
+    sed -i -E "s/(\"margin-(top|left|right)\": )[0-9]+/\1$m/" ~/.config/waybar/config.jsonc
+    pkill -SIGUSR2 -x waybar
+}
+
 gaps() {
     local g; g=$(get gaps)
     case "$1" in
@@ -103,6 +110,7 @@ gaps() {
     esac
     put gaps "$g"
     hyprctl eval "hl.config({ general = { gaps_in = $g, gaps_out = $(gaps_out "$g") } })" >/dev/null
+    bar_margin "$(gaps_out "$g")"
     osd "Window gaps" "inner $g px  ·  outer $(gaps_out "$g") px" "$(( g * 100 / 30 ))"
 }
 
