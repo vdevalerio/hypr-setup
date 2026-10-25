@@ -75,6 +75,18 @@ function M.all(what)
   end)
 end
 
+-- Whole file with any available formatter (range-capable or not, LSP as fallback), wrapping at
+-- column 80; plain re-indent when there is none.
+function M.format_all()
+  local view = vim.fn.winsaveview()
+  trim(1, vim.api.nvim_buf_line_count(0))
+  local ok, conform = pcall(require, "conform")
+  local done = ok and not no_indent[vim.bo.filetype]
+    and conform.format({ async = false, timeout_ms = 5000, lsp_format = "fallback" })
+  if not done then indent(1, vim.api.nvim_buf_line_count(0)) end
+  vim.fn.winrestview(view)
+end
+
 function M.setup()
   vim.g.clean_on_save = true
   vim.api.nvim_create_autocmd("BufWritePre", {
@@ -86,10 +98,12 @@ function M.setup()
   vim.api.nvim_create_user_command("CleanTrim", function() M.all("trim") end, { desc = "Trim trailing whitespace (whole file)" })
   vim.api.nvim_create_user_command("CleanIndent", function() M.all("indent") end, { desc = "Re-indent and wrap at column 80 (whole file)" })
   vim.api.nvim_create_user_command("CleanAll", function() M.all() end, { desc = "Trim and re-indent (whole file)" })
+  vim.api.nvim_create_user_command("FormatAll", M.format_all, { desc = "Format the whole file (formatter, wrap at 80)" })
   local map = vim.keymap.set
   map("n", "<leader>cw", "<cmd>CleanTrim<cr>", { desc = "Trim trailing whitespace (file)" })
   map("n", "<leader>ci", "<cmd>CleanIndent<cr>", { desc = "Re-indent + wrap at 80 (file)" })
   map("n", "<leader>cW", "<cmd>CleanAll<cr>", { desc = "Trim + re-indent + wrap (file)" })
+  map("n", "<leader>cg", "<cmd>FormatAll<cr>", { desc = "Format whole file (global)" })
   map("n", "<leader>uW", function()
     vim.g.clean_on_save = not vim.g.clean_on_save
     vim.notify("Clean changed lines on save: " .. (vim.g.clean_on_save and "on" or "off"))
