@@ -13,7 +13,7 @@
 
     "modules-left":   ["group/left", "hyprland/window"],
     "modules-center": ["clock", "custom/media"],
-    "modules-right":  ["group/monitor", "group/tray-drawer", "group/status", "group/actions"],
+    "modules-right":  ["group/tray-drawer", "group/monitor", "group/status", "group/actions"],
 
     // ── Ilhas ────────────────────────────────────────────────
     "group/left": {

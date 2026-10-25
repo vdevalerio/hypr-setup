@@ -308,7 +308,7 @@ para trocar), layout do teclado e botões de suspender, reiniciar e desligar.
 ## Barra e central de controle
 
 A barra mostra só o essencial, em "ilhas": workspaces e janela ativa à esquerda; relógio e música no
-centro; monitoramento, Wi-Fi, volume, bateria, notificações, central de controle e energia à direita.
+centro; apps em segundo plano (bandeja), monitoramento, idioma, Wi-Fi, volume, bateria, notificações, central de controle e energia à direita.
 
 A ilha de **monitoramento** mostra o uso de CPU, o uso da GPU mais ocupada, a temperatura da CPU, a RAM e
 o disco `/`. Cada item fica amarelo ou vermelho com carga ou calor. O tooltip traz os detalhes de cada
