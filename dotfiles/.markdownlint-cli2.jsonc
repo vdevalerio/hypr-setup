@@ -1,0 +1,13 @@
+// Global markdownlint-cli2 config (used by nvim's markdown linter for files under ~).
+// Style-only rules are off; rules that catch real mistakes stay on.
+{
+  "config": {
+    "MD013": false, // line length
+    "MD022": false, // blank lines around headings
+    "MD031": false, // blank lines around fences
+    "MD032": false, // blank lines around lists
+    "MD058": false, // blank lines around tables
+    "MD060": false, // table column style
+    "MD024": { "siblings_only": true } // duplicate headings only among siblings
+  }
+}
