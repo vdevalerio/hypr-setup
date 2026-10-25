@@ -375,6 +375,7 @@ setup_boot() {
     set_grub GRUB_THEME '"/boot/grub/themes/hypr-setup/theme.txt"'
     set_grub GRUB_TIMEOUT_STYLE hidden   # Esc/Shift ao ligar mostra o menu
     set_grub GRUB_TIMEOUT 1
+    set_grub GRUB_DISABLE_BOOTNEXT true  # sem as entradas "EFI BootNext" (PXE, shell...) do GRUB 2.16
     sudo mkinitcpio -P
     sudo grub-mkconfig -o /boot/grub/grub.cfg
     info "Pronto: o splash aparece no próximo boot (segure Esc para ver o menu do GRUB)"

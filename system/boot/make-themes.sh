@@ -18,10 +18,12 @@ G=$OUT/grub; P=$OUT/plymouth
 rm -rf "$G" "$P"; mkdir -p "$G" "$P"
 
 # ── Fundo comum: o mesmo da tela de login (já desfocado), um pouco mais escuro ──
+# PNG24:/PNG32: forçam 8 bits por canal: o GRUB recusa PNG de paleta (1/2/4 bits), que o magick
+# escolhe sozinho para imagens simples (ex.: fundo de uma cor só)
 if [[ -f $BG ]]; then
-    magick "$BG" -resize 1920x1080^ -gravity center -extent 1920x1080 -fill "$crust" -colorize 30% "$G/background.png"
+    magick "$BG" -resize 1920x1080^ -gravity center -extent 1920x1080 -fill "$crust" -colorize 30% PNG24:"$G/background.png"
 else
-    magick -size 1920x1080 xc:"$crust" "$G/background.png"
+    magick -size 1920x1080 xc:"$crust" PNG24:"$G/background.png"
 fi
 
 # ── GRUB ─────────────────────────────────────────────────────────────────────
@@ -32,14 +34,15 @@ grub-mkfont -r "$RANGE" -s 22 -n "Hypr Regular 22" -o "$G/regular-22.pf2" "$FONT
 grub-mkfont -r "$RANGE" -s 16 -n "Hypr Regular 16" -o "$G/regular-16.pf2" "$FONT" 2>/dev/null
 grub-mkfont -r "$RANGE" -s 30 -n "Hypr Bold 30"    -o "$G/bold-30.pf2"    "$FONT_BOLD" 2>/dev/null
 
-# Item selecionado: pílula em gradiente fatiada em 9 partes (o GRUB estica as bordas e o centro)
+# Item selecionado: pílula em gradiente fatiada em 9 partes (o GRUB estica as bordas e o centro).
+# A moldura fica EM VOLTA do item (+10 px em cima e embaixo): item_spacing precisa passar de 20.
 pill=$(mktemp --suffix=.png)
-magick \( -size 240x48 -define gradient:angle=90 "gradient:$accent-$accent2" \) \
-       \( -size 240x48 xc:none -fill white -draw "roundrectangle 0,0 239,47 14,14" \) \
+magick \( -size 240x40 -define gradient:angle=90 "gradient:$accent-$accent2" \) \
+       \( -size 240x40 xc:none -fill white -draw "roundrectangle 0,0 239,39 10,10" \) \
        -compose CopyOpacity -composite "$pill"
-for p in "nw 14x14+0+0" "n 212x14+14+0" "ne 14x14+226+0" "w 14x20+0+14" "c 212x20+14+14" "e 14x20+226+14" \
-         "sw 14x14+0+34" "s 212x14+14+34" "se 14x14+226+34"; do
-    magick "$pill" -crop "${p#* }" +repage "$G/select_${p%% *}.png"
+for p in "nw 10x10+0+0" "n 220x10+10+0" "ne 10x10+230+0" "w 10x20+0+10" "c 220x20+10+10" "e 10x20+230+10" \
+         "sw 10x10+0+30" "s 220x10+10+30" "se 10x10+230+30"; do
+    magick "$pill" -crop "${p#* }" +repage PNG32:"$G/select_${p%% *}.png"
 done
 rm -f "$pill"
 
@@ -75,9 +78,9 @@ terminal-height: "80%"
     selected_item_font = "Hypr Regular 22"
     selected_item_color = "$crust"
     selected_item_pixmap_style = "select_*.png"
-    item_height = 48
-    item_padding = 18
-    item_spacing = 10
+    item_height = 32
+    item_padding = 14
+    item_spacing = 24
     icon_width = 0
     icon_height = 0
     item_icon_space = 0
