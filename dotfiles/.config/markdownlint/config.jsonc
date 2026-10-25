@@ -1,0 +1,11 @@
+// Global markdownlint rules, passed to the nvim linter with --config (see lua/plugins/formatting.lua).
+// Style-only rules are off; rules that catch real mistakes stay on.
+{
+  "MD013": { "line_length": 80, "tables": false }, // long lines are fine inside tables
+  "MD022": false, // blank lines around headings
+  "MD031": false, // blank lines around fences
+  "MD032": false, // blank lines around lists
+  "MD058": false, // blank lines around tables
+  "MD060": false, // table column style
+  "MD024": { "siblings_only": true } // duplicate headings only among siblings
+}

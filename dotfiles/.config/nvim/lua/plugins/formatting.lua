@@ -13,4 +13,13 @@ return {
       },
     },
   },
+  {
+    -- Fixed config path: with stdin, markdownlint-cli2 only looks for configs in the cwd
+    "mfussenegger/nvim-lint",
+    opts = {
+      linters = {
+        ["markdownlint-cli2"] = { args = { "--config", vim.fn.expand("~/.config/markdownlint/config.jsonc"), "-" } },
+      },
+    },
+  },
 }

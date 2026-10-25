@@ -61,7 +61,7 @@ MANAGED=(
     .config/user-dirs.dirs
     .config/user-dirs.locale
     .zshrc
-    .markdownlint-cli2.jsonc
+    .config/markdownlint
     .icons/default/index.theme
     .local/share/applications/yazi-kitty.desktop
     .local/share/fcitx5/themes/hypr-setup
