@@ -66,7 +66,9 @@ return {
       vim.api.nvim_create_autocmd("ColorScheme", { callback = clear_backgrounds })
 
       -- Watches the folder (the file is replaced on every wallpaper change)
-      local watcher = vim.uv.new_fs_event()
+      -- Global on purpose: a local handle can be garbage-collected, silently ending live recoloring
+      _G.colors_watcher = vim.uv.new_fs_event()
+      local watcher = _G.colors_watcher
       local pending = false
       watcher:start(vim.fs.dirname(colors_file), {}, function(_, fname)
         if fname ~= "colors.lua" or pending then
