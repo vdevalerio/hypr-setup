@@ -79,7 +79,7 @@ MANAGED=(
 # Default wallpapers: only copied at install time (if missing). Your own wallpapers, profile
 # picture and other personal files are not part of the package.
 DEFAULT_WALLS=(Pictures/Wallpapers/aurora.mp4 Pictures/Wallpapers/catppuccin-mountains.png)
-SAVE_EXCLUDE=(.config/hypr/wallpaper.png .config/hypr/themes/__pycache__ .config/fcitx5/conf/cached_layouts .config/nvim/spell/en.utf-8.add.spl .config/nvim/spell/pt.utf-8.add.spl)
+SAVE_EXCLUDE=(.config/hypr/wallpaper.png .config/hypr/themes/__pycache__ .config/fcitx5/conf/cached_layouts .config/nvim/spell/en.utf-8.add.spl .config/nvim/spell/pt.utf-8.add.spl .config/nvim/spell/tech.utf-8.add.spl)
 
 # ── Packages (official repositories) ─────────────────────────────────────
 PKGS_HYPR=(hyprland hyprlock hypridle quickshell qt6-multimedia qt6-multimedia-ffmpeg hyprpolkitagent hyprpicker hyprsunset hyprland-guiutils hyprshutdown

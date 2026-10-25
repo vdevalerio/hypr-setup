@@ -22,9 +22,21 @@ opt.wrap = false
 vim.g.autoformat = false
 
 -- Spell checking: English + Brazilian Portuguese. `zg` adds a word to the first spellfile (en),
--- `2zg` to the second (pt); both live in the config so they are versioned with the repo.
+-- `2zg` to the second (pt), `3zg` to the third (tech: technical terms, kept apart from the languages);
+-- all live in the config so they are versioned with the repo.
 opt.spelllang = { "en", "pt_br" }
 opt.spellfile = {
   vim.fn.stdpath("config") .. "/spell/en.utf-8.add",
   vim.fn.stdpath("config") .. "/spell/pt.utf-8.add",
+  vim.fn.stdpath("config") .. "/spell/tech.utf-8.add",
 }
+
+-- Word lists are plain text; Neovim only uses their compiled .spl (git-ignored), so build any
+-- that is missing or older than its list.
+for _, add in ipairs(vim.opt.spellfile:get()) do
+  local spl = add .. ".spl"
+  local a, s = vim.uv.fs_stat(add), vim.uv.fs_stat(spl)
+  if a and (not s or s.mtime.sec < a.mtime.sec) then
+    vim.cmd("silent! mkspell! " .. vim.fn.fnameescape(add))
+  end
+end
