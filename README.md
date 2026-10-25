@@ -159,6 +159,13 @@ Testado em: Ryzen 7 7735HS + Radeon 680M + RTX 4050 (notebook), Hyprland 0.56.
 
 - **Teclas de volume, mudo, microfone, brilho e Caps Lock** mostram um aviso rápido com o nível
   (`scripts/osd.sh`).
+- **Tomada × bateria** (`scripts/power.sh`): ao tirar da tomada, a tela do notebook vai a 60 Hz e o perfil
+  de energia a *power saver*; ao voltar, a tela volta a 165 Hz e o perfil que você usava. Para fixar uma
+  taxa, defina `mode=` do monitor em Displays. Jogos e vídeos em tela cheia usam taxa adaptativa (VRR).
+- **Vídeo pela GPU no Brave** (VA-API): YouTube e reuniões gastam menos bateria. Confira em
+  `brave://gpu` ("Video Decode: Hardware accelerated") ou com `vainfo`.
+- **Boot:** o menu do GRUB fica escondido (o boot não espera); segure **Esc** ou **Shift** ao ligar para
+  ver o menu e escolher o `linux-lts`.
 - **Bateria baixa:** aviso em 15%, alerta em 8% e suspensão automática em 4% (se continuar na bateria).
 - **Tampa fechada com monitor externo:** desliga só a tela do notebook e você continua no monitor; ao abrir,
   ela volta com os seus workspaces. Sem monitor externo, fechar a tampa suspende (e bloqueia).

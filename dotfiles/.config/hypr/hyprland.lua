@@ -102,6 +102,7 @@ hl.on("hyprland.start", function()
     hl.exec_cmd("~/.config/hypr/scripts/wallpaper.sh restore") -- wallpaper animado + cores
     hl.exec_cmd("hypridle")
     hl.exec_cmd("~/.config/hypr/scripts/battery-watch.sh") -- avisos de bateria baixa
+    hl.exec_cmd("~/.config/hypr/scripts/power.sh")         -- tomada × bateria: 165/60 Hz e perfil de energia
     hl.exec_cmd("~/.config/hypr/scripts/lid.sh check")     -- ligou com a tampa fechada e monitor externo
     hl.exec_cmd("fcitx5 -d --replace") -- idiomas do teclado (SUPER + CTRL + Espaço)
     hl.exec_cmd("~/.config/hypr/scripts/look.sh apply") -- tamanho das fontes (GTK, barra, menus...)
@@ -252,6 +253,7 @@ hl.config({
         swallow_regex           = "^(kitty)$",
         mouse_move_enables_dpms = true,
         key_press_enables_dpms  = true,
+        vrr                     = 2,   -- taxa adaptativa só em tela cheia (jogos, vídeo): sem tremulação no desktop
     },
 
     binds = {

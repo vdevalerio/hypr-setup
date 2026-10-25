@@ -7,6 +7,8 @@
 --   position=1600x0   mode=1920x1080@60   scale=1.25   transform=1   mirror=eDP-1   disabled=true
 -- O que não estiver lá segue o padrão de hyprland.lua (modo preferido, posição automática e a
 -- escala de look.conf).
+-- Na bateria, a tela do notebook vai a 60 Hz (a menos que monitors.conf fixe um mode): é um dos
+-- maiores gastos de energia. scripts/power.sh recarrega a config quando o carregador muda.
 
 local M = {}
 local HOME = os.getenv("HOME")
@@ -43,6 +45,22 @@ local function default_scale()
     return tonumber(s) or "auto"
 end
 
+local function on_battery()
+    for _, bat in ipairs({ "BAT0", "BAT1", "BAT2" }) do
+        local f = io and io.open and io.open("/sys/class/power_supply/" .. bat .. "/status", "r")
+        if f then
+            local status = f:read("l")
+            f:close()
+            return status == "Discharging"
+        end
+    end
+    return false
+end
+
+local function internal(name)
+    return name:match("^eDP") or name:match("^LVDS") or name:match("^DSI")
+end
+
 local function spec(output, o, scale)
     local s = {
         output   = output,
@@ -58,7 +76,17 @@ end
 
 function M.apply()
     local scale = default_scale()
-    for desc, o in pairs(read_ini(HOME .. "/.config/hypr/monitors.conf")) do
+    local conf = read_ini(HOME .. "/.config/hypr/monitors.conf")
+    if on_battery() and hl.get_monitors then
+        for _, m in ipairs(hl.get_monitors()) do
+            if internal(m.name) then
+                local o = conf[m.description] or {}
+                conf[m.description] = o
+                o.mode = o.mode or string.format("%dx%d@60", m.width, m.height)
+            end
+        end
+    end
+    for desc, o in pairs(conf) do
         hl.monitor(spec("desc:" .. desc, o, scale))
     end
 end

@@ -75,7 +75,7 @@ PKGS_HYPR=(hyprland hyprlock hypridle hyprpolkitagent hyprpicker hyprsunset hypr
            xdg-desktop-portal-hyprland xdg-desktop-portal-gtk xdg-user-dirs xdg-utils qt5-wayland qt6-wayland)
 PKGS_DESKTOP=(rofi rofi-emoji rofi-calc swaync libnotify awww ffmpeg file)
 PKGS_APPS=(kitty yazi poppler resvg 7zip unzip gvfs gvfs-mtp ffmpegthumbnailer file-roller
-           firefox mpv imv btop fastfetch)
+           firefox mpv imv btop fastfetch libva-utils)
 PKGS_AUDIO=(pipewire pipewire-pulse pipewire-alsa pipewire-jack wireplumber pavucontrol playerctl sof-firmware)
 PKGS_SYSTEM=(networkmanager network-manager-applet bluez bluez-utils blueman power-profiles-daemon brightnessctl
              ddcutil    # brilho de monitores externos (DDC/CI)
@@ -286,6 +286,8 @@ setup_extras() {
         else
             echo 'GRUB_TOP_LEVEL="/boot/vmlinuz-linux"' | sudo tee -a /etc/default/grub >/dev/null
         fi
+        # Menu escondido: o boot não espera 5 s; segure Esc ou Shift para ver o menu (e o linux-lts)
+        sudo sed -i 's/^GRUB_TIMEOUT=.*/GRUB_TIMEOUT=1/; s/^GRUB_TIMEOUT_STYLE=.*/GRUB_TIMEOUT_STYLE=hidden/' /etc/default/grub
         sudo grub-mkconfig -o /boot/grub/grub.cfg
     fi
 
