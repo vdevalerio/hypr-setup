@@ -1,12 +1,12 @@
 #!/usr/bin/env bash
-# Foto de perfil (aparece na tela de bloqueio). Guarda um recorte quadrado em ~/.face.
+# Profile photo (shown on the lock screen). Stores a square crop in ~/.face.
 #
-#   avatar.sh pick           escolher entre as imagens de Pictures, Downloads e Desktop (rofi)
-#   avatar.sh browse         escolher qualquer arquivo pelo yazi (Enter seleciona)
-#   avatar.sh set <arquivo>  usar esta imagem
-#   avatar.sh remove         voltar ao ícone
+#   avatar.sh pick           choose from the images in Pictures, Downloads and Desktop (rofi)
+#   avatar.sh browse         choose any file with yazi (Enter selects)
+#   avatar.sh set <file>     use this image
+#   avatar.sh remove         go back to the icon
 #
-# Fotos em pé são recortadas mais perto do topo (onde costuma estar o rosto).
+# Portrait photos are cropped closer to the top (where the face usually is).
 
 FACE=~/.face
 THUMBS=~/.cache/avatar/thumbs
@@ -16,7 +16,7 @@ set_face() {
     local src=$1 tmp w h side x y
     [ -f "$src" ] || { notify-send -a avatar "Profile photo" "File not found: $src"; return 1; }
     tmp=$(mktemp --suffix=.png)
-    # [0] = primeiro quadro (GIF), -auto-orient = foto de celular na posição certa
+    # [0] = first frame (GIF), -auto-orient = phone photo in the right orientation
     if ! magick "$src[0]" -auto-orient -background '#11111b' -flatten "$tmp" 2>/dev/null; then
         rm -f "$tmp"
         notify-send -a avatar -u critical "Profile photo" "Not an image: $(basename "$src")"
@@ -28,8 +28,8 @@ set_face() {
     magick "$tmp" -crop "${side}x${side}+${x}+${y}" +repage -resize 512x512 -alpha off -strip "png:$FACE.tmp" &&
         mv -f "$FACE.tmp" "$FACE"
     rm -f "$tmp"
-    cp -f "$FACE" ~/.face.icon   # mesmo nome que SDDM/GNOME procuram
-    ~/.config/hypr/scripts/sddm-sync.sh   # tela de login
+    cp -f "$FACE" ~/.face.icon   # same name SDDM/GNOME look for
+    ~/.config/hypr/scripts/sddm-sync.sh   # login screen
     notify-send -a avatar -i "$FACE" "Profile photo" "Updated · shows on the lock and login screens"
 }
 
@@ -81,7 +81,7 @@ remove() {
 case "${1:-}" in
     pick)   pick ;;
     browse) browse ;;
-    set)    set_face "${2:?arquivo}" ;;
+    set)    set_face "${2:?file}" ;;
     remove) remove ;;
     *) sed -n '2,9p' "$0" | sed 's/^# \{0,1\}//'; exit 1 ;;
 esac

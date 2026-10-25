@@ -1,24 +1,24 @@
 # ╭──────────────────────────────────────────────────────────╮
-# │  Zsh — prompt Starship, autosugestões, syntax highlight   │
-# │  As cores seguem a paleta do terminal (= do wallpaper)    │
+# │  Zsh — Starship prompt, autosuggestions, syntax highlight │
+# │  Colors follow the terminal palette (= the wallpaper)     │
 # ╰──────────────────────────────────────────────────────────╯
 
 export EDITOR=nvim VISUAL=nvim PAGER=less MANPAGER="nvim +Man!"
-export SSH_AUTH_SOCK="${SSH_AUTH_SOCK:-$XDG_RUNTIME_DIR/gcr/ssh}"   # agente SSH do gnome-keyring (também no TTY)
+export SSH_AUTH_SOCK="${SSH_AUTH_SOCK:-$XDG_RUNTIME_DIR/gcr/ssh}"   # gnome-keyring SSH agent (also on the TTY)
 typeset -U path PATH
 path=(~/.local/bin $path)
 
-# ── Histórico ────────────────────────────────────────────────
+# ── History ────────────────────────────────────────────────
 HISTFILE=${XDG_STATE_HOME:-$HOME/.local/state}/zsh/history
 mkdir -p ${HISTFILE:h}
 HISTSIZE=50000
 SAVEHIST=50000
 setopt share_history hist_ignore_all_dups hist_ignore_space hist_reduce_blanks extended_history
 
-# ── Opções gerais ────────────────────────────────────────────
+# ── General options ────────────────────────────────────────────
 setopt autocd interactive_comments no_beep extended_glob glob_dots
 
-# ── Completion (menu navegável, sem diferenciar maiúsculas) ──
+# ── Completion (navigable menu, case-insensitive) ──
 autoload -Uz compinit
 mkdir -p ~/.cache/zsh
 compinit -d ~/.cache/zsh/zcompdump
@@ -32,7 +32,7 @@ zstyle ':completion:*' use-cache on
 zstyle ':completion:*' cache-path ~/.cache/zsh/compcache
 zmodload zsh/complist
 
-# ── Teclas ───────────────────────────────────────────────────
+# ── Keys ───────────────────────────────────────────────────
 bindkey -e
 bindkey '^[[1;5C' forward-word        # Ctrl+→
 bindkey '^[[1;5D' backward-word       # Ctrl+←
@@ -42,7 +42,7 @@ bindkey '^[[3~'   delete-char         # Delete
 bindkey '^H'      backward-kill-word  # Ctrl+Backspace
 bindkey -M menuselect '^[[Z' reverse-menu-complete  # Shift+Tab no menu
 
-# ── Plugins (pacotes do Arch) ────────────────────────────────
+# ── Plugins (Arch packages) ────────────────────────────────
 plugins=/usr/share/zsh/plugins
 ZSH_AUTOSUGGEST_HIGHLIGHT_STYLE='fg=8'
 ZSH_AUTOSUGGEST_STRATEGY=(history completion)
@@ -50,16 +50,16 @@ ZSH_AUTOSUGGEST_STRATEGY=(history completion)
     source $plugins/zsh-autosuggestions/zsh-autosuggestions.zsh
 [[ -r $plugins/zsh-syntax-highlighting/zsh-syntax-highlighting.zsh ]] &&
     source $plugins/zsh-syntax-highlighting/zsh-syntax-highlighting.zsh
-# precisa vir depois do syntax-highlighting
+# must come after syntax-highlighting
 if [[ -r $plugins/zsh-history-substring-search/zsh-history-substring-search.zsh ]]; then
     source $plugins/zsh-history-substring-search/zsh-history-substring-search.zsh
-    bindkey '^[[A' history-substring-search-up     # ↑ busca no histórico pelo que já foi digitado
+    bindkey '^[[A' history-substring-search-up     # ↑ searches history for what has been typed so far
     bindkey '^[[B' history-substring-search-down   # ↓
     HISTORY_SUBSTRING_SEARCH_HIGHLIGHT_FOUND='fg=magenta,bold'
 fi
 unset plugins
 
-# ── fzf: Ctrl+R histórico · Ctrl+T arquivos · Alt+C pastas ───
+# ── fzf: Ctrl+R history · Ctrl+T files · Alt+C folders ───
 if (( $+commands[fzf] )); then
     export FZF_DEFAULT_COMMAND='fd --type f --hidden --exclude .git'
     export FZF_CTRL_T_COMMAND=$FZF_DEFAULT_COMMAND
@@ -72,18 +72,18 @@ if (( $+commands[fzf] )); then
     source <(fzf --zsh)
 fi
 
-# ── Ferramentas ──────────────────────────────────────────────
-(( $+commands[zoxide] )) && eval "$(zoxide init zsh)"   # z <parte do nome> pula para pastas usadas
-export BAT_THEME=ansi                                     # bat usa as cores do terminal
-# atuin: Ctrl+R = histórico pesquisável (pasta, sessão, código de saída); ↑ continua igual
+# ── Tools ──────────────────────────────────────────────
+(( $+commands[zoxide] )) && eval "$(zoxide init zsh)"   # z <part of name> jumps to frequently used folders
+export BAT_THEME=ansi                                     # bat uses the terminal colors
+# atuin: Ctrl+R = searchable history (folder, session, exit code); ↑ stays the same
 (( $+commands[atuin] )) && eval "$(atuin init zsh --disable-up-arrow)"
-# direnv: carrega/descarrega variáveis do .envrc ao entrar/sair da pasta (direnv allow na 1ª vez)
+# direnv: loads/unloads .envrc variables when entering/leaving the folder (direnv allow the first time)
 (( $+commands[direnv] )) && eval "$(direnv hook zsh)"
-# mise: versões de node/python/go/... por projeto (mise.toml ou .tool-versions)
+# mise: node/python/go/... versions per project (mise.toml or .tool-versions)
 (( $+commands[mise] )) && eval "$(mise activate zsh)"
 
 # ── Aliases ──────────────────────────────────────────────────
-# lsd: grade com colunas de largura variável (ocupa toda a largura antes de quebrar linha)
+# lsd: grid with variable-width columns (fills the whole width before wrapping)
 if (( $+commands[lsd] )); then
     alias ls='lsd'
     alias ll='lsd -l --git'
@@ -99,15 +99,15 @@ fi
 alias grep='grep --color=auto'
 alias v='nvim' vim='nvim'
 alias lg='lazygit'
-alias help='tldr'                                       # exemplos curtos de um comando: help tar
+alias help='tldr'                                       # short examples for a command: help tar
 alias ..='cd ..' ...='cd ../..'
-# Sistema: atualização segura (notícias do Arch + pacotes + .pacnew + firmware) e backup
+# System: safe update (Arch news + packages + .pacnew + firmware) and backup
 alias update='~/.config/hypr/scripts/update.sh'
 alias backup='~/.config/hypr/scripts/backup.sh'
 alias py='python'
 alias ipy='ipython'
 
-# ── Python: ativa a .venv automaticamente ao entrar na pasta ──
+# ── Python: activates .venv automatically when entering the folder ──
 autoload -Uz add-zsh-hook
 _auto_venv() {
     local dir=$PWD
@@ -123,16 +123,16 @@ _auto_venv() {
 add-zsh-hook chpwd _auto_venv
 _auto_venv
 
-# Cria um projeto de dados com uv: mkds nome
+# Creates a data project with uv: mkds name
 mkds() {
-    [[ -z $1 ]] && { echo "uso: mkds <nome-do-projeto>"; return 1; }
+    [[ -z $1 ]] && { echo "usage: mkds <project-name>"; return 1; }
     uv init "$1" && cd "$1" &&
     uv add pandas numpy scikit-learn matplotlib seaborn polars pyarrow ipykernel &&
     uv add --dev ipython ruff pytest &&
-    _auto_venv && echo "\n✔ Projeto $1 pronto (.venv ativa)"
+    _auto_venv && echo "\n✔ Project $1 ready (.venv active)"
 }
 
-# ── Yazi: "y" abre o gerenciador de arquivos; ao sair (q), o shell vai para a pasta atual dele ──
+# ── Yazi: "y" opens the file manager; on quit (q), the shell cd's to its current folder ──
 y() {
     local tmp cwd
     tmp=$(mktemp -t yazi-cwd.XXXXXX)
@@ -142,8 +142,8 @@ y() {
     rm -f -- "$tmp"
 }
 
-# ── fastfetch ao abrir o terminal (FASTFETCH_ON_START=0 desliga) ──
-# Só no primeiro shell de uma janela do kitty, fora de nvim/yazi/ssh e com espaço na janela
+# ── fastfetch on terminal open (FASTFETCH_ON_START=0 disables it) ──
+# Only in the first shell of a kitty window, outside nvim/yazi/ssh and with room in the window
 if [[ ${FASTFETCH_ON_START:-1} == 1 && $TERM == xterm-kitty && $SHLVL -le 1 && -z $NVIM$YAZI_LEVEL$SSH_CONNECTION ]] \
    && (( LINES >= 20 && COLUMNS >= 70 )) && (( $+commands[fastfetch] )); then
     fastfetch

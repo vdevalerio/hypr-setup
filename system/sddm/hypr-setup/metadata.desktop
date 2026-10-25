@@ -1,6 +1,6 @@
 [SddmGreeterTheme]
 Name=hypr-setup
-Description=Igual à tela de bloqueio (hyprlock) do hypr-setup
+Description=Same as the hypr-setup lock screen (hyprlock)
 Type=sddm-theme
 Version=1.0
 MainScript=Main.qml

@@ -1,5 +1,5 @@
-# Starship — usa as cores ANSI do terminal, então acompanha a paleta do wallpaper.
-# purple = cor principal (primary), blue = secundária, demais são fixas.
+# Starship — uses the terminal ANSI colors, so it follows the wallpaper palette.
+# purple = main color (primary), blue = secondary, the rest are fixed.
 "$schema" = 'https://starship.rs/config-schema.json'
 
 add_newline = true

@@ -1,5 +1,5 @@
-// Conteúdo de uma tela bloqueada (uma instância por monitor). Mesmas medidas do hyprlock e do
-// tema do SDDM (~/hypr-setup/system/sddm/hypr-setup/Main.qml): pixels de uma tela de 900 de altura.
+// Content of a locked screen (one instance per monitor). Same measurements as hyprlock and the
+// SDDM theme (~/hypr-setup/system/sddm/hypr-setup/Main.qml): pixels of a 900-pixel-tall screen.
 import QtQuick
 import QtQuick.Effects
 import QtMultimedia
@@ -29,14 +29,14 @@ Item {
     }
     function glyph(cp) { return String.fromCodePoint(cp) }
 
-    // Nome do cadastro do usuário (campo GECOS), como na tela de login
+    // User account full name (GECOS field), as on the login screen
     Process {
         running: true
         command: ["sh", "-c", "getent passwd \"$USER\" | cut -d: -f5 | cut -d, -f1"]
         stdout: StdioCollector { onStreamFinished: surface.realName = text.trim() }
     }
 
-    // Caps Lock e bateria (lidos do sistema a cada meio segundo / 30 s)
+    // Caps Lock and battery (read from the system every half second / 30 s)
     Process {
         id: capsProc
         command: ["sh", "-c", "cat /sys/class/leds/*::capslock/brightness 2>/dev/null | sort -r | head -1"]
@@ -50,7 +50,7 @@ Item {
     }
     Timer { interval: 30000; running: true; repeat: true; triggeredOnStart: true; onTriggered: batProc.running = true }
 
-    // ── Fundo: imagem desfocada do wallpaper; por cima, o vídeo (quando o wallpaper é animado) ──
+    // ── Background: blurred wallpaper image; on top, the video (when the wallpaper is animated) ──
     Image {
         anchors.fill: parent
         source: "file://" + surface.home + "/.cache/wallpaper/lock.png"
@@ -72,7 +72,7 @@ Item {
         Behavior on opacity { NumberAnimation { duration: 600 } }
     }
 
-    // Tudo some junto ao desbloquear
+    // Everything fades out together on unlock
     Item {
         id: content
         anchors.fill: parent
@@ -81,7 +81,7 @@ Item {
         Behavior on opacity { NumberAnimation { duration: 280; easing.type: Easing.OutCubic } }
         Behavior on scale { NumberAnimation { duration: 280; easing.type: Easing.OutCubic } }
 
-        // Posição como no hyprlock: y positivo = acima do centro
+        // Position as in hyprlock: positive y = above the center
         function cy(y, item) { return content.height / 2 - y * surface.s - item.height / 2 }
 
         Text {
@@ -110,7 +110,7 @@ Item {
             y: content.cy(75, greet)
         }
 
-        // Cartão central
+        // Central card
         Rectangle {
             id: card
             width: 380 * surface.s; height: 230 * surface.s
@@ -121,7 +121,7 @@ Item {
             y: content.cy(-95, card)
         }
 
-        // Anel em gradiente + foto (~/.face) ou ícone
+        // Gradient ring + photo (~/.face) or icon
         Rectangle {
             id: ring
             width: 84 * surface.s; height: width; radius: width / 2
@@ -143,7 +143,7 @@ Item {
                     color: surface.theme.text
                     font { family: surface.theme.mono; pixelSize: 30 * 1.33 * surface.s }
                 }
-                // Foto recortada em círculo (clip do Qt é retangular; a máscara é que arredonda)
+                // Photo cropped to a circle (Qt clip is rectangular; the mask does the rounding)
                 Image {
                     id: face
                     anchors.fill: parent
@@ -171,7 +171,7 @@ Item {
             }
         }
 
-        // Campo de senha
+        // Password field
         Rectangle {
             id: field
             width: 300 * surface.s; height: 50 * surface.s; radius: height / 2
@@ -179,7 +179,7 @@ Item {
             y: content.cy(-150, field)
             color: "#55000000"
 
-            // Borda em gradiente (como no hyprlock): gradiente recortado em anel por uma máscara
+            // Gradient border (as in hyprlock): gradient cut into a ring by a mask
             readonly property color c1: surface.shell.failed ? surface.theme.red
                                       : surface.capsLock ? surface.theme.yellow : surface.theme.mauve
             readonly property color c2: surface.shell.failed ? surface.theme.red
@@ -261,7 +261,7 @@ Item {
             }
         }
 
-        // Rodapé: bateria
+        // Footer: battery
         Text {
             visible: surface.battery !== ""
             anchors { right: parent.right; bottom: parent.bottom; rightMargin: 32 * surface.s; bottomMargin: 28 * surface.s }

@@ -1,4 +1,4 @@
-# Ignorados em todos os repositórios
+# Ignored in all repositories
 .venv/
 __pycache__/
 .ipynb_checkpoints/

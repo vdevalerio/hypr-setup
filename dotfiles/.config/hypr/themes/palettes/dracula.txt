@@ -1,5 +1,5 @@
 # name: Dracula
-# Paleta do tema (as mesmas 26 cores em todos os temas; mauve = acento principal)
+# Theme palette (the same 26 colors in every theme; mauve = main accent)
 rosewater ffd1dc
 flamingo  ff92d0
 pink      ff79c6

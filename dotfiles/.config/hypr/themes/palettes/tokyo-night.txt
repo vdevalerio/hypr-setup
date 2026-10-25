@@ -1,5 +1,5 @@
 # name: Tokyo Night
-# Paleta do tema (as mesmas 26 cores em todos os temas; mauve = acento principal)
+# Theme palette (the same 26 colors in every theme; mauve = main accent)
 rosewater f4dbd6
 flamingo  f7a8b8
 pink      ff9cc4

@@ -1,8 +1,8 @@
 #!/usr/bin/env bash
-# Bloqueia a tela (lock_cmd do hypridle; SUPER+Esc e o menu de energia chegam aqui pelo
-# `loginctl lock-session`). Usa a tela do Quickshell (~/.config/quickshell/lock.qml, com o wallpaper
-# animado); se ela não abrir ou cair, o hyprlock assume — a sessão continua bloqueada enquanto isso
-# (misc.allow_session_lock_restore no hyprland.lua).
+# Locks the screen (hypridle's lock_cmd; SUPER+Esc and the power menu get here via
+# `loginctl lock-session`). Uses the Quickshell screen (~/.config/quickshell/lock.qml, with the animated
+# wallpaper); if it fails to open or crashes, hyprlock takes over — the session stays locked in the
+# meantime (misc.allow_session_lock_restore in hyprland.lua).
 pidof hyprlock >/dev/null && exit 0
 pgrep -f "quickshell/[l]ock.qml" >/dev/null && exit 0
 if command -v qs >/dev/null && [ -f ~/.config/quickshell/lock.qml ]; then

@@ -1,13 +1,13 @@
 #!/usr/bin/env bash
-# Configuração dos monitores (central de controle → Displays). Grava em ~/.config/hypr/monitors.conf
-# (uma seção por monitor, pela descrição) e aplica na hora pelo monitors.lua.
+# Monitor configuration (control center → Displays). Writes to ~/.config/hypr/monitors.conf
+# (one section per monitor, by description) and applies it immediately via monitors.lua.
 #
-#   displays.sh place <monitor> left|right|above|below <outro>   posição relativa a outro monitor
-#   displays.sh set   <monitor> mode|scale|transform|mirror <valor>
-#   displays.sh unset <monitor> <chave>                          volta ao padrão (ex.: unset HDMI-A-2 mirror)
+#   displays.sh place <monitor> left|right|above|below <other>   position relative to another monitor
+#   displays.sh set   <monitor> mode|scale|transform|mirror <value>
+#   displays.sh unset <monitor> <key>                          back to default (e.g. unset HDMI-A-2 mirror)
 #   displays.sh enable|disable <monitor>
-#   displays.sh reset <monitor> | reset-all                      tudo automático de novo
-#   displays.sh info  <monitor>                                  resumo em uma linha
+#   displays.sh reset <monitor> | reset-all                      everything automatic again
+#   displays.sh info  <monitor>                                  one-line summary
 
 CONF=~/.config/hypr/monitors.conf
 
@@ -16,8 +16,8 @@ desc()  { json | jq -r --arg n "$1" '.[] | select(.name == $n) | .description' |
 label() { [[ $1 == eDP* ]] && { echo Laptop; return; }
           json | jq -r --arg n "$1" '.[] | select(.name == $n) | .model'; }
 
-ini_set() { # ini_set <seção> <chave> <valor>  (valor vazio = remove a chave)
-    [ -f "$CONF" ] || printf '# Ajustes por monitor (central de controle → Displays, scripts/displays.sh)\n' > "$CONF"
+ini_set() { # ini_set <section> <key> <value>  (empty value = removes the key)
+    [ -f "$CONF" ] || printf '# Per-monitor settings (control center → Displays, scripts/displays.sh)\n' > "$CONF"
     awk -v sec="[$1]" -v key="$2" -v val="$3" '
         function emit() { if (val != "") print key "=" val; done = 1 }
         $0 == sec { insec = 1; found = 1; print; next }
@@ -28,7 +28,7 @@ ini_set() { # ini_set <seção> <chave> <valor>  (valor vazio = remove a chave)
     ' "$CONF" > "$CONF.tmp" && mv "$CONF.tmp" "$CONF"
 }
 
-ini_drop() { # remove a seção inteira
+ini_drop() { # removes the whole section
     [ -f "$CONF" ] || return 0
     awk -v sec="[$1]" '$0 == sec { skip = 1; next } /^\[/ { skip = 0 } !skip' "$CONF" > "$CONF.tmp" &&
         mv "$CONF.tmp" "$CONF"
@@ -41,9 +41,9 @@ apply() {
     pkill -RTMIN+8 -x waybar 2>/dev/null
 }
 
-need() { [ -n "$(desc "$1")" ] || { echo "monitor desconhecido: $1" >&2; exit 1; }; }
+need() { [ -n "$(desc "$1")" ] || { echo "unknown monitor: $1" >&2; exit 1; }; }
 
-# Tamanho lógico (pixels / escala, trocando largura e altura se girado)
+# Logical size (pixels / scale, swapping width and height if rotated)
 geom() { json | jq -r --arg n "$1" '.[] | select(.name == $n)
           | (if (.transform % 2) == 1 then [.height, .width] else [.width, .height] end) as $s
           | "\(.x) \(.y) \($s[0] / .scale | floor) \($s[1] / .scale | floor)"'; }
@@ -51,14 +51,14 @@ geom() { json | jq -r --arg n "$1" '.[] | select(.name == $n)
 place() {
     local m=$1 side=$2 ref=$3 n x y w h minx miny
     need "$m"; need "$ref"
-    # Posição atual e tamanho lógico de todos os monitores ligados (que não espelham outro)
+    # Current position and logical size of all enabled monitors (that aren't mirroring another)
     declare -A X Y W H
     while read -r n x y w h; do X[$n]=$x; Y[$n]=$y; W[$n]=$w; H[$n]=$h; done < <(
         json | jq -r '.[] | select((.disabled | not) and .mirrorOf == "none")
             | (if (.transform % 2) == 1 then [.height, .width] else [.width, .height] end) as $s
             | "\(.name) \(.x) \(.y) \($s[0] / .scale | floor) \($s[1] / .scale | floor)"')
     [ -n "${W[$ref]:-}" ] || { notify-send -a displays "Displays" "$(label "$ref") is off or mirroring"; exit 1; }
-    # monitor que estava espelhando: usa o tamanho dele mesmo
+    # monitor that was mirroring: use its own size
     [ -n "${W[$m]:-}" ] || read -r _ _ W[$m] H[$m] < <(geom "$m")
     case $side in
         left)  X[$m]=$(( X[$ref] - W[$m] )); Y[$m]=${Y[$ref]} ;;
@@ -67,8 +67,8 @@ place() {
         below) X[$m]=${X[$ref]}; Y[$m]=$(( Y[$ref] + H[$ref] )) ;;
         *) usage ;;
     esac
-    # Fixa a posição de TODOS (um monitor em "auto" iria para a direita dos fixos) e
-    # desloca tudo para o canto mais à esquerda/acima ficar em 0,0
+    # Pins the position of ALL of them (a monitor on "auto" would go to the right of the pinned ones) and
+    # shifts everything so the leftmost/topmost corner ends up at 0,0
     minx=${X[$m]}; miny=${Y[$m]}
     for n in "${!X[@]}"; do (( X[$n] < minx )) && minx=${X[$n]}; (( Y[$n] < miny )) && miny=${Y[$n]}; done
     for n in "${!X[@]}"; do
@@ -92,7 +92,7 @@ case "${1:-}" in
     enable)  need "${2:?}"; ini_set "$(desc "$2")" disabled ""; apply ;;
     reset)
         need "${2:?}"; ini_drop "$(desc "$2")"
-        # sem seção, a regra antiga continuaria valendo: volta ao automático explicitamente
+        # without a section the old rule would stay in effect: explicitly go back to automatic
         hyprctl eval "hl.monitor({ output = 'desc:$(desc "$2")', mode = 'preferred', position = 'auto', scale = $(s=$(sed -n 's/^scale=//p' ~/.config/hypr/look.conf); [[ $s =~ ^[0-9.]+$ ]] && echo "$s" || echo '"auto"') })" >/dev/null
         apply ;;
     reset-all)

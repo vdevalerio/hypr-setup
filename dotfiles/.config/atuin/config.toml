@@ -1,15 +1,15 @@
-# atuin (Ctrl+R). Só local: sem conta, sem sincronização.
+# atuin (Ctrl+R). Local only: no account, no sync.
 auto_sync = false
 update_check = false
 style = "compact"
 inline_height = 20
 show_preview = true
-# Enter coloca o comando na linha (para editar); Tab também. Não executa direto.
+# Enter puts the command on the line (to edit); so does Tab. It does not run it directly.
 enter_accept = false
-# Começa no histórico todo; dentro da busca, Ctrl+R alterna: global → host → sessão → pasta
+# Starts with the whole history; inside the search, Ctrl+R cycles: global → host → session → directory
 filter_mode = "global"
 search_mode = "fuzzy"
-# Não guarda comandos com segredos óbvios
+# Does not store commands with obvious secrets
 secrets_filter = true
 history_filter = ["^export .*(TOKEN|KEY|SECRET|PASSWORD)"]
 

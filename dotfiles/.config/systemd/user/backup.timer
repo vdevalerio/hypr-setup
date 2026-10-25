@@ -1,10 +1,10 @@
 [Unit]
-Description=Backup diário dos arquivos (restic → Google Drive)
+Description=Daily files backup (restic → Google Drive)
 
 [Timer]
 OnCalendar=daily
 RandomizedDelaySec=30m
-# Notebook desligado no horário: roda assim que ligar
+# Laptop off at the scheduled time: runs as soon as it is powered on
 Persistent=true
 
 [Install]

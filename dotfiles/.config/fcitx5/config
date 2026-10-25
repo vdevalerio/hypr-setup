@@ -1,6 +1,6 @@
-# fcitx5 — a troca de idioma é feita pelo Hyprland (SUPER + CTRL + Espaço, keyboard.sh),
-# então os atalhos próprios do fcitx5 ficam em teclas que não existem no ABNT2
-# (Ctrl+Espaço livre para o Neovim; Shift sozinho não troca nada).
+# fcitx5 — language switching is done by Hyprland (SUPER + CTRL + Space, keyboard.sh),
+# so fcitx5's own shortcuts are set to keys that do not exist on ABNT2
+# (Ctrl+Space stays free for Neovim; Shift alone switches nothing).
 [Hotkey]
 EnumerateWithTriggerKeys=False
 EnumerateSkipFirst=False
@@ -37,7 +37,7 @@ ModifierOnlyKeyTimeout=250
 0=Tab
 
 [Behavior]
-# Mesmo idioma em todos os apps (o indicador da barra vale para tudo)
+# Same input language in every app (the tray indicator applies everywhere)
 ActiveByDefault=False
 ShareInputState=All
 PreeditEnabledByDefault=True

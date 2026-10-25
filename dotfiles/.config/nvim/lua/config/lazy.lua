@@ -16,12 +16,12 @@ vim.opt.rtp:prepend(lazypath)
 
 require("lazy").setup({
   spec = {
-    -- LazyVim (base da IDE)
+    -- LazyVim (IDE base)
     { "LazyVim/LazyVim", import = "lazyvim.plugins" },
 
-    -- Linguagens
+    -- Languages
     { import = "lazyvim.plugins.extras.lang.python" }, -- basedpyright + ruff + debugpy + pytest + venv-selector
-    { import = "lazyvim.plugins.extras.lang.sql" },    -- SQL + vim-dadbod (navegar em bancos de dados)
+    { import = "lazyvim.plugins.extras.lang.sql" },    -- SQL + vim-dadbod (browse databases)
     { import = "lazyvim.plugins.extras.lang.json" },
     { import = "lazyvim.plugins.extras.lang.yaml" },
     { import = "lazyvim.plugins.extras.lang.toml" },
@@ -29,18 +29,18 @@ require("lazy").setup({
     { import = "lazyvim.plugins.extras.lang.docker" },
     { import = "lazyvim.plugins.extras.lang.git" },
 
-    -- Debug e testes
+    -- Debug and tests
     { import = "lazyvim.plugins.extras.dap.core" },
     { import = "lazyvim.plugins.extras.test.core" },
 
-    -- Edição
+    -- Editing
     { import = "lazyvim.plugins.extras.editor.inc-rename" },
     { import = "lazyvim.plugins.extras.editor.outline" },
     { import = "lazyvim.plugins.extras.coding.mini-surround" },
     { import = "lazyvim.plugins.extras.util.mini-hipatterns" },
     { import = "lazyvim.plugins.extras.ui.treesitter-context" },
 
-    -- Meus plugins / ajustes (lua/plugins/*.lua)
+    -- My plugins / tweaks (lua/plugins/*.lua)
     { import = "plugins" },
   },
   defaults = {

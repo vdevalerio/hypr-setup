@@ -1,4 +1,4 @@
-# Guarda lista de pacotes + /etc antes de atualizar/remover (veja /usr/local/bin/hypr-setup-snapshot)
+# Saves the package list + /etc before upgrading/removing (see /usr/local/bin/hypr-setup-snapshot)
 [Trigger]
 Operation = Upgrade
 Operation = Remove

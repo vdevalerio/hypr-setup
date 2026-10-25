@@ -1,6 +1,6 @@
 #!/usr/bin/env bash
-# Histórico da área de transferência (SUPER + V)
-# Enter cola o item; Shift+Delete apaga o item selecionado
+# Clipboard history (SUPER + V)
+# Enter pastes the item; Shift+Delete deletes the selected item
 pkill -x rofi && exit 0
 tmp=$(mktemp)
 cliphist list | rofi -dmenu -i -p "Clipboard" -display-columns 2 \

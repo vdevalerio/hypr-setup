@@ -1,7 +1,7 @@
 ---------------------
 ---- KEYBINDINGS ----
 ---------------------
--- Toda bind tem descrição (em inglês): SUPER + F1 abre a lista pesquisável de atalhos.
+-- Every bind has a description: SUPER + F1 opens the searchable keybind list.
 
 local mainMod = "SUPER"
 
@@ -19,7 +19,7 @@ end
 local function M(keys) return mainMod .. " + " .. keys end
 
 
--- ── Aplicativos ─────────────────────────────────────────────
+-- ── Applications ─────────────────────────────────────────────
 bind(M("Return"),        hl.dsp.exec_cmd(terminal),                      "Open terminal")
 bind(M("Space"),         hl.dsp.exec_cmd("pkill -x rofi || rofi -show drun"), "App launcher")
 bind(M("D"),             hl.dsp.exec_cmd("pkill -x rofi || rofi -show drun"), "App launcher")
@@ -37,13 +37,13 @@ bind(M("F1"),            hl.dsp.exec_cmd(scripts .. "keybinds.sh"),      "Show k
 bind(M("SHIFT + B"),     hl.dsp.exec_cmd("pkill -SIGUSR1 waybar"),       "Toggle bar")
 bind(M("SHIFT + C"),     hl.dsp.exec_cmd("hyprpicker -a"),               "Color picker (copies hex)")
 
--- ── Wallpaper e cores ───────────────────────────────────────
+-- ── Wallpaper and colors ───────────────────────────────────────
 bind(M("SHIFT + W"),     hl.dsp.exec_cmd(scripts .. "wallpaper.sh pick"),   "Choose wallpaper")
 bind(M("CTRL + W"),      hl.dsp.exec_cmd(scripts .. "wallpaper.sh random"), "Random wallpaper")
 bind(M("SHIFT + T"),     hl.dsp.exec_cmd(scripts .. "controlcenter.sh theme"), "Color theme (automatic or fixed)")
 
--- ── Central de controle e ajustes ao vivo (scripts/look.sh) ─
--- Valores salvos em ~/.config/hypr/look.conf (continuam depois de reiniciar)
+-- ── Control center and live tweaks (scripts/look.sh) ─
+-- Values saved in ~/.config/hypr/look.conf (persist across restarts)
 bind(M("A"),             hl.dsp.exec_cmd(scripts .. "controlcenter.sh"), "Control center")
 bind(M("ALT + equal"),   hl.dsp.exec_cmd(scripts .. "look.sh font up"),    "Font size: bigger")
 bind(M("ALT + minus"),   hl.dsp.exec_cmd(scripts .. "look.sh font down"),  "Font size: smaller")
@@ -55,24 +55,24 @@ bind(M("CTRL + ALT + equal"), hl.dsp.exec_cmd(scripts .. "look.sh scale up"),   
 bind(M("CTRL + ALT + minus"), hl.dsp.exec_cmd(scripts .. "look.sh scale down"),  "Display scale: smaller (everything)")
 bind(M("CTRL + ALT + 0"),     hl.dsp.exec_cmd(scripts .. "look.sh scale reset"), "Display scale: automatic")
 
--- ── Idioma do teclado (fcitx5, scripts/keyboard.sh) ─────────
--- Os atalhos do Hyprland continuam no layout br, qualquer que seja o idioma ativo.
+-- ── Keyboard language (fcitx5, scripts/keyboard.sh) ─────────
+-- Hyprland keybinds stay on the br layout, whatever the active language.
 bind(M("CTRL + Space"),         hl.dsp.exec_cmd(scripts .. "keyboard.sh next"), "Keyboard: next language")
 bind(M("CTRL + SHIFT + Space"), hl.dsp.exec_cmd(scripts .. "keyboard.sh prev"), "Keyboard: previous language")
-for i, lang in ipairs({ "Português", "English", "Russian", "Japanese" }) do
+for i, lang in ipairs({ "Portuguese", "English", "Russian", "Japanese" }) do
     bind(M("CTRL + " .. i), hl.dsp.exec_cmd(scripts .. "keyboard.sh set " .. i), "Keyboard: " .. lang)
 end
 
--- ── Sessão ──────────────────────────────────────────────────
+-- ── Session ──────────────────────────────────────────────────
 bind(M("Escape"),        hl.dsp.exec_cmd("loginctl lock-session"),       "Lock screen")
 bind(M("X"),             hl.dsp.exec_cmd(scripts .. "powermenu.sh"),     "Power menu")
 bind(M("CTRL + Q"),      hl.dsp.exec_cmd("hyprshutdown || hyprctl dispatch 'hl.dsp.exit()'"), "Exit Hyprland")
 
--- ── Tampa do notebook (com monitor externo, desliga só a tela do notebook) ──
+-- ── Laptop lid (with an external monitor, only the laptop screen turns off) ──
 bind("switch:on:Lid Switch",  hl.dsp.exec_cmd(scripts .. "lid.sh close"), "Lid closed", { locked = true })
 bind("switch:off:Lid Switch", hl.dsp.exec_cmd(scripts .. "lid.sh open"),  "Lid opened", { locked = true })
 
--- ── Gravação de tela e texto da tela ────────────────────────
+-- ── Screen recording and on-screen text ────────────────────────
 bind(M("ALT + R"),         hl.dsp.exec_cmd(scripts .. "record.sh toggle"), "Record screen (start/stop)")
 bind(M("ALT + SHIFT + R"), hl.dsp.exec_cmd(scripts .. "record.sh region"), "Record a region (start/stop)")
 bind(M("CTRL + S"),        hl.dsp.exec_cmd(scripts .. "ocr.sh"),           "Copy text from screen area (OCR)")
@@ -83,7 +83,7 @@ bind("SHIFT + Print",    hl.dsp.exec_cmd(scripts .. "screenshot.sh screen"), "Sc
 bind(M("Print"),         hl.dsp.exec_cmd(scripts .. "screenshot.sh edit"),   "Screenshot: region + edit")
 bind(M("SHIFT + S"),     hl.dsp.exec_cmd(scripts .. "screenshot.sh region"), "Screenshot: region")
 
--- ── Janelas ─────────────────────────────────────────────────
+-- ── Windows ─────────────────────────────────────────────────
 bind(M("Q"),             hl.dsp.window.close(),                          "Close window")
 bind(M("F"),             hl.dsp.window.fullscreen({ mode = "fullscreen", action = "toggle" }), "Fullscreen")
 bind(M("M"),             hl.dsp.window.fullscreen({ mode = "maximized",  action = "toggle" }), "Maximize")
@@ -95,7 +95,7 @@ bind(M("G"),             hl.dsp.group.toggle(),                          "Toggle
 bind(M("ALT + Tab"),     hl.dsp.group.next(),                            "Next tab in group")
 bind(M("ALT + SHIFT + Tab"), hl.dsp.group.prev(),                        "Previous tab in group")
 
--- Foco: setas ou h/j/k/l (estilo vim)
+-- Focus: arrows or h/j/k/l (vim style)
 local dirs = {
     { "left",  "H", "left"  },
     { "right", "L", "right" },
@@ -120,7 +120,7 @@ for _, d in ipairs(dirs) do
     end
 end
 
--- Modo de redimensionar: SUPER + R, depois setas/hjkl, Esc ou Enter para sair
+-- Resize mode: SUPER + R, then arrows/hjkl, Esc or Enter to exit
 bind(M("R"), hl.dsp.submap("resize"), "Resize mode (Esc to exit)")
 hl.define_submap("resize", function()
     for _, d in ipairs(dirs) do
@@ -133,17 +133,17 @@ hl.define_submap("resize", function()
     hl.bind("Return", hl.dsp.submap("reset"))
 end)
 
--- ── Workspaces (cada monitor tem os seus 1–10, veja workspaces.lua) ──
+-- ── Workspaces (each monitor has its own 1–10, see workspaces.lua) ──
 local ws = require("workspaces")
 for i = 1, 10 do
-    local key = i % 10 -- 10 = tecla 0
+    local key = i % 10 -- 10 = key 0
     bind(M(tostring(key)),     function() hl.dispatch(hl.dsp.focus({ workspace = ws.id(i) })) end,
          "Go to workspace " .. i .. " (this monitor)")
     bind(M("SHIFT + " .. key), function() hl.dispatch(hl.dsp.window.move({ workspace = ws.id(i) })) end,
          "Move window to workspace " .. i .. " (this monitor)")
 end
 
--- m-1 / m+1: só os workspaces do monitor em foco
+-- m-1 / m+1: only the focused monitor's workspaces
 bind(M("comma"),          hl.dsp.focus({ workspace = "m-1" }),           "Previous workspace")
 bind(M("period"),         hl.dsp.focus({ workspace = "m+1" }),           "Next workspace")
 bind(M("Page_Up"),        hl.dsp.focus({ workspace = "m-1" }),           "Previous workspace")
@@ -152,11 +152,11 @@ bind(M("apostrophe"),     hl.dsp.focus({ workspace = "previous" }),      "Back t
 bind(M("W"),              function() hl.dispatch(hl.dsp.focus({ workspace = ws.first_empty() })) end,
      "Go to empty workspace (this monitor)")
 
--- Vários monitores
+-- Multiple monitors
 bind(M("O"),              hl.dsp.focus({ monitor = "+1" }),              "Focus next monitor")
 bind(M("SHIFT + O"),      hl.dsp.window.move({ monitor = "+1" }),        "Move window to next monitor")
 
--- Scratchpad (workspace "escondido" que aparece por cima)
+-- Scratchpad (a "hidden" workspace that shows up on top)
 bind(M("S"),              hl.dsp.workspace.toggle_special("magic"),      "Toggle scratchpad")
 bind(M("ALT + S"),        hl.dsp.window.move({ workspace = "special:magic" }), "Send window to scratchpad")
 
@@ -166,9 +166,9 @@ bind(M("mouse_up"),       hl.dsp.focus({ workspace = "m-1" }),           "Previo
 bind(M("mouse:272"),      hl.dsp.window.drag(),   "Drag window (left button)",  { mouse = true })
 bind(M("mouse:273"),      hl.dsp.window.resize(), "Resize window (right button)",     { mouse = true })
 
--- ── Menus do rofi fecham ao clicar fora ─────────────────────
--- O rofi (camada do Wayland) só recebe cliques na própria área, então o "click-to-exit" dele
--- nunca dispara. Esta bind não consome o clique: só fecha o menu se o cursor estiver fora dele.
+-- ── Rofi menus close when clicking outside ─────────────────────
+-- Rofi (a Wayland layer) only receives clicks inside its own area, so its "click-to-exit"
+-- never fires. This bind doesn't consume the click: it only closes the menu if the cursor is outside it.
 local function close_rofi_if_outside()
     local p = hl.get_cursor_pos()
     if not p then return end
@@ -182,14 +182,14 @@ end
 bind("mouse:272", close_rofi_if_outside, "Close menu when clicking outside it", { non_consuming = true })
 bind("mouse:273", close_rofi_if_outside, "Close menu when clicking outside it", { non_consuming = true })
 
--- ── Teclas de mídia do notebook ─────────────────────────────
+-- ── Laptop media keys ─────────────────────────────
 bind("XF86AudioRaiseVolume",  hl.dsp.exec_cmd(scripts .. "osd.sh volume up"), "Volume up", { locked = true, repeating = true })
 bind("XF86AudioLowerVolume",  hl.dsp.exec_cmd(scripts .. "osd.sh volume down"), "Volume down", { locked = true, repeating = true })
 bind("XF86AudioMute",         hl.dsp.exec_cmd(scripts .. "osd.sh volume mute"), "Mute",            { locked = true })
 bind("XF86AudioMicMute",      hl.dsp.exec_cmd(scripts .. "osd.sh mic mute"), "Mute microphone", { locked = true })
--- Caps Lock: só avisa. Não é bind: o próprio Caps Lock muda os modificadores e a bind não casa.
--- Evento cru da tecla (keycode xkb 66 = Caps Lock); ao soltar, o LED já está no estado novo.
--- O evento chega em dobro (teclado físico + teclado virtual do fcitx5) com o mesmo horário: ignora o repetido.
+-- Caps Lock: only notifies. Not a bind: Caps Lock itself changes the modifiers, so a bind wouldn't match.
+-- Raw key event (xkb keycode 66 = Caps Lock); on release the LED is already in its new state.
+-- The event arrives twice (physical keyboard + fcitx5 virtual keyboard) with the same timestamp: ignore the repeat.
 local last_caps
 hl.on("input.keyboard.key", function(keycode, time, state)
     if keycode == 66 and tostring(state) == "0" and time ~= last_caps then
@@ -197,7 +197,7 @@ hl.on("input.keyboard.key", function(keycode, time, state)
         hl.exec_cmd(scripts .. "osd.sh caps")
     end
 end)
--- Brilho: do monitor em foco (notebook ou externo com DDC/CI), veja scripts/brightness.sh
+-- Brightness: of the focused monitor (laptop or external with DDC/CI), see scripts/brightness.sh
 bind("XF86MonBrightnessUp",   hl.dsp.exec_cmd(scripts .. "brightness.sh up"),   "Brightness up (focused monitor)", { locked = true, repeating = true })
 bind("XF86MonBrightnessDown", hl.dsp.exec_cmd(scripts .. "brightness.sh down"), "Brightness down (focused monitor)", { locked = true, repeating = true })
 bind("XF86AudioNext",         hl.dsp.exec_cmd("playerctl next"),       "Next track",      { locked = true })

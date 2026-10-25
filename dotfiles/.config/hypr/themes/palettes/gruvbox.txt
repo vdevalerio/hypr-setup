@@ -1,5 +1,5 @@
 # name: Gruvbox
-# Paleta do tema (as mesmas 26 cores em todos os temas; mauve = acento principal)
+# Theme palette (the same 26 colors in every theme; mauve = main accent)
 rosewater f5e6c8
 flamingo  f2a68b
 pink      d3869b

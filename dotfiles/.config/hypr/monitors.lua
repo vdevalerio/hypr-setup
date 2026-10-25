@@ -1,14 +1,14 @@
 -------------------------------
----- AJUSTES POR MONITOR ------
+---- PER-MONITOR SETTINGS -----
 -------------------------------
--- Feitos na central de controle → Displays (scripts/displays.sh) e guardados em
--- ~/.config/hypr/monitors.conf: uma seção por monitor, pela descrição (não muda se trocar de porta).
+-- Made in the control center → Displays (scripts/displays.sh) and stored in
+-- ~/.config/hypr/monitors.conf: one section per monitor, by description (doesn't change if you switch ports).
 --   [Dell Inc. DELL SE2216H H5MNV91P138I]
 --   position=1600x0   mode=1920x1080@60   scale=1.25   transform=1   mirror=eDP-1   disabled=true
--- O que não estiver lá segue o padrão de hyprland.lua (modo preferido, posição automática e a
--- escala de look.conf).
--- Na bateria, a tela do notebook vai a 60 Hz (a menos que monitors.conf fixe um mode): é um dos
--- maiores gastos de energia. scripts/power.sh recarrega a config quando o carregador muda.
+-- Anything not listed there follows the hyprland.lua defaults (preferred mode, automatic position
+-- and the scale from look.conf).
+-- On battery, the laptop screen drops to 60 Hz (unless monitors.conf pins a mode): it is one of the
+-- biggest power drains. scripts/power.sh reloads the config when the charger state changes.
 
 local M = {}
 local HOME = os.getenv("HOME")
@@ -31,7 +31,7 @@ local function read_ini(path)
     return t
 end
 
--- Escala padrão (SUPER + CTRL + ALT + = / -), de look.conf
+-- Default scale (SUPER + CTRL + ALT + = / -), from look.conf
 local function default_scale()
     local s
     local f = io and io.open and io.open(HOME .. "/.config/hypr/look.conf", "r")

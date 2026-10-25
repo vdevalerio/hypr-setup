@@ -1,545 +1,545 @@
 # hypr-setup
 
-Arch Linux + **Hyprland** completo, do sistema recém-instalado ao desktop pronto:
-um script (`install.sh`) e as configs (`dotfiles/`). Feito para ser usado **só com teclado**,
-mas com tudo clicável para quem usa mouse.
+A complete Arch Linux + **Hyprland** setup, from a fresh system install to a ready desktop:
+one script (`install.sh`) and the configs (`dotfiles/`). Built to be used **keyboard-only**,
+but with everything clickable for mouse users.
 
-- **Visual:** cores geradas a partir do wallpaper (imagem, GIF ou vídeo), aplicadas em todo o sistema.
-  Ou um tema fixo: Catppuccin, Tokyo Night, Gruvbox, Nord, Rosé Pine, Everforest, Kanagawa, Dracula.
-- **Ajustes ao vivo:** tamanho das fontes, espaço entre janelas e escala da tela por atalho,
-  e uma central de controle com o resto (a barra fica só com o essencial).
-- **Terminal:** kitty transparente + zsh com Starship, autosugestões, fzf, atuin (histórico), direnv e mise.
-- **Editor:** Neovim (LazyVim) como IDE de Python / ciência de dados, com células estilo Jupyter.
-- **Arquivos:** yazi. **Sistema:** em inglês, teclado ABNT2.
-- **Idiomas do teclado:** português (ABNT2), inglês, russo e japonês (fcitx5 + Mozc).
+- **Look:** colors generated from the wallpaper (image, GIF or video), applied across the whole system.
+  Or a fixed theme: Catppuccin, Tokyo Night, Gruvbox, Nord, Rosé Pine, Everforest, Kanagawa, Dracula.
+- **Live adjustments:** font size, window gaps and display scale via shortcuts,
+  plus a control center with everything else (the bar only shows the essentials).
+- **Terminal:** transparent kitty + zsh with Starship, autosuggestions, fzf, atuin (history), direnv and mise.
+- **Editor:** Neovim (LazyVim) as a Python / data science IDE, with Jupyter-style cells.
+- **Files:** yazi. **System:** in English, ABNT2 keyboard.
+- **Keyboard languages:** Portuguese (ABNT2), English, Russian and Japanese (fcitx5 + Mozc).
 
 ---
 
-## Instalação
+## Installation
 
-**Pré-requisitos:** Arch Linux instalado (ex.: `archinstall`, perfil *minimal*), um usuário com
-`sudo`, internet funcionando e `git` instalado.
+**Prerequisites:** Arch Linux installed (e.g. `archinstall`, *minimal* profile), a user with
+`sudo`, a working internet connection and `git` installed.
 
 ```bash
 sudo pacman -S --needed git
-git clone <url-do-seu-repositório> ~/hypr-setup   # ou copie a pasta por pendrive
+git clone <your-repository-url> ~/hypr-setup   # or copy the folder over on a USB stick
 cd ~/hypr-setup
-bash install.sh        # pede a senha do sudo uma vez
+bash install.sh        # asks for the sudo password once
 sudo reboot
 ```
 
-Na tela de login, escolha a sessão **Hyprland**. No primeiro login o wallpaper animado é aplicado
-e as cores são geradas. **SUPER + F1** mostra todos os atalhos.
+On the login screen, choose the **Hyprland** session. On first login the animated wallpaper is applied
+and the colors are generated. **SUPER + F1** shows all shortcuts.
 
-Se você já tem configs na home, o script move as que forem diferentes para
-`~/.config-backup/<data>/` antes de copiar as novas. Dá para rodá-lo de novo sem problema.
+If you already have configs in your home, the script moves the ones that differ to
+`~/.config-backup/<date>/` before copying the new ones. It is safe to run it again.
 
-### Comandos do script
+### Script commands
 
-| Comando | O que faz |
+| Command | What it does |
 |---|---|
-| `./install.sh` | Instalação completa: pacotes, drivers, sistema, configs, shell e Neovim |
-| `./install.sh dotfiles` | Só copia as configs de `dotfiles/` para a home (sem sudo) |
-| `./install.sh nvim` | Só prepara o Neovim (plugins, parsers, servidores de linguagem) |
-| `./install.sh save` | Copia as configs **atuais** da home para `dotfiles/` (use depois de personalizar) |
-| `./install.sh sddm` | (Re)instala o tema da tela de login (pede sudo) |
-| `./install.sh extras` | Firewall, zram, manutenção automática, tampa e limite de bateria (pede sudo) |
+| `./install.sh` | Full install: packages, drivers, system, configs, shell and Neovim |
+| `./install.sh dotfiles` | Only copies the configs from `dotfiles/` to your home (no sudo) |
+| `./install.sh nvim` | Only sets up Neovim (plugins, parsers, language servers) |
+| `./install.sh save` | Copies the **current** configs from your home into `dotfiles/` (use after customizing) |
+| `./install.sh sddm` | (Re)installs the login screen theme (asks for sudo) |
+| `./install.sh extras` | Firewall, zram, automatic maintenance, lid and battery limit (asks for sudo) |
 
-### O que ajustar antes de rodar
+### What to adjust before running
 
-No topo do `install.sh`:
+At the top of `install.sh`:
 
-- **Idioma e teclado:** `SYS_LANG`, `CONSOLE_KEYMAP`, `XKB_LAYOUT` e `XKB_MODEL`.
-  O teclado dentro do Hyprland fica em `dotfiles/.config/hypr/hyprland.lua` (`kb_layout`, `kb_model`).
-- **Apps pessoais:** `PERSONAL_PKGS` e `PERSONAL_AUR` (Brave, KeePassXC, Claude Desktop, tmux…).
-  O SUPER + B abre o Brave; se tirar o Brave, troque `browser` em `dotfiles/.config/hypr/binds.lua`.
+- **Language and keyboard:** `SYS_LANG`, `CONSOLE_KEYMAP`, `XKB_LAYOUT` and `XKB_MODEL`.
+  The keyboard inside Hyprland is set in `dotfiles/.config/hypr/hyprland.lua` (`kb_layout`, `kb_model`).
+- **Personal apps:** `PERSONAL_PKGS` and `PERSONAL_AUR` (Brave, KeePassXC, Claude Desktop, tmux…).
+  SUPER + B opens Brave; if you remove Brave, change `browser` in `dotfiles/.config/hypr/binds.lua`.
 
 ### Hardware
 
-O script detecta o hardware sozinho:
+The script detects the hardware on its own:
 
-- **CPU:** instala o microcode certo (AMD ou Intel).
-- **GPU:** AMD, Intel ou NVIDIA. Para NVIDIA usa o `nvidia-open`, que pede placa Turing
-  (GTX 16xx / RTX 20xx) ou mais nova. Em kernels além do `linux` padrão, usa a versão `-dkms`.
-- **Notebook híbrido** (integrada + NVIDIA): o desktop roda na GPU integrada para poupar bateria.
-  Para usar a NVIDIA num app, abra com `prime-run <app>`. Também ativa a suspensão correta da NVIDIA e o
-  RTD3: parada, a NVIDIA desliga sozinha (`cat /sys/bus/pci/devices/<id>/power/runtime_status` →
-  `suspended`). Com monitor ligado na saída dela (HDMI deste notebook) ela fica ligada — é esperado.
+- **CPU:** installs the right microcode (AMD or Intel).
+- **GPU:** AMD, Intel or NVIDIA. For NVIDIA it uses `nvidia-open`, which needs a Turing card
+  (GTX 16xx / RTX 20xx) or newer. On kernels other than the default `linux`, it uses the `-dkms` version.
+- **Hybrid laptop** (integrated + NVIDIA): the desktop runs on the integrated GPU to save battery.
+  To use the NVIDIA GPU for an app, launch it with `prime-run <app>`. It also enables proper NVIDIA suspend and
+  RTD3: when idle, the NVIDIA GPU powers itself off (`cat /sys/bus/pci/devices/<id>/power/runtime_status` →
+  `suspended`). With a monitor plugged into its output (this laptop's HDMI) it stays on — that's expected.
 
-Testado em: Ryzen 7 7735HS + Radeon 680M + RTX 4050 (notebook), Hyprland 0.56.
+Tested on: Ryzen 7 7735HS + Radeon 680M + RTX 4050 (laptop), Hyprland 0.56.
 
 ---
 
-## O que vem instalado
+## What's installed
 
-| Função | Programa |
+| Role | Program |
 |---|---|
-| Compositor | Hyprland 0.56 (config em **Lua**) |
-| Barra | Waybar (+ central de controle em Rofi) |
-| Lançador, emoji, calculadora, clipboard, menus | Rofi |
-| Notificações | SwayNC |
-| Idiomas do teclado | fcitx5 (+ Mozc para japonês) |
-| Bloqueio de tela / inatividade | Quickshell (lock.qml, hyprlock de reserva) / hypridle |
-| Luz noturna | hyprsunset |
-| Wallpaper | awww (imagens e GIFs) e mpvpaper (vídeos) |
-| Temas de cor (automático pelo wallpaper ou fixos) | theme.py (próprio) |
+| Compositor | Hyprland 0.56 (config in **Lua**) |
+| Bar | Waybar (+ control center in Rofi) |
+| Launcher, emoji, calculator, clipboard, menus | Rofi |
+| Notifications | SwayNC |
+| Keyboard languages | fcitx5 (+ Mozc for Japanese) |
+| Screen lock / idle | Quickshell (lock.qml, hyprlock as fallback) / hypridle |
+| Night light | hyprsunset |
+| Wallpaper | awww (images and GIFs) and mpvpaper (videos) |
+| Color themes (automatic from the wallpaper, or fixed) | theme.py (custom) |
 | Terminal | kitty |
 | Shell | zsh + Starship, fzf, zoxide, lsd, bat |
 | Editor | Neovim + LazyVim |
-| Arquivos | yazi |
+| Files | yazi |
 | Screenshots | grim + slurp + satty |
-| Login | SDDM (tema próprio, igual à tela de bloqueio) |
-| Áudio / rede / bluetooth | PipeWire / NetworkManager / Blueman |
+| Login | SDDM (custom theme, same as the lock screen) |
+| Audio / network / bluetooth | PipeWire / NetworkManager / Blueman |
 
 ---
 
-## Atalhos
+## Shortcuts
 
-`SUPER` = tecla Windows. **SUPER + F1** abre esta lista pesquisável dentro do sistema.
+`SUPER` = the Windows key. **SUPER + F1** opens this list, searchable, inside the system.
 
-### Apps e sistema
-| Atalho | Ação |
+### Apps and system
+| Shortcut | Action |
 |---|---|
 | SUPER + Enter | Terminal |
-| SUPER + Espaço (ou D) | Menu de apps |
-| SUPER + SHIFT + Espaço | Executar comando |
-| SUPER + Tab | Visão geral dos workspaces (miniaturas ao vivo) |
-| ALT + Tab | Lista de janelas |
-| SUPER + E / B | Arquivos (yazi) / navegador |
-| SUPER + V | Histórico da área de transferência |
-| SUPER + ; / = | Emoji / calculadora |
-| SUPER + N / SHIFT + N | Central de notificações / limpar |
-| SUPER + SHIFT + C | Conta-gotas (copia a cor) |
-| SUPER + A | Central de controle |
-| SUPER + SHIFT + B | Mostrar/esconder a barra |
-| SUPER + Esc | Bloquear tela |
-| SUPER + X | Menu de energia |
-| SUPER + CTRL + Q | Sair do Hyprland |
+| SUPER + Space (or D) | App menu |
+| SUPER + SHIFT + Space | Run command |
+| SUPER + Tab | Workspace overview (live thumbnails) |
+| ALT + Tab | Window list |
+| SUPER + E / B | Files (yazi) / browser |
+| SUPER + V | Clipboard history |
+| SUPER + ; / = | Emoji / calculator |
+| SUPER + N / SHIFT + N | Notification center / clear |
+| SUPER + SHIFT + C | Color picker (copies the color) |
+| SUPER + A | Control center |
+| SUPER + SHIFT + B | Show/hide the bar |
+| SUPER + Esc | Lock screen |
+| SUPER + X | Power menu |
+| SUPER + CTRL + Q | Exit Hyprland |
 
-### Aparência (ao vivo, salva em `~/.config/hypr/look.conf`)
-| Atalho | Ação |
+### Appearance (live, saved to `~/.config/hypr/look.conf`)
+| Shortcut | Action |
 |---|---|
-| SUPER + ALT + `=` / `-` / `0` | Fontes maiores / menores / padrão |
-| SUPER + CTRL + `=` / `-` / `0` | Espaço entre janelas maior / menor / padrão (pode segurar) |
-| SUPER + CTRL + ALT + `=` / `-` / `0` | Escala da tela maior / menor / automática |
+| SUPER + ALT + `=` / `-` / `0` | Larger / smaller / default fonts |
+| SUPER + CTRL + `=` / `-` / `0` | Larger / smaller / default window gaps (can be held down) |
+| SUPER + CTRL + ALT + `=` / `-` / `0` | Larger / smaller / automatic display scale |
 
-### Idioma do teclado
-| Atalho | Ação |
+### Keyboard language
+| Shortcut | Action |
 |---|---|
-| SUPER + CTRL + Espaço | Próximo idioma (+ SHIFT: anterior) |
-| SUPER + CTRL + 1 / 2 / 3 / 4 | Português / inglês / russo / japonês |
+| SUPER + CTRL + Space | Next language (+ SHIFT: previous) |
+| SUPER + CTRL + 1 / 2 / 3 / 4 | Portuguese / English / Russian / Japanese |
 
-### Proteção e manutenção
+### Protection and maintenance
 
-- **Atualizar o sistema:** comando `update` (ou central de controle → Tools → System update). Mostra as
-  notícias do Arch desde a última atualização (às vezes pedem um passo manual), atualiza pacotes e AUR e
-  depois avisa sobre arquivos `.pacnew`, firmware novo, pacotes órfãos e se é preciso reiniciar.
-- **Backup:** restic, criptografado e incremental, no **Google Drive** (pasta `Backups/`), todo dia
-  (ou assim que ligar, se perdeu o horário). Copia Documents, Projects, Desktop, Pictures, Music, chaves SSH,
-  GPG e o chaveiro, sem `node_modules`, `.venv` e caches. Mantém 7 diários, 4 semanais e 6 mensais.
-  - Primeira vez: `backup setup` (autoriza o Drive no navegador e cria a senha) e depois
-    `backup drive-client`: cadastra a **sua** credencial do Google (passo a passo no próprio comando).
-    A credencial compartilhada do rclone está sendo desativada e dá erro "Quota exceeded".
-  - **Guarde a senha** (`~/.config/restic/password`) no KeePassXC: sem ela não há como recuperar nada.
-  - `backup run` (agora), `backup status`, `backup list`, `backup restore latest ~/Restaurado`.
-- **Firewall** (nftables): bloqueia conexões que chegam e libera as que saem. Regras em
-  `system/etc/nftables.conf`, que também explica como abrir uma porta.
-- **Automático:** TRIM do SSD (semanal), limpeza do cache do pacman (guarda as 3 últimas versões) e
-  verificação de firmware (fwupd).
-- **Antes de cada atualização** o pacman guarda a lista de pacotes (com versões) e uma cópia do `/etc` em
-  `/var/backups/hypr-setup/` (as 10 últimas). Para voltar um pacote: `sudo pacman -U
-  /var/cache/pacman/pkg/<pacote>-<versão>...`.
-- **Kernel reserva** (`linux-lts`): se uma atualização do kernel quebrar o boot ou a NVIDIA, escolha
-  *Advanced options → linux-lts* no GRUB. A NVIDIA e o limite de bateria usam DKMS e funcionam nos dois.
-- **Mirrors:** o reflector escolhe toda semana os mais rápidos (Brasil + EUA, em
+- **Updating the system:** the `update` command (or control center → Tools → System update). It shows the
+  Arch news since the last update (sometimes they require a manual step), updates packages and the AUR, and
+  then warns about `.pacnew` files, new firmware, orphaned packages and whether a reboot is needed.
+- **Backup:** restic, encrypted and incremental, to **Google Drive** (`Backups/` folder), every day
+  (or as soon as you power on, if it missed the time). It copies Documents, Projects, Desktop, Pictures, Music, SSH keys,
+  GPG and the keyring, excluding `node_modules`, `.venv` and caches. Keeps 7 daily, 4 weekly and 6 monthly.
+  - First time: `backup setup` (authorizes Drive in the browser and creates the password), then
+    `backup drive-client`: registers **your own** Google credential (step by step in the command itself).
+    The shared rclone credential is being deprecated and gives a "Quota exceeded" error.
+  - **Keep the password** (`~/.config/restic/password`) in KeePassXC: without it there is no way to recover anything.
+  - `backup run` (now), `backup status`, `backup list`, `backup restore latest ~/Restored`.
+- **Firewall** (nftables): blocks incoming connections and allows outgoing ones. Rules in
+  `system/etc/nftables.conf`, which also explains how to open a port.
+- **Automatic:** SSD TRIM (weekly), pacman cache cleanup (keeps the last 3 versions) and
+  firmware check (fwupd).
+- **Before every update** pacman saves the package list (with versions) and a copy of `/etc` in
+  `/var/backups/hypr-setup/` (the last 10). To roll a package back: `sudo pacman -U
+  /var/cache/pacman/pkg/<package>-<version>...`.
+- **Fallback kernel** (`linux-lts`): if a kernel update breaks boot or NVIDIA, pick
+  *Advanced options → linux-lts* in GRUB. NVIDIA and the battery limit use DKMS and work on both.
+- **Mirrors:** reflector picks the fastest ones every week (Brazil + US, in
   `system/etc/xdg/reflector/reflector.conf`).
-- **zram:** swap comprimida na memória (metade da RAM), usada antes da swap em disco. Deixa o sistema mais
-  fluido quando a memória aperta.
+- **zram:** swap compressed in memory (half of the RAM), used before disk swap. Makes the system feel
+  smoother when memory gets tight.
 
-## Notebook
+## Laptop
 
-- **Teclas de volume, mudo, microfone, brilho e Caps Lock** mostram um aviso rápido com o nível
+- **Volume, mute, microphone, brightness and Caps Lock keys** show a quick notification with the level
   (`scripts/osd.sh`).
-- **Tomada × bateria** (`scripts/power.sh`): ao tirar da tomada, a tela do notebook vai a 60 Hz e o perfil
-  de energia a *power saver*; ao voltar, a tela volta a 165 Hz e o perfil que você usava. Para fixar uma
-  taxa, defina `mode=` do monitor em Displays. Jogos e vídeos em tela cheia usam taxa adaptativa (VRR).
-- **Vídeo pela GPU no Brave** (VA-API): YouTube e reuniões gastam menos bateria. Confira em
-  `brave://gpu` ("Video Decode: Hardware accelerated") ou com `vainfo`.
-- **Boot:** o menu do GRUB fica escondido (o boot não espera); segure **Esc** ou **Shift** ao ligar para
-  ver o menu e escolher o `linux-lts`.
-- **Bateria baixa:** aviso em 15%, alerta em 8% e suspensão automática em 4% (se continuar na bateria).
-- **Tampa fechada com monitor externo:** desliga só a tela do notebook e você continua no monitor; ao abrir,
-  ela volta com os seus workspaces. Sem monitor externo, fechar a tampa suspende (e bloqueia).
-- **Limite de carga em 80%** (Acer, módulo `acer-wmi-battery`): prolonga a vida útil da bateria. Para
-  carregar até 100% numa viagem: `echo 0 | sudo tee /sys/bus/wmi/drivers/acer-wmi-battery/health_mode`
-  (volta a 80% no próximo boot, ou com `echo 1`).
+- **Plugged in vs. battery** (`scripts/power.sh`): when unplugged, the laptop screen drops to 60 Hz and the power
+  profile to *power saver*; when plugged back in, the screen returns to 165 Hz and to the profile you were using. To pin a
+  refresh rate, set the monitor's `mode=` in Displays. Fullscreen games and videos use adaptive sync (VRR).
+- **GPU video in Brave** (VA-API): YouTube and meetings use less battery. Check at
+  `brave://gpu` ("Video Decode: Hardware accelerated") or with `vainfo`.
+- **Boot:** the GRUB menu is hidden (boot doesn't wait); hold **Esc** or **Shift** at power-on to
+  see the menu and pick `linux-lts`.
+- **Low battery:** warning at 15%, alert at 8% and automatic suspend at 4% (if still on battery).
+- **Lid closed with an external monitor:** turns off only the laptop screen and you keep working on the monitor; when opened,
+  it comes back with your workspaces. Without an external monitor, closing the lid suspends (and locks).
+- **Charge limit at 80%** (Acer, `acer-wmi-battery` module): extends battery lifespan. To
+  charge to 100% for a trip: `echo 0 | sudo tee /sys/bus/wmi/drivers/acer-wmi-battery/health_mode`
+  (goes back to 80% on the next boot, or with `echo 1`).
 
-## Git, SSH e terminal
+## Git, SSH and terminal
 
-- **Git** (`~/.config/git/config`): branch `main`, `pull` com rebase, `push` cria o upstream sozinho,
-  diffs com **delta** (cores do tema), conflitos com o trecho original (zdiff3) e commits **assinados com a
-  chave SSH**. Para o GitHub mostrar "Verified", suba a chave como chave de assinatura:
+- **Git** (`~/.config/git/config`): `main` branch, `pull` with rebase, `push` creates the upstream by itself,
+  diffs with **delta** (theme colors), conflicts showing the original chunk (zdiff3) and commits **signed with the
+  SSH key**. For GitHub to show "Verified", upload the key as a signing key:
   `gh auth refresh -s admin:ssh_signing_key && gh ssh-key add ~/.ssh/id_ed25519.pub --type signing`.
-  Ajustes só desta máquina (ex.: outro e-mail numa pasta do trabalho) vão em `~/.config/git/local`:
+  Settings for this machine only (e.g. a different email in a work folder) go in `~/.config/git/local`:
   ```ini
-  [includeIf "gitdir:~/Projects/Trabalho/"]
-      path = ~/.config/git/trabalho
+  [includeIf "gitdir:~/Projects/Work/"]
+      path = ~/.config/git/work
   ```
-- **Agente SSH** do gnome-keyring: carrega as chaves de `~/.ssh` e lembra a senha delas (o login destrava o
-  chaveiro). Recomendado pôr senha na chave: `ssh-keygen -p -f ~/.ssh/id_ed25519`.
-- **Ctrl+R** = atuin: histórico pesquisável com pasta, duração e se deu erro; dentro dele, Ctrl+R de novo
-  filtra por sessão/pasta. Só local (sem conta). ↑ continua buscando pelo que já foi digitado.
-- **direnv:** um `.envrc` na pasta do projeto carrega variáveis ao entrar e descarrega ao sair
-  (`direnv allow` na primeira vez). **mise:** versões de Node/Python/Go… por projeto (`mise use node@22`).
-- **Apps de terminal no tema:** btop (tema gerado pelo `theme.py`, com gradientes), lazygit e yazi (cores do
-  terminal, seguem qualquer tema sozinhos). O terminal abre com o **fastfetch**; para desligar, ponha
-  `export FASTFETCH_ON_START=0` no começo do `~/.zshrc`.
-- `help <comando>` (tldr) mostra exemplos curtos; `locate <nome>` acha arquivos no disco todo na hora.
-- **Pendrives/HDs externos** montam sozinhos em `/run/media/$USER/` (udiskie) com notificação.
+- **SSH agent** from gnome-keyring: loads the keys in `~/.ssh` and remembers their passphrase (logging in unlocks the
+  keyring). Setting a passphrase on the key is recommended: `ssh-keygen -p -f ~/.ssh/id_ed25519`.
+- **Ctrl+R** = atuin: searchable history with directory, duration and whether it failed; inside it, Ctrl+R again
+  filters by session/directory. Local only (no account). ↑ still searches by what you've already typed.
+- **direnv:** an `.envrc` in the project folder loads variables on entry and unloads them on exit
+  (`direnv allow` the first time). **mise:** per-project Node/Python/Go… versions (`mise use node@22`).
+- **Terminal apps in the theme:** btop (theme generated by `theme.py`, with gradients), lazygit and yazi (terminal
+  colors, they follow any theme on their own). The terminal opens with **fastfetch**; to turn it off, put
+  `export FASTFETCH_ON_START=0` at the top of `~/.zshrc`.
+- `help <command>` (tldr) shows short examples; `locate <name>` finds files across the whole disk instantly.
+- **USB sticks/external drives** mount automatically at `/run/media/$USER/` (udiskie) with a notification.
 
-## Gravação, texto da tela e reuniões
+## Recording, screen text and meetings
 
-- **Gravar a tela:** SUPER + ALT + R (o monitor em foco, com o som do sistema) ou SUPER + ALT + SHIFT + R
-  (uma área). Na central de controle → Tools também há "com microfone". Enquanto grava, aparece `󰑋 0:12`
-  em vermelho na barra (clique para parar). Vídeos em `~/Videos/Recordings`.
-- **Copiar texto da tela (OCR):** SUPER + CTRL + S, selecione a área e o texto vai para a área de
-  transferência. Português e inglês; japonês e russo pela central de controle → Tools.
-- **Compartilhar a tela em reuniões** (Meet, Teams, Zoom no navegador): o navegador abre uma janelinha para
-  escolher a tela, a janela ou uma área. Teste antes de uma reunião importante em
+- **Screen recording:** SUPER + ALT + R (the focused monitor, with system sound) or SUPER + ALT + SHIFT + R
+  (an area). In control center → Tools there is also "with microphone". While recording, `󰑋 0:12`
+  shows in red on the bar (click to stop). Videos in `~/Videos/Recordings`.
+- **Copy text from the screen (OCR):** SUPER + CTRL + S, select the area and the text goes to the
+  clipboard. Portuguese and English; Japanese and Russian via control center → Tools.
+- **Sharing your screen in meetings** (Meet, Teams, Zoom in the browser): the browser opens a small window to
+  choose the screen, the window or an area. Test before an important meeting at
   https://webrtc.github.io/samples/src/content/getusermedia/getdisplaymedia/
 
-## Tela de login
+## Login screen
 
-A tela de login (SDDM) tem o mesmo visual da tela de bloqueio: wallpaper desfocado (animado, se o
-wallpaper for vídeo ou GIF), relógio, saudação,
-foto de perfil e campo de senha no cartão de vidro, com as cores do wallpaper. No rodapé: sessão (clique
-para trocar), layout do teclado e botões de suspender, reiniciar e desligar.
+The login screen (SDDM) looks the same as the lock screen: blurred wallpaper (animated, if the
+wallpaper is a video or GIF), clock, greeting,
+profile photo and password field on the glass card, with the wallpaper's colors. At the bottom: session (click
+to change), keyboard layout and suspend, reboot and shut down buttons.
 
-- Fundo, cores e foto acompanham sozinhos as trocas de wallpaper, de modo de cor e de foto
-  (`~/.config/hypr/scripts/sddm-sync.sh`, chamado pelo `wallpaper.sh`, pelo `avatar.sh` e no login).
-  O SDDM não lê a sua home, então esses arquivos vão para `/usr/share/sddm/themes/hypr-setup/dynamic/`,
-  pasta que pertence ao seu usuário.
-- Aparece **espelhada em todos os monitores** conectados (o que você digita aparece em todos). Em
-  notebook híbrido, os monitores ligados na NVIDIA são ativados por `system/sddm/Xsetup` ("reverse PRIME").
-  O espelhamento vale só no login; a sessão usa o arranjo de Displays.
-- **Fundo animado:** quando o wallpaper é vídeo ou GIF, o `sddm-sync.sh` gera uma versão já desfocada e
-  escurecida (960×540, até 60 s) em `dynamic/background.mp4`. Leva alguns segundos, em segundo plano,
-  a cada troca de wallpaper.
-- O tema fica em `system/sddm/hypr-setup/` (QML). Depois de editar, rode `./install.sh sddm`.
-  Para testar sem sair da sessão: `sddm-greeter-qt6 --test-mode --theme system/sddm/hypr-setup`.
+- Background, colors and photo automatically follow changes to the wallpaper, color mode and photo
+  (`~/.config/hypr/scripts/sddm-sync.sh`, called by `wallpaper.sh`, by `avatar.sh` and at login).
+  SDDM can't read your home, so those files go to `/usr/share/sddm/themes/hypr-setup/dynamic/`,
+  a folder owned by your user.
+- It appears **mirrored on all connected monitors** (what you type shows on all of them). On a
+  hybrid laptop, monitors plugged into the NVIDIA GPU are enabled by `system/sddm/Xsetup` ("reverse PRIME").
+  Mirroring only applies at login; the session uses the Displays arrangement.
+- **Animated background:** when the wallpaper is a video or GIF, `sddm-sync.sh` generates an already blurred
+  and darkened version (960×540, up to 60 s) in `dynamic/background.mp4`. It takes a few seconds, in the background,
+  on every wallpaper change.
+- The theme lives in `system/sddm/hypr-setup/` (QML). After editing, run `./install.sh sddm`.
+  To test without leaving the session: `sddm-greeter-qt6 --test-mode --theme system/sddm/hypr-setup`.
 
-## Wallpaper e cores
-| Atalho | Ação |
+## Wallpaper and colors
+| Shortcut | Action |
 |---|---|
-| SUPER + SHIFT + W | Escolher wallpaper (com miniaturas) |
-| SUPER + CTRL + W | Wallpaper aleatório |
-| SUPER + SHIFT + T | Tema de cores: automático (do wallpaper) ou um dos temas fixos |
+| SUPER + SHIFT + W | Pick a wallpaper (with thumbnails) |
+| SUPER + CTRL + W | Random wallpaper |
+| SUPER + SHIFT + T | Color theme: automatic (from the wallpaper) or one of the fixed themes |
 
-### Janelas
-| Atalho | Ação |
+### Windows
+| Shortcut | Action |
 |---|---|
-| SUPER + Q | Fechar |
-| SUPER + F / M | Tela cheia / maximizar |
-| SUPER + T | Flutuante ↔ lado a lado |
-| SUPER + C / P | Centralizar / fixar em todos os workspaces |
-| SUPER + Y | Alternar divisão horizontal/vertical |
-| SUPER + G, ALT + Tab, ALT + SHIFT + Tab | Agrupar em abas, próxima/anterior aba |
-| SUPER + setas ou `h j k l` | Mover o foco |
-| SUPER + SHIFT + setas/hjkl | Mover a janela |
-| SUPER + CTRL + setas/hjkl | Redimensionar (ou SUPER + R, setas, Esc) |
+| SUPER + Q | Close |
+| SUPER + F / M | Fullscreen / maximize |
+| SUPER + T | Floating ↔ tiled |
+| SUPER + C / P | Center / pin on all workspaces |
+| SUPER + Y | Toggle horizontal/vertical split |
+| SUPER + G, ALT + Tab, ALT + SHIFT + Tab | Group into tabs, next/previous tab |
+| SUPER + arrows or `h j k l` | Move focus |
+| SUPER + SHIFT + arrows/hjkl | Move the window |
+| SUPER + CTRL + arrows/hjkl | Resize (or SUPER + R, arrows, Esc) |
 
 ### Workspaces
-| Atalho | Ação |
+| Shortcut | Action |
 |---|---|
-| SUPER + 1…0 | Ir para o workspace (do monitor em foco) |
-| SUPER + SHIFT + 1…0 | Mover a janela para o workspace (do monitor em foco) |
-| SUPER + , / . | Workspace anterior / próximo (do monitor em foco) |
-| SUPER + ' | Voltar ao último workspace |
-| SUPER + W | Workspace vazio (do monitor em foco) |
-| SUPER + O / SHIFT + O | Focar o próximo monitor / mandar a janela para ele |
-| Teclas de brilho | Brilho do monitor em foco (notebook ou externo) |
-| SUPER + S / ALT + S | Scratchpad: mostrar / mandar janela |
+| SUPER + 1…0 | Go to workspace (on the focused monitor) |
+| SUPER + SHIFT + 1…0 | Move the window to workspace (on the focused monitor) |
+| SUPER + , / . | Previous / next workspace (on the focused monitor) |
+| SUPER + ' | Back to the last workspace |
+| SUPER + W | Empty workspace (on the focused monitor) |
+| SUPER + O / SHIFT + O | Focus the next monitor / send the window to it |
+| Brightness keys | Brightness of the focused monitor (laptop or external) |
+| SUPER + S / ALT + S | Scratchpad: show / send window |
 
-### Screenshots, gravação e texto da tela
-| Atalho | Ação |
+### Screenshots, recording and screen text
+| Shortcut | Action |
 |---|---|
-| SUPER + ALT + R | Gravar a tela (o monitor em foco); de novo para parar |
-| SUPER + ALT + SHIFT + R | Gravar uma área |
-| SUPER + CTRL + S | Copiar o texto de uma área da tela (OCR) |
-| Print (ou SUPER + SHIFT + S) | Área, copiada e salva em `~/Pictures/Screenshots` |
-| SHIFT + Print | Tela inteira |
-| SUPER + Print | Área + editor (satty) |
+| SUPER + ALT + R | Record the screen (the focused monitor); again to stop |
+| SUPER + ALT + SHIFT + R | Record an area |
+| SUPER + CTRL + S | Copy the text from an area of the screen (OCR) |
+| Print (or SUPER + SHIFT + S) | Area, copied and saved to `~/Pictures/Screenshots` |
+| SHIFT + Print | Full screen |
+| SUPER + Print | Area + editor (satty) |
 
 ### Mouse
-- **Barra:** tudo é clicável.
-  - Logo do Arch: apps (direito: atalhos). Relógio: calendário (direito: data completa).
-  - Workspaces: os que têm janelas ficam com o número claro e um tracinho embaixo. Clique no título
-    da janela (ao lado) lista as janelas de cada workspace (Enter vai para a janela).
-  - Música (aparece quando algo toca): clique = play/pause, direito = próxima, roda = anterior/próxima.
-  - `󰅁` à direita: passe o mouse para ver os apps em segundo plano (Wi-Fi, Bluetooth…).
-  - `󰌌 PT` idioma do teclado: clique = próximo, direito = escolher, roda = trocar.
-  - Wi-Fi: escolher rede. Volume: clique = mudo, direito = mixer, roda = volume.
-  - Bateria: roda = brilho do monitor daquela barra.
-  - `󰂚` notificações (direito: não perturbe). `󰒓` central de controle (direito: aparência). `󰐥` energia.
-- **Janelas:** SUPER + arrastar com o botão esquerdo move, com o direito redimensiona.
-  Também dá para arrastar as bordas.
-- **Workspaces:** SUPER + roda troca; no touchpad, 3 dedos na horizontal.
+- **Bar:** everything is clickable.
+  - Arch logo: apps (right-click: shortcuts). Clock: calendar (right-click: full date).
+  - Workspaces: the ones with windows get a lighter number and a small underline. Clicking the window
+    title (next to them) lists the windows of each workspace (Enter jumps to the window).
+  - Music (shows up when something is playing): click = play/pause, right-click = next, scroll = previous/next.
+  - `󰅁` on the right: hover to see background apps (Wi-Fi, Bluetooth, keyboard language…).
+  - Monitoring: CPU, GPU, temperature, RAM and disk; click = btop.
+  - Volume: click = mute, right-click = mixer, scroll = volume.
+  - Battery: scroll = brightness of that bar's monitor.
+  - `󰂚` notifications (right-click: do not disturb). `󰒓` control center (right-click: appearance). `󰐥` power.
+- **Windows:** SUPER + dragging with the left button moves, with the right button resizes.
+  You can also drag the edges.
+- **Workspaces:** SUPER + scroll switches; on the touchpad, 3 fingers horizontally.
 
 ---
 
-## Vários monitores
+## Multiple monitors
 
-- **Cada monitor tem seus próprios workspaces 1–10.** SUPER + 1…0 e a barra de cada monitor valem só para ele.
-  Por dentro, a tela do notebook usa os workspaces 1–10 e os outros monitores 11–20, 21–30 (em ordem de
-  conector, não de posição: reposicionar as telas não embaralha os workspaces). A barra mostra 1–10 em
-  todos. Os workspaces 1–5 de cada monitor aparecem sempre, mesmo vazios.
-- **Conectar ou desconectar** um monitor reorganiza os workspaces e reinicia o wallpaper animado sozinho.
-- SUPER + O foca o próximo monitor e SUPER + SHIFT + O manda a janela para ele.
-- **Configurar as telas:** central de controle → **Displays**. Para cada monitor: posição (à esquerda,
-  direita, acima ou abaixo de outro), resolução e taxa, escala, rotação, espelhar outro monitor,
-  desligar/ligar, voltar ao automático. Vale na hora e fica salvo em `~/.config/hypr/monitors.conf`,
-  pela descrição do monitor (continua valendo se trocar de porta). Sem ajuste, tudo é automático
-  (o novo monitor fica à direita) e a escala segue SUPER + CTRL + ALT + `=` / `-`.
-- **Brilho independente:** as teclas de brilho mudam o monitor em foco; a roda do mouse na bateria
-  muda o monitor daquela barra; central de controle → Brightness lista todos.
-  Monitores externos usam **DDC/CI**: ligue a opção "DDC/CI" no menu do próprio monitor. Teste com
-  `ddcutil detect`. Monitores que não suportam continuam com o brilho pelos botões deles.
-- Código: `~/.config/hypr/workspaces.lua`, `monitors.lua`, `scripts/displays.sh` e `scripts/brightness.sh`.
+- **Each monitor has its own workspaces 1–10.** SUPER + 1…0 and each monitor's bar apply only to that monitor.
+  Internally, the laptop screen uses workspaces 1–10 and the other monitors 11–20, 21–30 (in connector
+  order, not position: rearranging the screens doesn't scramble the workspaces). The bar shows 1–10 on
+  all of them. Workspaces 1–5 of each monitor are always shown, even when empty.
+- **Connecting or disconnecting** a monitor rearranges the workspaces and restarts the animated wallpaper by itself.
+- SUPER + O focuses the next monitor and SUPER + SHIFT + O sends the window to it.
+- **Configuring the screens:** control center → **Displays**. For each monitor: position (left of,
+  right of, above or below another), resolution and refresh rate, scale, rotation, mirroring another monitor,
+  turning off/on, back to automatic. Applies immediately and is saved to `~/.config/hypr/monitors.conf`,
+  by the monitor's description (still applies if you switch ports). With no adjustment, everything is automatic
+  (the new monitor goes to the right) and the scale follows SUPER + CTRL + ALT + `=` / `-`.
+- **Independent brightness:** the brightness keys change the focused monitor; the mouse wheel on the battery
+  changes that bar's monitor; control center → Brightness lists them all.
+  External monitors use **DDC/CI**: enable the "DDC/CI" option in the monitor's own menu. Test with
+  `ddcutil detect`. Monitors that don't support it keep brightness on their own buttons.
+- Code: `~/.config/hypr/workspaces.lua`, `monitors.lua`, `scripts/displays.sh` and `scripts/brightness.sh`.
 
-## Barra e central de controle
+## Bar and control center
 
-A barra mostra só o essencial, em "ilhas": workspaces e janela ativa à esquerda; relógio e música no
-centro; bandeja (Wi-Fi, Bluetooth, idioma e outros apps em segundo plano), monitoramento, volume, bateria, notificações, central de controle e energia à direita.
+The bar shows only the essentials, in "islands": workspaces and active window on the left; clock and music in the
+center; tray (Wi-Fi, Bluetooth, language and other background apps), monitoring, volume, battery, notifications, control center and power on the right.
 
-A ilha de **monitoramento** mostra o uso de CPU, o uso da GPU mais ocupada, a temperatura da CPU, a RAM e
-o disco `/`. Cada item fica amarelo ou vermelho com carga ou calor. O tooltip traz os detalhes de cada
-placa (uso, temperatura, VRAM, consumo) e de todos os sensores, e o clique abre o **btop**. A NVIDIA
-só é consultada se já estiver acordada, para a leitura não tirar a placa do modo de economia. Script:
+The **monitoring** island shows CPU usage, the usage of the busiest GPU, CPU temperature, RAM and
+the `/` disk. Each item turns yellow or red under load or heat. The tooltip gives the details of each
+card (usage, temperature, VRAM, power draw) and of all sensors, and clicking opens **btop**. The NVIDIA GPU
+is only queried if it is already awake, so the reading doesn't pull the card out of power-saving mode. Script:
 `~/.config/hypr/scripts/sysmon.sh` (`gpu`, `temp`, `top`).
 
-O botão `󰒓` (ou **SUPER + A**) abre a **central de controle**, um painel abaixo da barra com:
+The `󰒓` button (or **SUPER + A**) opens the **control center**, a panel below the bar with:
 
-- **Appearance:** fontes, espaço entre janelas, escala da tela, wallpaper, modo de cor, foto de perfil,
-  mostrar/esconder a barra.
-- **Do not disturb**, **Keep screen awake** (pausa o bloqueio automático) e **Night light** (tela mais quente).
-- **Brightness** (por monitor) e **Displays** (posição, resolução, escala, rotação, espelhar, ligar/desligar).
-- **Power profile**, **Wi-Fi**, **Bluetooth** (liga/desliga e parear), **Audio mixer**
-  e **Keyboard** (idioma e configurações do fcitx5).
-- **Tools:** screenshots, conta-gotas, clipboard, emoji, calculadora, monitor do sistema e atalhos.
+- **Appearance:** fonts, window gaps, display scale, wallpaper, color mode, profile photo,
+  show/hide the bar.
+- **Do not disturb**, **Keep screen awake** (pauses the automatic lock) and **Night light** (warmer screen).
+- **Brightness** (per monitor) and **Displays** (position, resolution, scale, rotation, mirroring, on/off).
+- **Power profile**, **Wi-Fi**, **Bluetooth** (on/off and pairing), **Audio mixer**
+  and **Keyboard** (language and fcitx5 settings).
+- **Tools:** screenshots, color picker, clipboard, emoji, calculator, system monitor and shortcuts.
 
-Navegue com as setas ou digite para filtrar. Os ajustes (fonte maior, brilho, liga/desliga…) deixam
-o painel aberto: aperte Enter de novo para repetir. Quando algo foge do normal (tela sempre acesa,
-luz noturna, perfil de energia diferente do *balanced*, Bluetooth conectado), o ícone aparece ao
-lado do `󰒓` na barra.
+Navigate with the arrows or type to filter. Adjustments (larger font, brightness, on/off…) keep
+the panel open: press Enter again to repeat. When something deviates from normal (screen always on,
+night light, a power profile other than *balanced*, Bluetooth connected), its icon shows up
+next to the `󰒓` on the bar.
 
-Script: `~/.config/hypr/scripts/controlcenter.sh` (`status`, ou o nome de um submenu para abri-lo direto).
+Script: `~/.config/hypr/scripts/controlcenter.sh` (`status`, or the name of a submenu to open it directly).
 
-## Fontes, espaço entre janelas e escala
+## Fonts, window gaps and scale
 
-- **Fontes** (SUPER + ALT + `=` / `-`): em passos de 10%, de 50% a 200%. Muda barra, menus, notificações,
-  terminais (inclusive os abertos) e apps GTK e Qt (os já abertos atualizam ao reabrir).
-- **Espaço entre janelas** (SUPER + CTRL + `=` / `-`): o espaço até a borda da tela acompanha.
-- **Escala da tela** (SUPER + CTRL + ALT + `=` / `-`): aumenta ou diminui **tudo** (fontes, ícones,
-  janelas). Neste notebook (1920×1080) a escala automática é 1.5. Se tudo parece grande, experimente
-  1.25 ou 1.2. `0` volta à automática.
-- Os valores ficam em `~/.config/hypr/look.conf` e continuam depois de reiniciar (o `hyprland.lua`
-  lê esse arquivo). Script: `~/.config/hypr/scripts/look.sh font|gaps|scale up|down|reset`.
-- Os tamanhos ficam em arquivos gerados pelo script (não edite à mão): `waybar/font.css`,
-  `swaync/font.css`, `rofi/font.rasi` e `kitty/font.conf`. Os tamanhos-base (em 100%) estão no `look.sh`.
+- **Fonts** (SUPER + ALT + `=` / `-`): in 10% steps, from 50% to 200%. Changes the bar, menus, notifications,
+  terminals (including open ones) and GTK and Qt apps (already-open ones update when reopened).
+- **Window gaps** (SUPER + CTRL + `=` / `-`): the gap to the screen edge follows.
+- **Display scale** (SUPER + CTRL + ALT + `=` / `-`): increases or decreases **everything** (fonts, icons,
+  windows). On this laptop (1920×1080) the automatic scale is 1.5. If everything looks big, try
+  1.25 or 1.2. `0` goes back to automatic.
+- The values are stored in `~/.config/hypr/look.conf` and persist across reboots (`hyprland.lua`
+  reads that file). Script: `~/.config/hypr/scripts/look.sh font|gaps|scale up|down|reset`.
+- The sizes live in files generated by the script (don't edit by hand): `waybar/font.css`,
+  `swaync/font.css`, `rofi/font.rasi` and `kitty/font.conf`. The base sizes (at 100%) are in `look.sh`.
 
-## Idiomas do teclado
+## Keyboard languages
 
-Quatro idiomas, gerenciados pelo **fcitx5**: português (ABNT2), inglês (`us`), russo (`ru`) e japonês (Mozc).
-O idioma vale para todos os apps ao mesmo tempo, e o ícone do fcitx5 na bandeja (menu `󰅁` da barra) mostra o atual.
+Four languages, managed by **fcitx5**: Portuguese (ABNT2), English (`us`), Russian (`ru`) and Japanese (Mozc).
+The language applies to all apps at once, and the fcitx5 icon in the tray (the bar's `󰅁` menu) shows the current one.
 
-- **Trocar:** SUPER + CTRL + Espaço, SUPER + CTRL + 1…4, clique na barra ou central de controle → Keyboard.
-- **Atalhos do sistema** continuam no layout ABNT2, qualquer que seja o idioma (SUPER + Q fecha mesmo em russo).
-  Ctrl+Espaço fica livre (o Neovim usa).
-- **Japonês:** digite em romaji (`nihongo`) que vira hiragana. **Espaço** converte para kanji
-  (Espaço de novo ou setas escolhem), **Enter** confirma. F7 = katakana, F10 = romaji. Esc cancela.
-- **Senha e tela de bloqueio:** sempre no ABNT2 (o fcitx5 não age em campos de senha).
-- **Mudar a lista ou a ordem:** central de controle → Keyboard → *Input method settings* (`fcitx5-configtool`),
-  ou edite `~/.config/fcitx5/profile`. O inglês usa o layout `us`: no teclado ABNT2 alguns símbolos mudam
-  de lugar (ex.: `;` fica na tecla do `ç`). Se preferir, troque por `keyboard-us-intl` ou outro.
-- **Apps:** GTK, Qt, kitty e apps X11 funcionam direto. Brave e Claude Desktop precisam das flags em
-  `~/.config/brave-flags.conf` e `~/.config/claude-desktop-flags.conf` (já incluídas). Para outro app
-  Electron/Chromium, abra com `--enable-wayland-ime --wayland-text-input-version=3`.
-- A janela de candidatos do japonês segue as cores do wallpaper e o tamanho de fonte do `look.sh`.
-- **Problemas:** `fcitx5-diagnose` mostra o que falta. Script: `~/.config/hypr/scripts/keyboard.sh`.
+- **Switching:** SUPER + CTRL + Space, SUPER + CTRL + 1…4, click on the bar or control center → Keyboard.
+- **System shortcuts** stay on the ABNT2 layout whatever the language (SUPER + Q closes even in Russian).
+  Ctrl+Space is left free (Neovim uses it).
+- **Japanese:** type in romaji (`nihongo`) and it becomes hiragana. **Space** converts to kanji
+  (Space again or the arrows pick), **Enter** confirms. F7 = katakana, F10 = romaji. Esc cancels.
+- **Password and lock screen:** always ABNT2 (fcitx5 doesn't act on password fields).
+- **Changing the list or order:** control center → Keyboard → *Input method settings* (`fcitx5-configtool`),
+  or edit `~/.config/fcitx5/profile`. English uses the `us` layout: on an ABNT2 keyboard some symbols move
+  around (e.g. `;` ends up on the `ç` key). If you prefer, switch to `keyboard-us-intl` or another.
+- **Apps:** GTK, Qt, kitty and X11 apps work out of the box. Brave and Claude Desktop need the flags in
+  `~/.config/brave-flags.conf` and `~/.config/claude-desktop-flags.conf` (already included). For another
+  Electron/Chromium app, launch it with `--enable-wayland-ime --wayland-text-input-version=3`.
+- The Japanese candidate window follows the wallpaper colors and the font size from `look.sh`.
+- **Problems:** `fcitx5-diagnose` shows what's missing. Script: `~/.config/hypr/scripts/keyboard.sh`.
 
-## Visão geral dos workspaces
+## Workspace overview
 
-**SUPER + Tab** mostra os workspaces de cada monitor em grade: os fixos (1–5), os ocupados e um `+` para
-um workspace novo. As janelas aparecem na posição e no tamanho reais, em miniatura ao vivo, inclusive
-as dos workspaces escondidos. Janelas paradas (que não redesenham) mostram o ícone do app.
+**SUPER + Tab** shows each monitor's workspaces in a grid: the fixed ones (1–5), the occupied ones and a `+` for
+a new workspace. Windows appear at their real position and size, as live thumbnails, including
+those on hidden workspaces. Idle windows (that don't redraw) show the app icon.
 
-- **Mouse:** clique num workspace para ir até ele e numa janela para focá-la. **Arraste uma janela**
-  para outro workspace (ou para o `+`) para movê-la sem sair da visão geral.
-- **Teclado:** setas ou Tab escolhem, Enter vai, 1–9/0 vão direto ao workspace. **Digitar filtra**
-  as janelas pelo título ou app (Enter foca a primeira que combina). Esc limpa o filtro e depois fecha.
-  SUPER + Tab de novo, ou um clique fora dos cartões, também fecham.
-- Feita em Quickshell (`~/.config/quickshell/overview.qml` + `OverviewScreen.qml`), com as cores do tema.
-  Fica aberta em segundo plano, na GPU integrada, para abrir na hora. Script:
-  `~/.config/hypr/scripts/overview.sh [toggle|open|close|start]` (inicia o processo se ele tiver caído).
+- **Mouse:** click a workspace to go to it and a window to focus it. **Drag a window**
+  to another workspace (or to the `+`) to move it without leaving the overview.
+- **Keyboard:** arrows or Tab choose, Enter goes, 1–9/0 jump straight to the workspace. **Typing filters**
+  windows by title or app (Enter focuses the first match). Esc clears the filter and then closes.
+  SUPER + Tab again, or a click outside the cards, also close it.
+- Built with Quickshell (`~/.config/quickshell/overview.qml` + `OverviewScreen.qml`), using the theme colors.
+  It stays open in the background, on the integrated GPU, to open instantly. Script:
+  `~/.config/hypr/scripts/overview.sh [toggle|open|close|start]` (starts the process if it has died).
 
-## Tela de bloqueio
+## Lock screen
 
-**SUPER + Esc**, ou sozinha depois de 5 min parado. Mostra o wallpaper atual desfocado, relógio, saudação,
-o campo de senha num cartão de vidro e, no rodapé, a música tocando, o layout do teclado e a bateria.
+**SUPER + Esc**, or automatically after 5 min idle. Shows the current wallpaper blurred, clock, greeting,
+the password field on a glass card and, at the bottom, the music playing, the keyboard layout and the battery.
 
-- **Foto de perfil** no lugar do ícone: central de controle → Appearance → **Photo**. Mostra as imagens
-  mais recentes de Pictures, Downloads e Desktop (ou *Browse…* para escolher qualquer arquivo pelo yazi).
-  A foto é recortada em quadrado (as em pé, mais perto do topo, onde costuma estar o rosto) e salva em
-  `~/.face`. Na mesma tela dá para remover. Script: `~/.config/hypr/scripts/avatar.sh pick|browse|set|remove`.
-- O fundo é um quadro do wallpaper, salvo em `~/.cache/wallpaper/lock.png` a cada troca.
-- Esc ou Ctrl+U limpam a senha. Com Caps Lock ligado, a borda do campo fica amarela.
+- **Profile photo** in place of the icon: control center → Appearance → **Photo**. Shows the most recent
+  images from Pictures, Downloads and Desktop (or *Browse…* to pick any file through yazi).
+  The photo is cropped to a square (portrait ones closer to the top, where the face usually is) and saved to
+  `~/.face`. On the same screen you can remove it. Script: `~/.config/hypr/scripts/avatar.sh pick|browse|set|remove`.
+- The background is a frame of the wallpaper, saved to `~/.cache/wallpaper/lock.png` on every change.
+- Esc or Ctrl+U clear the password. With Caps Lock on, the field's border turns yellow.
 
-## Wallpaper e cores
+## Wallpaper and colors
 
-- Coloque arquivos em `~/Pictures/Wallpapers`: png, jpg, webp, gif, mp4, webm, mkv ou mov.
-  O padrão é `aurora.mp4` (animado, loop de 20 s).
-- Vídeos pausam sozinhos no monitor em que ficam cobertos (ex.: janela em tela cheia), para poupar
-  bateria. Cada monitor tem o seu processo (mpvpaper), e o outro continua animado.
-- **Temas** (SUPER + SHIFT + T, ou central de controle → Appearance → Theme):
-  - **Automatic:** as cores saem de cada wallpaper (num vídeo ou GIF, de um quadro). A cor dominante
-    tinge o fundo, e o acento principal (bordas, workspace ativo, menus) é a cor mais viva que
-    contrasta com ela: o rosa da árvore no céu azul, o vermelho do portal na noite… Os acentos
-    ficam vivos e legíveis no fundo escuro. Wallpaper sem cor gera acentos discretos. Vermelho, verde, amarelo e laranja
-    ficam fixos, para manter o significado (erros, bateria…).
-  - **Temas fixos:** Catppuccin Mocha, Tokyo Night, Gruvbox, Nord, Rosé Pine, Everforest, Kanagawa e
-    Dracula. O menu mostra amostras de cor e fica aberto para você ir provando.
-  - O tema muda na hora: bordas das janelas, workspace ativo, barra, menus, notificações, terminal,
-    Neovim, tela de bloqueio, tela de login, apps GTK e janela do japonês.
-  - No seletor de wallpaper, **Alt+T** alterna entre Automatic e o último tema fixo.
-- **Criar um tema:** copie um arquivo de `~/.config/hypr/themes/palettes/`, troque o nome (`# name:`)
-  e as cores. Ele aparece no menu sozinho. `mauve` é o acento principal (bordas, workspace ativo,
-  seleção) e `blue` o segundo tom dos gradientes.
-- **Script:** `~/.config/hypr/scripts/wallpaper.sh` com `set <arquivo>`, `pick`, `random`, `restore`
-  e `theme auto|<tema>|toggle`. Gerador das cores: `~/.config/hypr/themes/theme.py` (`list`, `set`, `auto`).
+- Put files in `~/Pictures/Wallpapers`: png, jpg, webp, gif, mp4, webm, mkv or mov.
+  The default is `aurora.mp4` (animated, 20 s loop).
+- Videos pause by themselves on a monitor where they're covered (e.g. a fullscreen window), to save
+  battery. Each monitor has its own process (mpvpaper), and the other one keeps animating.
+- **Themes** (SUPER + SHIFT + T, or control center → Appearance → Theme):
+  - **Automatic:** colors come from each wallpaper (for a video or GIF, from a frame). The dominant color
+    tints the background, and the main accent (borders, active workspace, menus) is the most vivid color that
+    contrasts with it: the tree's pink against the blue sky, the portal's red in the night… Accents
+    stay vivid and readable on the dark background. A wallpaper without color produces muted accents. Red, green, yellow and orange
+    stay fixed, to keep their meaning (errors, battery…).
+  - **Fixed themes:** Catppuccin Mocha, Tokyo Night, Gruvbox, Nord, Rosé Pine, Everforest, Kanagawa and
+    Dracula. The menu shows color swatches and stays open so you can keep trying them.
+  - The theme changes instantly: window borders, active workspace, bar, menus, notifications, terminal,
+    Neovim, lock screen, login screen, GTK apps and the Japanese input window.
+  - In the wallpaper picker, **Alt+T** toggles between Automatic and the last fixed theme.
+- **Creating a theme:** copy a file from `~/.config/hypr/themes/palettes/`, change the name (`# name:`)
+  and the colors. It shows up in the menu on its own. `mauve` is the main accent (borders, active workspace,
+  selection) and `blue` the second tone of the gradients.
+- **Script:** `~/.config/hypr/scripts/wallpaper.sh` with `set <file>`, `pick`, `random`, `restore`
+  and `theme auto|<theme>|toggle`. Color generator: `~/.config/hypr/themes/theme.py` (`list`, `set`, `auto`).
 
 ## Terminal (zsh)
 
-- **Prompt:** pasta, branch e status do git, versão do Python, `.venv` ativa e tempo de comandos longos.
-- **Histórico:** ↑/↓ buscam pelo que já foi digitado. **Ctrl+R** pesquisa o histórico.
-- **fzf:** **Ctrl+T** busca arquivos (com prévia) e **Alt+C** pula para uma pasta.
-- **Navegação:** `z <nome>` vai a pastas já usadas e `y` abre o yazi (ao sair, o terminal fica na pasta).
-- **Listagem:** `ls` / `ll` / `la` / `lt` usam o lsd (ícones, grade compacta, status do git).
-- **Python:** a `.venv` do projeto ativa sozinha ao entrar na pasta.
-  `mkds <nome>` cria um projeto de dados com uv: pandas, numpy, polars, scikit-learn,
-  matplotlib, seaborn, ipython, ruff e pytest.
-- **Transparência:** `Ctrl+Shift+A` e depois `M` / `L` deixa o fundo do kitty mais ou menos opaco.
+- **Prompt:** folder, git branch and status, Python version, active `.venv` and the duration of long commands.
+- **History:** ↑/↓ search by what you've already typed. **Ctrl+R** searches the history.
+- **fzf:** **Ctrl+T** searches files (with preview) and **Alt+C** jumps to a folder.
+- **Navigation:** `z <name>` goes to folders you've used before and `y` opens yazi (on exit, the terminal stays in that folder).
+- **Listing:** `ls` / `ll` / `la` / `lt` use lsd (icons, compact grid, git status).
+- **Python:** the project's `.venv` activates by itself when you enter the folder.
+  `mkds <name>` creates a data project with uv: pandas, numpy, polars, scikit-learn,
+  matplotlib, seaborn, ipython, ruff and pytest.
+- **Transparency:** `Ctrl+Shift+A` then `M` / `L` makes the kitty background more or less opaque.
 
-## Neovim (IDE para Python / data mining)
+## Neovim (IDE for Python / data mining)
 
-`<espaço>` mostra todos os atalhos.
+`<space>` shows all shortcuts.
 
-- **Python:** basedpyright (tipos), ruff (lint e formatação ao salvar), debugger (debugpy),
-  testes (pytest) e seletor de venv (`<espaço> c v`).
-- **Células estilo Jupyter:** separe o código com `# %%`.
-  - **Shift+Enter** roda a célula no IPython da `.venv` e vai para a próxima.
-  - `]j` / `[j` navegam entre células e `<espaço> j a` cria uma célula nova.
-  - `<espaço> j` reúne o resto: abrir/fechar o REPL, rodar linha, seleção ou arquivo, interromper…
-- **Notebooks `.ipynb`:** abrem como código com células `# %%` e salvam de volta mantendo as saídas.
-- **Dados:** CSV/TSV abrem como tabela (`Tab` pula colunas) e SQL tem navegador de bancos (`<espaço> D`).
-- **Gráficos:** os do matplotlib abrem em janela flutuante.
-- **Visual:** fundo transparente, com as cores do wallpaper atualizadas ao vivo.
+- **Python:** basedpyright (types), ruff (lint and format on save), debugger (debugpy),
+  tests (pytest) and venv picker (`<space> c v`).
+- **Jupyter-style cells:** separate code with `# %%`.
+  - **Shift+Enter** runs the cell in the `.venv`'s IPython and moves to the next one.
+  - `]j` / `[j` navigate between cells and `<space> j a` creates a new cell.
+  - `<space> j` has the rest: open/close the REPL, run line, selection or file, interrupt…
+- **`.ipynb` notebooks:** open as code with `# %%` cells and save back keeping the outputs.
+- **Data:** CSV/TSV open as a table (`Tab` jumps between columns) and SQL has a database browser (`<space> D`).
+- **Plots:** matplotlib's open in a floating window.
+- **Look:** transparent background, with the wallpaper colors updated live.
 
-## Arquivos (yazi)
+## Files (yazi)
 
-SUPER + E, ou `y` no terminal.
+SUPER + E, or `y` in the terminal.
 
-- **Navegar:** setas ou `h j k l`. `Enter` abre e `.` mostra os ocultos.
-- **Copiar e mover:** `Espaço` seleciona, `y` / `x` / `p` copia / recorta / cola.
-- **Arquivos:** `d` manda para a lixeira, `a` cria (termine com `/` para pasta) e `r` renomeia.
-- **Busca:** `/` busca e `z` usa o zoxide.
-- **Ajuda:** `F1` mostra todos os atalhos.
+- **Navigate:** arrows or `h j k l`. `Enter` opens and `.` shows hidden files.
+- **Copy and move:** `Space` selects, `y` / `x` / `p` copy / cut / paste.
+- **Files:** `d` sends to the trash, `a` creates (end with `/` for a folder) and `r` renames.
+- **Search:** `/` searches and `z` uses zoxide.
+- **Help:** `F1` shows all shortcuts.
 
 ---
 
-## Estrutura
+## Structure
 
 ```
 hypr-setup/
-├── install.sh                    # instalação / deploy / save
+├── install.sh                    # install / deploy / save
 ├── README.md
-├── system/sddm/                  # tela de login: tema hypr-setup/ (QML) e Xsetup (todos os monitores)
-├── system/etc/                   # firewall, zram, tampa, limite de bateria (instalados no /etc)
-└── dotfiles/                     # espelho da home
+├── system/sddm/                  # login screen: hypr-setup/ theme (QML) and Xsetup (all monitors)
+├── system/etc/                   # firewall, zram, lid, battery limit (installed to /etc)
+└── dotfiles/                     # mirror of the home
     ├── .zshrc
     ├── .config/
-    │   ├── hypr/                 # hyprland.lua, binds.lua, rules.lua, colors.lua (gerado),
-    │   │   │                     #   workspaces.lua, monitors.lua + monitors.conf (telas), look.conf,
-    │   │   ├── themes/           # theme.py (cores) + palettes/ (temas fixos)
+    │   ├── hypr/                 # hyprland.lua, binds.lua, rules.lua, colors.lua (generated),
+    │   │   │                     #   workspaces.lua, monitors.lua + monitors.conf (screens), look.conf,
+    │   │   ├── themes/           # theme.py (colors) + palettes/ (fixed themes)
     │   │   │                     #   hyprlock, hypridle
     │   │   └── scripts/          # wallpaper, look, controlcenter, displays, brightness, keyboard,
     │   │                         #   avatar, sddm-sync, powermenu, lockinfo, screenshot, clipboard, keybinds,
     │   │                         #   update, backup, record, ocr, lid, battery-watch, bar, media
-    │   ├── fcitx5/               # idiomas do teclado (profile), atalhos e aparência
-    │   ├── brave-flags.conf  claude-desktop-flags.conf   # IME no Wayland
+    │   ├── fcitx5/               # keyboard languages (profile), shortcuts and appearance
+    │   ├── brave-flags.conf  claude-desktop-flags.conf   # IME on Wayland
     │   ├── waybar/  rofi/  swaync/  kitty/  yazi/  lsd/  starship.toml
     │   ├── nvim/                 # LazyVim + plugins/datascience.lua, colorscheme.lua
     │   └── gtk-3.0/  gtk-4.0/  user-dirs.*
     ├── .icons/default/           # cursor
     ├── .local/share/applications/yazi-kitty.desktop
-    ├── .local/share/fcitx5/themes/hypr-setup/   # tema do fcitx5 (gerado pelo theme.py)
+    ├── .local/share/fcitx5/themes/hypr-setup/   # fcitx5 theme (generated by theme.py)
     └── Pictures/Wallpapers/      # aurora.mp4, catppuccin-mountains.png
 ```
 
-## Mantendo atualizado (GitHub)
+## Keeping it up to date (GitHub)
 
-Esta pasta é **autossuficiente**: com ela, uma máquina com Arch recém-instalado fica igual a esta,
-sem copiar mais nada. Depois de mudar algo no sistema:
+This folder is **self-sufficient**: with it, a freshly installed Arch machine ends up just like this one,
+without copying anything else. After changing something on the system:
 
 ```bash
 cd ~/hypr-setup
-./install.sh save                 # traz as configs atuais da home para dotfiles/
-git add -A && git commit -m "ajustes" && git push
+./install.sh save                 # brings the current configs from your home into dotfiles/
+git add -A && git commit -m "tweaks" && git push
 ```
 
-**O que vai junto:** pacotes (inclusive drivers, detectados na hora), configurações do sistema
-(idioma, teclado, login, GPU, serviços), todas as configs da lista `MANAGED` do `install.sh`,
-apps padrão (`mimeapps.list`), preferências de fonte/gaps/escala e o modo de cor
-(`~/.config/hypr/look.conf`) e os dois wallpapers padrão.
+**What goes along:** packages (including drivers, detected on the fly), system settings
+(language, keyboard, login, GPU, services), all configs in the `MANAGED` list of `install.sh`,
+default apps (`mimeapps.list`), font/gaps/scale preferences and the color mode
+(`~/.config/hypr/look.conf`) and the two default wallpapers.
 
-**O que não vai (arquivos pessoais):** seus wallpapers, a foto de perfil (`~/.face`), chaves SSH,
-banco do KeePassXC, perfis dos navegadores (use a sincronização do navegador), login do Claude,
-dicionário do Mozc e `~/.claude` (configuração do Claude Code, que é do trabalho). Numa máquina nova,
-se copiar seus wallpapers para `~/Pictures/Wallpapers` antes do primeiro login, o último usado (lembrado
-no `look.conf`) já entra; senão entra o padrão.
+**What doesn't (personal files):** your wallpapers, the profile photo (`~/.face`), SSH keys,
+the KeePassXC database, browser profiles (use the browser's sync), the Claude login,
+the Mozc dictionary and `~/.claude` (Claude Code configuration, which belongs to work). On a new machine,
+if you copy your wallpapers to `~/Pictures/Wallpapers` before the first login, the last one used (remembered
+in `look.conf`) is picked up; otherwise the default is used.
 
-Se passar a configurar um app novo, acrescente o caminho dele ao array `MANAGED` no `install.sh`.
+If you start configuring a new app, add its path to the `MANAGED` array in `install.sh`.
 
-## Testar numa VM
+## Testing in a VM
 
-`test/vm.sh` instala tudo do zero numa máquina virtual (QEMU/KVM, UEFI, vídeo 3D), sem tocar no
-seu sistema. Os arquivos ficam em `~/VMs/hypr-setup-test`; a VM tem 4 vCPUs, 6 GB e SSH em `localhost:2222`.
+`test/vm.sh` installs everything from scratch in a virtual machine (QEMU/KVM, UEFI, 3D video), without touching
+your system. The files live in `~/VMs/hypr-setup-test`; the VM has 4 vCPUs, 6 GB and SSH on `localhost:2222`.
 
 ```bash
-test/vm.sh deps            # mostra o comando do QEMU com vídeo 3D (rode com sudo)
-test/vm.sh iso             # baixa a ISO do Arch e confere o sha256
-test/vm.sh create          # disco de 40 GB + NVRAM do UEFI
-test/vm.sh live            # liga pela ISO; a chave SSH entra sozinha (cloud-init)
-test/vm.sh install         # Arch base: GRUB UEFI, ext4, usuário tester/tester (test/arch-base.sh)
-test/vm.sh ssh poweroff && test/vm.sh run    # religa pelo disco
-test/vm.sh setup           # copia este repositório e roda ./install.sh (log: test/vm.sh ssh tail -f install.log)
-test/vm.sh destroy         # apaga a VM (a ISO fica)
+test/vm.sh deps            # shows the QEMU command with 3D video (run with sudo)
+test/vm.sh iso             # downloads the Arch ISO and checks the sha256
+test/vm.sh create          # 40 GB disk + UEFI NVRAM
+test/vm.sh live            # boots from the ISO; the SSH key goes in on its own (cloud-init)
+test/vm.sh install         # Base Arch: GRUB UEFI, ext4, user tester/tester (test/arch-base.sh)
+test/vm.sh ssh poweroff && test/vm.sh run    # boots again from the disk
+test/vm.sh setup           # copies this repository and runs ./install.sh (log: test/vm.sh ssh tail -f install.log)
+test/vm.sh destroy         # deletes the VM (the ISO stays)
 ```
 
-Ao final, faça login na janela da VM (tester / tester). O sudo da VM não pede senha e a porta 22 fica
-liberada no firewall (`/etc/nftables.d/input/ssh.nft`) — só na VM de teste.
+At the end, log in in the VM window (tester / tester). The VM's sudo doesn't ask for a password and port 22 is
+open in the firewall (`/etc/nftables.d/input/ssh.nft`) — only in the test VM.
 
-## Dicas e problemas conhecidos
+## Tips and known issues
 
-- **Config do Hyprland:** desde a 0.55 é em **Lua** (`hyprland.lua`), não mais `hyprland.conf`.
-  Erros aparecem na tela e em `hyprctl configerrors`.
-- **Barra sumiu?** A Waybar é iniciada por `~/.config/hypr/scripts/bar.sh`, que a reinicia sozinha se
-  ela travar (aparece uma notificação). Se você fechou de propósito, abra de novo com `bar.sh`.
-  A música na barra vem de `scripts/media.sh` (playerctl), e não do módulo `mpris`, que travava a barra.
-- **Comandos novos na Waybar:** use `setsid -f <comando>` em `on-click`. A sessão roda presa ao
-  `tty1`, e sem o `setsid` programas como o Rofi podem ficar congelados.
-- **Tamanho de fonte na barra/menus:** não ponha `font-size` em `waybar/style.css`, `swaync/style.css`
-  ou `rofi/theme.rasi`. Os tamanhos vêm dos arquivos gerados pelo `look.sh`.
-- **Fechar o Rofi por script:** use `pkill -x rofi`. Sem o `-x`, ele casa com o
+- **Hyprland config:** since 0.55 it is in **Lua** (`hyprland.lua`), no longer `hyprland.conf`.
+  Errors show up on screen and in `hyprctl configerrors`.
+- **Bar gone?** Waybar is started by `~/.config/hypr/scripts/bar.sh`, which restarts it by itself if
+  it hangs (a notification appears). If you closed it on purpose, open it again with `bar.sh`.
+  The music on the bar comes from `scripts/media.sh` (playerctl), not from the `mpris` module, which used to hang the bar.
+- **New commands in Waybar:** use `setsid -f <command>` in `on-click`. The session runs attached to
+  `tty1`, and without `setsid` programs like Rofi can freeze.
+- **Font size on the bar/menus:** don't put `font-size` in `waybar/style.css`, `swaync/style.css`
+  or `rofi/theme.rasi`. The sizes come from the files generated by `look.sh`.
+- **Closing Rofi from a script:** use `pkill -x rofi`. Without `-x`, it also matches
   `power-profiles-daemon`.
-- **NVIDIA:** `nvidia-smi` mostra se a placa está em uso. Ela desliga sozinha quando ociosa.
-- **Neovim:** se faltar algo, rode `./install.sh nvim` ou use `:Lazy`, `:Mason` e `:checkhealth`.
+- **NVIDIA:** `nvidia-smi` shows whether the card is in use. It powers off by itself when idle.
+- **Neovim:** if something is missing, run `./install.sh nvim` or use `:Lazy`, `:Mason` and `:checkhealth`.

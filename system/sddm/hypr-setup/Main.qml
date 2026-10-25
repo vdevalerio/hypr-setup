@@ -1,6 +1,6 @@
-// Tela de login do hypr-setup — mesmo visual da tela de bloqueio (~/.config/hypr/hyprlock.conf).
-// Fundo, cores e foto vêm de dynamic/ (atualizados por ~/.config/hypr/scripts/sddm-sync.sh).
-// Testar sem sair da sessão: sddm-greeter-qt6 --test-mode --theme /usr/share/sddm/themes/hypr-setup
+// hypr-setup login screen — same look as the lock screen (~/.config/hypr/hyprlock.conf).
+// Background, colors and photo come from dynamic/ (updated by ~/.config/hypr/scripts/sddm-sync.sh).
+// Test without leaving the session: sddm-greeter-qt6 --test-mode --theme /usr/share/sddm/themes/hypr-setup
 import QtQuick
 import QtQuick.Controls
 import QtMultimedia
@@ -9,7 +9,7 @@ Rectangle {
     id: root
     color: config.crust || "#11111b"
 
-    // Medidas do hyprlock são em pixels lógicos de uma tela 900 px de altura (1080p em escala 1.2)
+    // hyprlock measurements are in logical pixels of a 900 px tall screen (1080p at 1.2 scale)
     readonly property real s: height / 900
     readonly property string sans: "Adwaita Sans"
     readonly property string mono: "JetBrainsMono Nerd Font"
@@ -26,12 +26,12 @@ Rectangle {
 
     Timer { interval: 1000; running: true; repeat: true; onTriggered: root.now = new Date() }
 
-    // Nome completo e lista de sessões (os modelos do SDDM só se leem por delegates)
+    // Full name and session list (SDDM models can only be read through delegates)
     Repeater {
         model: userModel
         Item {
             Component.onCompleted: {
-                if (!root.userName && index === 0) root.userName = model.name   // sem "último usuário"
+                if (!root.userName && index === 0) root.userName = model.name   // no "last user"
                 if (model.name === root.userName) root.realName = model.realName
             }
         }
@@ -63,9 +63,9 @@ Rectangle {
         }
     }
 
-    // ── Fundo ──────────────────────────────────────────────────
-    // Imagem parada por baixo (aparece já e fica se não houver vídeo); por cima, o wallpaper
-    // animado (dynamic/background.mp4, já desfocado), quando o wallpaper é vídeo ou GIF.
+    // ── Background ──────────────────────────────────────────────────
+    // Still image underneath (shows immediately and stays if there's no video); on top, the
+    // animated wallpaper (dynamic/background.mp4, already blurred), when the wallpaper is a video or GIF.
     Image {
         anchors.fill: parent
         source: "dynamic/background.jpg"
@@ -90,10 +90,10 @@ Rectangle {
         Behavior on opacity { NumberAnimation { duration: 600 } }
     }
 
-    // Posição como no hyprlock: y positivo = acima do centro
+    // Position as in hyprlock: positive y = above center
     function cy(y, item) { return root.height / 2 - y * s - item.height / 2 }
 
-    // ── Data e hora ────────────────────────────────────────────
+    // ── Date and time ────────────────────────────────────────────
     Text {
         id: dateText
         text: Qt.formatDate(root.now, "dddd  ·  MMMM d").toUpperCase()
@@ -122,7 +122,7 @@ Rectangle {
         y: cy(75, greet)
     }
 
-    // ── Cartão central: avatar + senha ─────────────────────────
+    // ── Center card: avatar + password ─────────────────────────
     Rectangle {
         id: card
         width: 380 * s; height: 230 * s
@@ -133,7 +133,7 @@ Rectangle {
         y: cy(-95, card)
     }
 
-    // Anel em gradiente + foto (ou ícone)
+    // Gradient ring + photo (or icon)
     Rectangle {
         id: ring
         width: 84 * s; height: width; radius: width / 2
@@ -167,7 +167,7 @@ Rectangle {
         }
     }
 
-    // Campo de senha
+    // Password field
     Rectangle {
         id: field
         width: 300 * s; height: 50 * s; radius: height / 2
@@ -218,10 +218,10 @@ Rectangle {
         }
     }
 
-    // ── Rodapé ─────────────────────────────────────────────────
+    // ── Footer ─────────────────────────────────────────────────
     readonly property real bottomY: height - 28 * s
 
-    // Sessão (clique para trocar)
+    // Session (click to switch)
     Text {
         id: sessionText
         x: 32 * s
@@ -238,7 +238,7 @@ Rectangle {
         }
     }
 
-    // Layout do teclado
+    // Keyboard layout
     Text {
         id: layoutText
         anchors.horizontalCenter: parent.horizontalCenter
@@ -248,7 +248,7 @@ Rectangle {
         font { family: root.mono; pixelSize: 11 * 1.33 * s }
     }
 
-    // Energia
+    // Power
     Row {
         anchors.right: parent.right
         anchors.rightMargin: 32 * s

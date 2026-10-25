@@ -1,9 +1,9 @@
 //@ pragma IconTheme Papirus-Dark
-// Visão geral dos workspaces (SUPER + Tab): cada monitor mostra os seus, com miniaturas ao vivo.
-// Processo residente (autostart no hyprland.lua, pela GPU integrada); o atalho chama
-// ~/.config/hypr/scripts/overview.sh, que alterna por IPC: qs -p <este arquivo> ipc call overview toggle
-//   Clique no workspace: vai até ele · clique na janela: foca · arraste a janela: move de workspace
-//   Setas/hjkl: escolhe · Enter: vai · digite: filtra as janelas · Esc ou clique fora: fecha
+// Workspace overview (SUPER + Tab): each monitor shows its own, with live thumbnails.
+// Resident process (autostart in hyprland.lua, on the integrated GPU); the shortcut calls
+// ~/.config/hypr/scripts/overview.sh, which toggles via IPC: qs -p <this file> ipc call overview toggle
+//   Click a workspace: go to it · click a window: focus it · drag a window: move it to another workspace
+//   Arrows/Tab: choose · Enter: go · 1–9/0: jump to workspace · type: filter windows · Esc or click outside: close
 import QtQuick
 import Quickshell
 import Quickshell.Io
@@ -19,22 +19,22 @@ ShellRoot {
 
     function open() {
         Hyprland.refreshWorkspaces()
-        Hyprland.refreshToplevels()   // posições e tamanhos atuais das janelas
+        Hyprland.refreshToplevels()   // current window positions and sizes
         filter = ""
         shown = true
     }
     function close() { shown = false }
 
-    // Hyprland em Lua: o dispatch recebe a expressão Lua, como no `hyprctl dispatch`
+    // Hyprland in Lua: dispatch takes the Lua expression, as in `hyprctl dispatch`
     function dispatch(lua) { Hyprland.dispatch(lua) }
-    // Trocar de workspace/janela só depois de fechar: enquanto a camada segura o teclado
-    // (exclusivo), o Hyprland ignora o foco em outro lugar
+    // Switch workspace/window only after closing: while the layer holds the keyboard
+    // (exclusive), Hyprland ignores focus changes elsewhere
     property string pending: ""
     function closeThen(lua) { pending = lua; close(); afterClose.restart() }
     Timer { id: afterClose; interval: 40; onTriggered: { root.dispatch(root.pending); root.pending = "" } }
 
     function focusWorkspace(id) { closeThen(`hl.dsp.focus({ workspace = "${id}" })`) }
-    // HyprlandToplevel.address vem sem o "0x"
+    // HyprlandToplevel.address comes without the "0x"
     function addr(a) { return a.startsWith("0x") ? a : "0x" + a }
     function focusWindow(address) { closeThen(`hl.dsp.focus({ window = "address:${addr(address)}" })`) }
     function moveWindow(address, id) {
@@ -49,14 +49,14 @@ ShellRoot {
         return (toplevel.title || "").toLowerCase().includes(f) || (ipc.class || "").toLowerCase().includes(f)
     }
 
-    // Enter com filtro: a primeira janela que combina (em qualquer monitor)
+    // Enter with a filter: the first matching window (on any monitor)
     function focusFirstMatch() {
         const t = Hyprland.toplevels.values.find(t => t.workspace && t.workspace.id > 0 && matches(t))
         if (t) focusWindow(t.address)
     }
 
-    // Posições e tamanhos (lastIpcObject) não chegam por evento: relê depois de qualquer mudança,
-    // esperando a animação das janelas assentar
+    // Positions and sizes (lastIpcObject) do not arrive via events: re-read after any change,
+    // waiting for the window animation to settle
     Timer { id: refresh; interval: 350; onTriggered: Hyprland.refreshToplevels() }
     Connections {
         target: Hyprland

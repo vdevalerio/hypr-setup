@@ -1,18 +1,18 @@
 #!/usr/bin/env bash
-# Arch base mínimo na VM de teste (roda como root no live ISO; chamado por test/vm.sh install).
-# Faz o que uma instalação "normal" deixaria pronto antes do ./install.sh: UEFI + GRUB, ext4,
-# usuário "tester" (senha "tester", sudo sem senha — só nesta VM), rede, SSH e git.
-#   bash -s -- "<chave pública ssh>"   < arch-base.sh
+# Minimal base Arch in the test VM (runs as root on the live ISO; called by test/vm.sh install).
+# Does what a "normal" install would leave ready before ./install.sh: UEFI + GRUB, ext4,
+# user "tester" (password "tester", passwordless sudo — this VM only), network, SSH and git.
+#   bash -s -- "<ssh public key>"   < arch-base.sh
 set -euo pipefail
-PUBKEY=${1:?chave pública}
+PUBKEY=${1:?public key}
 DISK=/dev/vda
 
-echo "==> Esperando o relógio e as chaves do pacman"
+echo "==> Waiting for the clock and pacman keys"
 timedatectl set-ntp true
 systemctl is-active --quiet pacman-init.service || systemctl start pacman-init.service
 for _ in $(seq 1 60); do systemctl is-active --quiet pacman-init.service && break; sleep 2; done
 
-echo "==> Particionando $DISK (ESP 1 GB em /boot + raiz ext4)"
+echo "==> Partitioning $DISK (1 GB ESP at /boot + ext4 root)"
 sgdisk --zap-all "$DISK" >/dev/null
 sgdisk -n1:0:+1G -t1:ef00 -c1:EFI -n2:0:0 -t2:8300 -c2:root "$DISK" >/dev/null
 partprobe "$DISK"; sleep 1
@@ -27,7 +27,7 @@ pacstrap -K /mnt base linux linux-firmware amd-ucode intel-ucode grub efibootmgr
     networkmanager openssh sudo git nano >/dev/null
 genfstab -U /mnt >> /mnt/etc/fstab
 
-echo "==> Configurando o sistema"
+echo "==> Configuring the system"
 arch-chroot /mnt /bin/bash -e <<EOF
 ln -sf /usr/share/zoneinfo/America/Sao_Paulo /etc/localtime
 hwclock --systohc
@@ -47,10 +47,10 @@ grub-install --target=x86_64-efi --efi-directory=/boot --bootloader-id=GRUB --re
 sed -i 's/^GRUB_TIMEOUT=.*/GRUB_TIMEOUT=2/' /etc/default/grub
 grub-mkconfig -o /boot/grub/grub.cfg >/dev/null 2>&1
 systemctl enable NetworkManager sshd >/dev/null 2>&1
-# O firewall do install.sh bloqueia conexões de entrada: libera o SSH só nesta VM de teste
+# install.sh's firewall blocks inbound connections: allow SSH on this test VM only
 install -d /etc/nftables.d/input
 echo 'tcp dport 22 accept' > /etc/nftables.d/input/ssh.nft
 EOF
 
 umount -R /mnt
-echo "==> Arch base pronto. Desligue a VM e ligue pelo disco (test/vm.sh run)."
+echo "==> Base Arch ready. Shut down the VM and boot from the disk (test/vm.sh run)."

@@ -1,5 +1,5 @@
 # Cores ANSI (0-15): seguem a paleta do kitty, gerada a partir do wallpaper
-# 5 = cor principal · 4 = secundária · 8 = cinza
+# 5 = main color · 4 = secondary · 8 = gray
 user: 5
 group: 4
 permission:

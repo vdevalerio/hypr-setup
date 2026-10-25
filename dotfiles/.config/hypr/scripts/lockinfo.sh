@@ -1,5 +1,5 @@
 #!/usr/bin/env bash
-# Textos da tela de bloqueio (hyprlock.conf): lockinfo.sh greeting | music | battery
+# Lock screen texts (hyprlock.conf): lockinfo.sh greeting | music | battery
 esc() { local s=${1//&/&amp;}; s=${s//</&lt;}; echo "${s//>/&gt;}"; }
 
 case "$1" in

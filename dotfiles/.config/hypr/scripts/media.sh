@@ -1,7 +1,7 @@
 #!/usr/bin/env bash
-# Música tocando agora, para o módulo custom/media da Waybar (JSON, uma linha por mudança).
-# Roda o playerctl fora da Waybar: o módulo "mpris" embutido travava a barra quando um player
-# (ex.: aba do navegador com vídeo) aparecia ou sumia.
+# Now-playing music for Waybar's custom/media module (JSON, one line per change).
+# Runs playerctl outside Waybar: the built-in "mpris" module froze the bar when a player
+# (e.g. a browser tab with video) appeared or disappeared.
 playerctl --follow metadata --format '{{status}}	{{playerName}}	{{title}}	{{artist}}' 2>/dev/null |
 while IFS=$'\t' read -r status player title artist; do
     if [ -z "$status" ] || [ "$status" = Stopped ] || [ -z "$title" ]; then

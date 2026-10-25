@@ -1,6 +1,6 @@
--- Tema: Catppuccin com fundo transparente e paleta vinda do wallpaper.
--- ~/.config/hypr/colors.lua é gerado pelo tema atual (~/.config/hypr/themes/theme.py) com os mesmos
--- nomes da paleta Catppuccin; quando ele muda, o Neovim recolore sozinho.
+-- Theme: Catppuccin with a transparent background and a palette taken from the wallpaper.
+-- ~/.config/hypr/colors.lua is generated from the current theme (~/.config/hypr/themes/theme.py) with the same
+-- names as the Catppuccin palette; when it changes, Neovim recolors itself.
 
 local colors_file = vim.fn.expand("~/.config/hypr/colors.lua")
 
@@ -18,7 +18,7 @@ local function wallpaper_palette()
   return palette
 end
 
--- Remove fundos que sobrarem (vale para qualquer colorscheme)
+-- Remove any leftover backgrounds (works for any colorscheme)
 local transparent_groups = {
   "Normal", "NormalNC", "NormalFloat", "FloatBorder", "FloatTitle", "SignColumn",
   "FoldColumn", "LineNr", "CursorLineNr", "EndOfBuffer", "StatusLine", "StatusLineNC",
@@ -51,7 +51,7 @@ return {
 
       vim.api.nvim_create_autocmd("ColorScheme", { callback = clear_backgrounds })
 
-      -- Observa a pasta (o arquivo é substituído a cada troca de wallpaper)
+      -- Watches the folder (the file is replaced on every wallpaper change)
       local watcher = vim.uv.new_fs_event()
       local pending = false
       watcher:start(vim.fs.dirname(colors_file), {}, function(_, fname)

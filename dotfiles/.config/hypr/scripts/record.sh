@@ -1,11 +1,11 @@
 #!/usr/bin/env bash
-# Gravação de tela (gpu-screen-recorder: usa a GPU, quase não pesa). Vídeos em ~/Videos/Recordings.
-#   record.sh screen [mic]   grava o monitor em foco (com o som do sistema; "mic" junta o microfone)
-#   record.sh region [mic]   escolhe uma área com o mouse
-#   record.sh stop           para e salva     · record.sh toggle  (para se estiver gravando, senão screen)
-#   record.sh status         JSON para o módulo custom/recording da Waybar (só aparece gravando)
+# Screen recording (gpu-screen-recorder: uses the GPU, barely any load). Videos in ~/Videos/Recordings.
+#   record.sh screen [mic]   records the focused monitor (with system sound; "mic" adds the microphone)
+#   record.sh region [mic]   pick an area with the mouse
+#   record.sh stop           stops and saves     · record.sh toggle  (stops if recording, otherwise screen)
+#   record.sh status         JSON for Waybar's custom/recording module (only shown while recording)
 DIR="$(xdg-user-dir VIDEOS 2>/dev/null || echo "$HOME/Videos")/Recordings"
-STATE="${XDG_RUNTIME_DIR:-/tmp}/recording"   # PID e arquivo da gravação em andamento
+STATE="${XDG_RUNTIME_DIR:-/tmp}/recording"   # PID and file of the recording in progress
 mkdir -p "$DIR"
 
 recording() { [ -f "$STATE.pid" ] && kill -0 "$(cat "$STATE.pid")" 2>/dev/null; }

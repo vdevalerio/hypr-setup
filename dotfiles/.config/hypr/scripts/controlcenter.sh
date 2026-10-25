@@ -1,18 +1,18 @@
 #!/usr/bin/env bash
-# Central de controle (SUPER + A ou o botão 󰒓 na barra): os ajustes que não ficam na barra.
+# Control center (SUPER + A or the 󰒓 button on the bar): the settings that don't live on the bar.
 #
-#   controlcenter.sh                  abre o menu principal (se já estiver aberto, fecha)
-#   controlcenter.sh <menu> [linha]   abre direto: main | look | theme | power-profile | brightness | displays |
-#                                     bluetooth | keyboard | tools  (ou display:<monitor>, brightness:<monitor>)
-#   controlcenter.sh status           JSON para o módulo custom/control da Waybar
+#   controlcenter.sh                  opens the main menu (closes it if already open)
+#   controlcenter.sh <menu> [row]     opens directly: main | look | theme | power-profile | brightness | displays |
+#                                     bluetooth | keyboard | tools  (or display:<monitor>, brightness:<monitor>)
+#   controlcenter.sh status           JSON for Waybar's custom/control module
 #
-# Ajustes (fonte maior, brilho, liga/desliga...) mantêm o menu aberto: dá para repetir com Enter.
+# Adjustments (bigger font, brightness, on/off...) keep the menu open: you can repeat them with Enter.
 
 S=~/.config/hypr/scripts
 panel() { echo "window {location: north east; anchor: north east; x-offset: -10px; y-offset: 48px; width: ${WIDTH}px;}
               element {padding: 6px 12px;}"; }
 
-# ── Estado ────────────────────────────────────────────────────────────
+# ── State ────────────────────────────────────────────────────────────
 dnd_on()   { [ "$(swaync-client -D -sw 2>/dev/null)" = true ]; }
 awake_on() { ! pgrep -x hypridle >/dev/null; }
 night_on() { pgrep -x hyprsunset >/dev/null; }
@@ -40,7 +40,7 @@ color_mode() { python3 "$THEME" name "$(theme_mode)" 2>/dev/null | sed 's/ (wall
 scale_now()  { hyprctl monitors -j | jq -r '.[0].scale | . * 100 | round / 100'; }
 
 look() { "$S/look.sh" "$@"; }
-# Funções do keyboard.sh (siglas, nomes, lista de idiomas)
+# Functions from keyboard.sh (abbreviations, names, language list)
 kb() { ( source <(sed -n '/^PROFILE=/p; /^short()/p; /^label()/p; /^ims()/p' "$S/keyboard.sh"); "$@" ); }
 kb_now() { local c; c=$(fcitx5-remote -n 2>/dev/null) && [ -n "$c" ] && kb label "$c" || echo "off"; }
 refresh_bar() { pkill -RTMIN+8 -x waybar 2>/dev/null; }
@@ -58,21 +58,21 @@ toggle_bt() {
     else rfkill unblock bluetooth 2>/dev/null; sleep 0.3; bluetoothctl power on >/dev/null; fi
 }
 
-# ── Menu genérico ─────────────────────────────────────────────────────
+# ── Generic menu ─────────────────────────────────────────────────────
 items=(); acts=(); PAD=20; COLS=1; WIDTH=470
 esc() { local s=${1//&/&amp;}; s=${s//</&lt;}; echo "${s//>/&gt;}"; }
-# add <ícone> <nome> <valor à direita> <ação>   (ação com + na frente = reabre o menu depois)
+# add <icon> <name> <right-hand value> <action>   (action prefixed with + = reopens the menu afterwards)
 add() {
     items+=("$(printf "%s  %-${PAD}s <span alpha=\"55%%\">%s</span>" "$1" "$2" "$(esc "$3")")")
     acts+=("$4")
 }
-# add_raw: igual, mas o valor já é markup (ex.: amostras de cor) e não fica apagado
+# add_raw: same, but the value is already markup (e.g. color swatches) and isn't dimmed
 add_raw() {
     items+=("$(printf "%s  %-${PAD}s %s" "$1" "$2" "$3")")
     acts+=("$4")
 }
 
-show() { # show <título> <nome do menu> [mensagem]
+show() { # show <title> <menu name> [message]
     local idx act args=()
     [ -n "${3:-}" ] && args=(-mesg "$3")
     idx=$(printf '%s\n' "${items[@]}" |
@@ -107,7 +107,7 @@ main_menu() {
     show "Control" main "󰀄  $USER   ·   󰁹 $(battery)%   ·   󰔟 up $up"
 }
 
-look_menu() {   # duas colunas: pares lado a lado
+look_menu() {   # two columns: pairs side by side
     PAD=10; COLS=2; WIDTH=660
     add "󰁍" "Back"      ""                     "exec $0 main 0"
     add "󰑓" "Reset"     "all"      "+look font reset; look gaps reset; look scale reset"
@@ -126,7 +126,7 @@ look_menu() {   # duas colunas: pares lado a lado
     show "Appearance" look
 }
 
-theme_menu() {   # temas fixos (~/.config/hypr/themes/palettes) ou automático, com amostras de cor
+theme_menu() {   # fixed themes (~/.config/hypr/themes/palettes) or automatic, with color swatches
     local cur id name cols dots c
     cur=$(theme_mode)
     PAD=22; WIDTH=520
@@ -150,7 +150,7 @@ power_profile_menu() {
     show "Power profile" power-profile
 }
 
-brightness_menu() {   # um monitor: direto; vários: escolhe qual
+brightness_menu() {   # one monitor: straight to it; several: pick which
     local m
     if (( $(mon_count) == 1 )); then brightness_mon "$(hyprctl monitors -j | jq -r '.[0].name')"; return; fi
     add "󰁍" "Back" "" "exec $0 main 5"

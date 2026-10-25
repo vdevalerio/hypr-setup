@@ -1,13 +1,13 @@
 #!/usr/bin/env bash
-# Janelas abertas agrupadas por workspace (clique direito nos workspaces da barra).
-# Enter vai para a janela escolhida. Com vários monitores, mostra também o monitor (M1 = notebook,
-# M2 = o próximo...: workspaces 1–10 são do M1, 11–20 do M2, como em workspaces.lua).
+# Open windows grouped by workspace (right-click the workspaces in the bar).
+# Enter jumps to the chosen window. With multiple monitors, also shows the monitor (M1 = laptop,
+# M2 = the next one...: workspaces 1–10 belong to M1, 11–20 to M2, as in workspaces.lua).
 pkill -x rofi && exit 0
 
 clients=$(hyprctl clients -j)
 monitors=$(hyprctl monitors -j | jq 'length')
 
-# Uma linha por janela: workspace (1–10 de cada monitor), app e título; endereço vai à parte
+# One line per window: workspace (1–10 of each monitor), app and title; address goes separately
 rows=$(jq -r --argjson multi "$((monitors > 1))" '
     def esc: gsub("&"; "&amp;") | gsub("<"; "&lt;") | gsub(">"; "&gt;");
     [ .[] | select(.workspace.id != -1 and .mapped) ]

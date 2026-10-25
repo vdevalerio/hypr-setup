@@ -1,5 +1,5 @@
 #!/usr/bin/env bash
-# Lista pesquisável de todos os atalhos (SUPER + F1)
+# Searchable list of all keybinds (SUPER + F1)
 pkill -x rofi && exit 0
 hyprctl binds -j | jq -r '
   def mods: [ (if (.modmask / 64 | floor) % 2 == 1 then "SUPER" else empty end),

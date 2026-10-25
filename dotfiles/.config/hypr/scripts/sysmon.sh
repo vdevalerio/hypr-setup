@@ -1,15 +1,15 @@
 #!/usr/bin/env bash
-# Ilha de monitoramento da Waybar: GPU e temperaturas (CPU, memória e disco usam os módulos nativos).
-#   sysmon.sh gpu    (contínuo) uso da GPU mais ocupada; tooltip com cada placa (uso, temperatura, VRAM, consumo)
-#   sysmon.sh temp   temperatura da CPU; tooltip com todos os sensores
-#   sysmon.sh top    abre o btop numa janela flutuante
-# A NVIDIA só é consultada se já estiver acordada (D0): o nvidia-smi tiraria a placa do modo de
-# economia (RTD3) a cada leitura.
+# Waybar monitoring island: GPU and temperatures (CPU, memory and disk use the native modules).
+#   sysmon.sh gpu    (continuous) usage of the busiest GPU; tooltip with each card (usage, temperature, VRAM, power draw)
+#   sysmon.sh temp   CPU temperature; tooltip with all sensors
+#   sysmon.sh top    opens btop in a floating window
+# NVIDIA is only queried if it is already awake (D0): nvidia-smi would take the card out of
+# power-saving mode (RTD3) on every reading.
 WARN=75 CRIT=90   # °C
-UWARN=85 UCRIT=98 # % de uso da GPU (a iGPU passa de 60% só compondo a tela com wallpaper em vídeo)
-declare -A AMD_BUSY   # uso médio da iGPU por placa (preenchido pelo modo gpu)
+UWARN=85 UCRIT=98 # GPU usage % (the iGPU goes above 60% just compositing the screen with a video wallpaper)
+declare -A AMD_BUSY   # average iGPU usage per card (filled in by gpu mode)
 
-hwmon_by_name() {   # caminho do hwmon com esse nome (k10temp, coretemp, amdgpu, nvme...)
+hwmon_by_name() {   # path of the hwmon with this name (k10temp, coretemp, amdgpu, nvme...)
     local h
     for h in /sys/class/hwmon/hwmon*; do
         [[ $(<"$h/name") == "$1" ]] 2>/dev/null && { echo "$h"; return 0; }
@@ -27,18 +27,18 @@ cpu_temp() {
     h=/sys/class/thermal/thermal_zone0/temp; [[ -r $h ]] && milli "$h"
 }
 
-klass() {   # valor, alerta, crítico → classe CSS
+klass() {   # value, warning, critical → CSS class
     (( $1 >= $3 )) && echo critical && return
     (( $1 >= $2 )) && echo warning && return
     echo normal
 }
 
-json() {   # texto, tooltip, classe, porcentagem
+json() {   # text, tooltip, class, percentage
     jq -cn --arg t "$1" --arg tt "$2" --arg c "$3" --argjson p "${4:-0}" \
         '{text: $t, tooltip: $tt, class: $c, percentage: $p}'
 }
 
-# Placas de vídeo: uma linha "nome|uso|temp|vram_usada_MiB|vram_total_MiB|watts" por placa
+# Graphics cards: one "name|usage|temp|vram_used_MiB|vram_total_MiB|watts" line per card
 gpus() {
     local card dev vendor used total temp busy h w
     for card in /sys/class/drm/card[0-9]; do
@@ -68,11 +68,11 @@ gpus() {
 }
 
 case ${1:-} in
-gpu)   # contínuo: a leitura da iGPU oscila entre 0 e 100 → amostra a cada 0,1 s, publica a média a cada 3 s
+gpu)   # continuous: the iGPU reading jumps between 0 and 100 → sample every 0.1 s, publish the average every 3 s
     declare -A sum
     amd=()
     for card in /sys/class/drm/card[0-9]; do [[ -r $card/device/gpu_busy_percent ]] && amd+=("$card"); done
-    exec {tick}<> <(:)   # `read -t` nesse fd espera sem criar processo (sleep custaria um fork por amostra)
+    exec {tick}<> <(:)   # `read -t` nesse fd waits without spawning a process (sleep would cost a fork per sample)
     while :; do
         sum=()
         for (( i = 0; i < 30; i++ )); do
@@ -91,7 +91,7 @@ gpu)   # contínuo: a leitura da iGPU oscila entre 0 e 100 → amostra a cada 0,
             tip+="${tip:+\n}<b>$name</b>  $busy%  ·  ${temp}°C  ·  VRAM ${used}/${total} MiB${w:+  ·  $w}"
         done < <(gpus)
         if [[ -z $tip ]]; then
-            json "" "" hidden 0 || exit   # Waybar fechou o pipe: sai
+            json "" "" hidden 0 || exit   # Waybar closed the pipe: exit
             continue
         fi
         c=$(klass "$max" $UWARN $UCRIT)
@@ -108,6 +108,6 @@ temp)
     json "${t}°" "$(printf '%b' "$tip\n\nClick: btop")" "$(klass "$t" $WARN $CRIT)" "$t" ;;
 top)
     pgrep -x btop >/dev/null && exec hyprctl dispatch 'hl.dsp.focus({ window = "class:btop-float" })'
-    exec kitty --class btop-float -e btop ;;   # tamanho: regra btop-size (rules.lua)
+    exec kitty --class btop-float -e btop ;;   # size: btop-size rule (rules.lua)
 *)  sed -n '2,8p' "$0" | sed 's/^# \{0,1\}//'; exit 1 ;;
 esac

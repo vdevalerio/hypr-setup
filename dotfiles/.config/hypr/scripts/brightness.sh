@@ -1,14 +1,14 @@
 #!/usr/bin/env bash
-# Brilho independente por monitor: tela do notebook (brightnessctl) e monitores externos (DDC/CI, ddcutil).
+# Per-monitor independent brightness: laptop screen (brightnessctl) and external monitors (DDC/CI, ddcutil).
 #
-#   brightness.sh up|down [alvo] [passo]   alvo: focused (padrão) | cursor | <monitor, ex. HDMI-A-2>
+#   brightness.sh up|down [alvo] [passo]   target: focused (default) | cursor | <monitor, e.g. HDMI-A-2>
 #   brightness.sh set <0-100> [alvo]
 #   brightness.sh get [alvo]
-#   brightness.sh list                     "monitor<TAB>nome<TAB>brilho" de cada monitor
+#   brightness.sh list                     "monitor<TAB>name<TAB>brightness" for each monitor
 #
-# Teclas de brilho = monitor em foco; roda do mouse na bateria da barra = monitor da barra (sob o cursor).
-# Externos precisam de DDC/CI ligado no menu do próprio monitor. ddcutil é lento: o valor fica em
-# cache e é aplicado em segundo plano (rolagens rápidas viram uma única mudança).
+# Brightness keys = focused monitor; mouse wheel on the bar's battery = the bar's monitor (under the cursor).
+# External monitors need DDC/CI enabled in the monitor's own menu. ddcutil is slow: the value is
+# cached and applied in the background (fast scrolls collapse into a single change).
 
 STEP=5
 CACHE="${XDG_RUNTIME_DIR:-/tmp}/brightness"
@@ -29,12 +29,12 @@ target() {
     esac
 }
 
-label() { # nome amigável: "Laptop" ou o modelo do monitor
+label() { # friendly name: "Laptop" or the monitor model
     if internal "$1"; then echo Laptop; return; fi
     hyprctl monitors all -j | jq -r --arg n "$1" '.[] | select(.name == $n) | "\(.make) \(.model)" | sub("^Dell Inc\\. "; "")'
 }
 
-# Barramento I2C do monitor (ddcutil detect é lento: guardado em cache)
+# Monitor I2C bus (ddcutil detect is slow: cached)
 bus() {
     local f="$CACHE/bus-$1"
     if [ ! -s "$f" ]; then
@@ -54,7 +54,7 @@ get() {
     ddcutil --bus "$b" getvcp 10 --terse 2>/dev/null | awk '{ print $4 }' | tee "$CACHE/val-$m"
 }
 
-# Aplica o valor desejado no monitor externo; um worker por monitor, sempre com o último valor
+# Applies the desired value to the external monitor; one worker per monitor, always with the latest value
 ddc_apply() {
     local m=$1 b want done_v=""
     b=$(bus "$m") || return 1
@@ -89,7 +89,7 @@ set_value() { # set_value <monitor> <0-100>
     osd "$m" "$v"
 }
 
-step() { # step <+|-> <alvo> [passo]
+step() { # step <+|-> <target> [step]
     local m cur
     m=$(target "$2"); [ -n "$m" ] || return 1
     cur=$(get "$m") || return 1
@@ -100,7 +100,7 @@ step() { # step <+|-> <alvo> [passo]
 case "${1:-}" in
     up)   step + "${2:-focused}" "${3:-}" ;;
     down) step - "${2:-focused}" "${3:-}" ;;
-    set)  m=$(target "${3:-focused}"); set_value "$m" "${2:?valor}" ;;
+    set)  m=$(target "${3:-focused}"); set_value "$m" "${2:?value}" ;;
     get)  get "$(target "${2:-focused}")" ;;
     list) for m in $(hyprctl monitors -j | jq -r '.[].name'); do
               printf '%s\t%s\t%s\n' "$m" "$(label "$m")" "$(get "$m" 2>/dev/null || echo "?")"

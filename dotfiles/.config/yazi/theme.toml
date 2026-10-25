@@ -1,6 +1,6 @@
-# Yazi — só o que muda em relação ao tema padrão. Cores pelos nomes ANSI: seguem o tema do terminal
-# (theme.py → kitty), inclusive o automático. magenta = acento principal, blue = segundo,
-# black = superfície (color0), darkgray = superfície mais clara (color8).
+# Yazi — only what differs from the default theme. Colors use ANSI names: they follow the terminal theme
+# (theme.py → kitty), including the automatic one. magenta = main accent, blue = second,
+# black = surface (color0), darkgray = lighter surface (color8).
 
 [mgr]
 cwd          = { fg = "magenta", bold = true }

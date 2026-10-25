@@ -1,7 +1,7 @@
 --------------------------------
 ---- WINDOWS AND WORKSPACES ----
 --------------------------------
--- Descubra a "class" de uma janela com: hyprctl clients
+-- Find a window's "class" with: hyprctl clients
 
 hl.window_rule({
     name  = "suppress-maximize-events",
@@ -10,7 +10,7 @@ hl.window_rule({
 })
 
 hl.window_rule({
-    -- Corrige problemas de arrastar no XWayland
+    -- Fixes dragging issues on XWayland
     name  = "fix-xwayland-drags",
     match = {
         class      = "^$",
@@ -23,7 +23,7 @@ hl.window_rule({
     no_focus = true,
 })
 
--- Utilitários abrem flutuando e centralizados
+-- Utilities open floating and centered
 hl.window_rule({
     name  = "float-utilities",
     match = { class = "^(org.pulseaudio.pavucontrol|pavucontrol|blueman-manager|nm-connection-editor|org.gnome.FileRoller|file-roller|nwg-look|qt6ct|btop-float|nmtui-float|xdg-desktop-portal-gtk|hyprland-share-picker|org.kde.polkit-kde-authentication-agent-1|hyprpolkitagent)$" },
@@ -32,7 +32,7 @@ hl.window_rule({
     size   = { "monitor_w*0.5", "monitor_h*0.6" },
 })
 
--- btop (ilha de monitoramento da barra) precisa de mais espaço que os outros utilitários
+-- btop (the bar's monitoring island) needs more room than the other utilities
 hl.window_rule({
     name  = "btop-size",
     match = { class = "^btop-float$" },
@@ -53,7 +53,7 @@ hl.window_rule({
     center = true,
 })
 
--- Gráficos do matplotlib (plt.show()) abrem flutuando
+-- matplotlib figures (plt.show()) open floating
 hl.window_rule({
     name  = "matplotlib-figures",
     match = { title = "^(Figure \\d+)$" },
@@ -70,7 +70,7 @@ hl.window_rule({
     size   = { "monitor_w*0.8", "monitor_h*0.8" },
 })
 
--- Picture-in-picture do navegador: fica fixo no canto, em todos os workspaces
+-- Browser picture-in-picture: pinned in the corner, on all workspaces
 hl.window_rule({
     name  = "pip",
     match = { title = "^(Picture-in-Picture|Picture in picture|Imagem em imagem)$" },
@@ -81,15 +81,15 @@ hl.window_rule({
     keep_aspect_ratio = true,
 })
 
--- Não deixa a tela apagar durante vídeos em tela cheia
+-- Keeps the screen from turning off during fullscreen videos
 hl.window_rule({
     name  = "idle-inhibit-fullscreen",
     match = { class = ".*" },
     idle_inhibit = "fullscreen",
 })
 
--- Terminal: a transparência fica no kitty (background_opacity); aqui só garante
--- opacidade total da janela para o texto não ficar apagado quando sem foco
+-- Terminal: transparency is handled by kitty (background_opacity); this only ensures
+-- full window opacity so the text doesn't look faded when unfocused
 hl.window_rule({
     name  = "kitty-opaque-text",
     match = { class = "^(kitty)$" },
@@ -100,7 +100,7 @@ hl.window_rule({
 ---------------------
 ---- LAYER RULES ----
 ---------------------
--- Desfoque (blur) atrás da barra, menus e notificações
+-- Blur behind the bar, menus and notifications
 
 for _, ns in ipairs({ "waybar", "rofi", "swaync-control-center", "swaync-notification-window", "quickshell-overview" }) do
     hl.layer_rule({
@@ -111,7 +111,7 @@ for _, ns in ipairs({ "waybar", "rofi", "swaync-control-center", "swaync-notific
     })
 end
 
--- Visão geral (Quickshell): a animação de abrir/fechar é dela
+-- Overview (Quickshell): it handles its own open/close animation
 hl.layer_rule({
     name    = "overview-no-anim",
     match   = { namespace = "^quickshell-overview$" },

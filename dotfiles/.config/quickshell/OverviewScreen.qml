@@ -1,5 +1,5 @@
-// Uma tela da visão geral (overview.qml): os workspaces deste monitor em grade, com as janelas
-// na posição e no tamanho reais, em miniatura ao vivo.
+// One screen of the overview (overview.qml): this monitor's workspaces in a grid, with the windows
+// at their real position and size, as live thumbnails.
 import QtQuick
 import Quickshell
 import Quickshell.Wayland
@@ -14,7 +14,7 @@ PanelWindow {
     readonly property var hmon: Hyprland.monitorFor(screen)
     readonly property bool focusedScreen: hmon !== null && Hyprland.focusedMonitor === hmon
 
-    // Workspaces deste monitor (os 1–5 fixos e os ocupados, como na barra) + um "novo" no fim
+    // This monitor's workspaces (the fixed 1–5 and the occupied ones, as in the bar) + a "new" one at the end
     readonly property var workspaces: Hyprland.workspaces.values
         .filter(w => w.id > 0 && w.monitor === hmon)
         .sort((a, b) => a.id - b.id)
@@ -27,7 +27,7 @@ PanelWindow {
     readonly property var cards: workspaces.map(w => ({ id: w.id, ws: w }))
         .concat(nextFree > 0 ? [{ id: nextFree, ws: null }] : [])
 
-    // Geometria: cada cartão é o monitor em escala
+    // Geometry: each card is the monitor to scale
     readonly property real monW: screen.width
     readonly property real monH: screen.height
     readonly property int cols: cards.length <= 6 ? Math.max(1, cards.length) : Math.ceil(cards.length / 2)
@@ -59,7 +59,7 @@ PanelWindow {
         return -1
     }
 
-    // Abre com 0 e anima até 1; some só depois de animar a saída
+    // Opens at 0 and animates to 1; disappears only after the exit animation
     property real progress: overview.shown ? 1 : 0
     Behavior on progress { NumberAnimation { duration: 180; easing.type: Easing.OutCubic } }
     visible: progress > 0
@@ -95,7 +95,7 @@ PanelWindow {
             case Qt.Key_Up: win.selected = Math.max(0, win.selected - win.cols); break
             case Qt.Key_Backspace: o.filter = o.filter.slice(0, -1); break
             default:
-                // Sem filtro, 1–9/0 vão direto para o workspace; o resto digita no filtro
+                // With no filter, 1–9/0 go straight to the workspace; everything else types into the filter
                 if (!o.filter.length && event.text.length === 1 && "1234567890".includes(event.text)) {
                     o.focusWorkspace(win.base + ("1234567890".indexOf(event.text) + 1))
                 } else if (event.text.length === 1 && event.text >= " ") {
@@ -105,7 +105,7 @@ PanelWindow {
             event.accepted = true
         }
 
-        // Fundo: escurece (com o blur da layer rule) e fecha ao clicar fora dos cartões
+        // Background: darkens (with the layer rule blur) and closes when clicking outside the cards
         Rectangle {
             anchors.fill: parent
             color: Qt.alpha(win.colors.crust, 0.6)
@@ -158,7 +158,7 @@ PanelWindow {
                     height: win.cardH
                     z: (win.dragging && ws && win.dragging.workspace === ws) ? 2 : 0
 
-                    // Moldura: gradiente no workspace atual, acento no escolhido pelo teclado
+                    // Frame: gradient on the current workspace, accent on the one chosen by keyboard
                     Rectangle {
                         id: frame
                         anchors.fill: parent
@@ -201,7 +201,7 @@ PanelWindow {
                                 onClicked: win.overview.focusWorkspace(card.modelData.id)
                             }
 
-                            // Janelas na posição real (flutuantes por cima)
+                            // Windows at their real position (floating on top)
                             Repeater {
                                 model: card.ws ? card.ws.toplevels.values : []
                                 delegate: Rectangle {
@@ -264,7 +264,7 @@ PanelWindow {
                                 }
                             }
 
-                            // Cartão "novo": vazio, com um +
+                            // "New" card: empty, with a +
                             Text {
                                 anchors.centerIn: parent
                                 visible: card.ws === null
@@ -276,7 +276,7 @@ PanelWindow {
                         }
                     }
 
-                    // Número do workspace (1–10 neste monitor)
+                    // Workspace number (1–10 on this monitor)
                     Rectangle {
                         anchors { left: parent.left; top: parent.top; margins: 8 }
                         width: label.implicitWidth + 16
@@ -298,7 +298,7 @@ PanelWindow {
             }
         }
 
-        // Janela sendo arrastada: segue o mouse por cima de tudo
+        // Window being dragged: follows the mouse on top of everything
         Item {
             id: dragLayer
             anchors.fill: parent

@@ -1,16 +1,16 @@
 #!/usr/bin/env bash
-# Backup dos seus arquivos: restic (criptografado, incremental) no Google Drive, via rclone.
-#   backup.sh setup      primeira vez: autoriza o Google Drive e cria o repositório
-#   backup.sh drive-client   usa a SUA credencial do Google (client ID): a compartilhada do rclone
-#                            está sendo desativada e estoura o limite (erro "Quota exceeded")
-#   backup.sh run        faz o backup agora (o timer diário roda sozinho: backup.timer)
-#   backup.sh status     último backup, tamanho e quantas versões existem
-#   backup.sh list       versões salvas (snapshots)
-#   backup.sh restore <versão|latest> <pasta-destino>   recupera arquivos
+# Backup of your files: restic (encrypted, incremental) to Google Drive, via rclone.
+#   backup.sh setup      first time: authorizes Google Drive and creates the repository
+#   backup.sh drive-client   uses YOUR own Google credential (client ID): rclone's shared one
+#                            is being phased out and hits the limit ("Quota exceeded" error)
+#   backup.sh run        runs a backup now (the daily timer runs on its own: backup.timer)
+#   backup.sh status     last backup, size and how many versions exist
+#   backup.sh list       saved versions (snapshots)
+#   backup.sh restore <version|latest> <target-dir>   recovers files
 #
-# A senha do repositório fica em ~/.config/restic/password. SEM ELA NÃO DÁ PARA RECUPERAR NADA:
-# guarde uma cópia no KeePassXC. Mantém 7 diários, 4 semanais e 6 mensais.
-export RESTIC_REPOSITORY="rclone:gdrive:Backups/restic-$(uname -n)" # uname: o comando hostname nem sempre vem instalado
+# The repository password is in ~/.config/restic/password. WITHOUT IT NOTHING CAN BE RECOVERED:
+# keep a copy in KeePassXC. Keeps 7 daily, 4 weekly and 6 monthly.
+export RESTIC_REPOSITORY="rclone:gdrive:Backups/restic-$(uname -n)" # uname: the hostname command isn't always installed
 export RESTIC_PASSWORD_FILE="$HOME/.config/restic/password"
 STATUS=~/.cache/backup-last
 
@@ -27,30 +27,30 @@ ready() { [ -s "$RESTIC_PASSWORD_FILE" ] && rclone listremotes 2>/dev/null | gre
 
 drive_client() {
   cat <<'MSG'
-Crie a sua credencial (uma vez, grátis) em https://console.cloud.google.com :
-  1. Crie um projeto (ex.: "rclone backup").
-  2. APIs e serviços → Biblioteca → "Google Drive API" → Ativar.
-  3. Tela de consentimento OAuth (Google Auth Platform): tipo Externo, preencha nome e e-mail,
-     e em Público-alvo clique em "Publicar app" (com o escopo drive.file não precisa de verificação;
-     em modo "Teste" a autorização expira a cada 7 dias).
-  4. Clientes → Criar cliente → tipo "App para computador" → copie o ID e a chave secreta.
+Create your own credential (once, free) at https://console.cloud.google.com :
+  1. Create a project (e.g. "rclone backup").
+  2. APIs & Services → Library → "Google Drive API" → Enable.
+  3. OAuth consent screen (Google Auth Platform): type External, fill in name and email,
+     and under Audience click "Publish app" (with the drive.file scope no verification is needed;
+     in "Testing" mode the authorization expires every 7 days).
+  4. Clients → Create client → type "Desktop app" → copy the ID and the client secret.
 MSG
   local id secret
   read -rp "Client ID: " id
   read -rp "Client secret: " secret
   [ -n "$id" ] && [ -n "$secret" ] || {
-    echo "Cancelado."
+    echo "Cancelled."
     exit 1
   }
   rclone config update gdrive client_id "$id" client_secret "$secret" >/dev/null || exit 1
-  echo "Autorize de novo no navegador com a credencial nova…"
+  echo "Authorize again in the browser with the new credential…"
   rclone config reconnect gdrive: || exit 1
-  echo "Pronto. Teste com: backup.sh run"
+  echo "Done. Test with: backup.sh run"
 }
 
 setup() {
   if ! rclone listremotes 2>/dev/null | grep -qx 'gdrive:'; then
-    echo "Abrindo o navegador para autorizar o Google Drive (o rclone só vê os arquivos que ele mesmo criar)…"
+    echo "Opening the browser to authorize Google Drive (rclone only sees the files it creates itself)…"
     rclone config create gdrive drive scope=drive.file || exit 1
   fi
   if [ ! -s "$RESTIC_PASSWORD_FILE" ]; then
@@ -64,12 +64,13 @@ setup() {
   systemctl --user enable --now backup.timer
   cat <<MSG
 
-  Backup configurado: roda todo dia (e ao ligar, se perdeu o horário).
+  Backup configured: runs every day (and at boot, if it missed its time).
   ┌──────────────────────────────────────────────────────────────────────┐
-  │  GUARDE A SENHA DO BACKUP no KeePassXC — sem ela não há recuperação: │
+  │  SAVE THE BACKUP PASSWORD in KeePassXC — without it there is no      │
+  │  recovery:                                                           │
   │     cat ~/.config/restic/password                                    │
   └──────────────────────────────────────────────────────────────────────┘
-  Primeiro backup agora: backup.sh run
+  First backup now: backup.sh run
 MSG
 }
 
@@ -94,10 +95,10 @@ run() {
 
 status() {
   ready || {
-    echo "não configurado (backup.sh setup)"
+    echo "not configured (backup.sh setup)"
     return
   }
-  echo "Último: $(cat "$STATUS" 2>/dev/null || echo nunca)"
+  echo "Last: $(cat "$STATUS" 2>/dev/null || echo never)"
   restic snapshots --compact --latest 1 2>/dev/null | tail -n +1
   restic stats --mode raw-data 2>/dev/null | grep -E "Total Size|Snapshots"
 }
@@ -108,7 +109,7 @@ drive-client) drive_client ;;
 run) run "${2:-}" ;;
 status) status ;;
 list) restic snapshots ;;
-restore) restic restore "${2:?versão (ou latest)}" --target "${3:?pasta de destino}" ;;
+restore) restic restore "${2:?version (or latest)}" --target "${3:?target directory}" ;;
 *)
   sed -n '2,12p' "$0" | sed 's/^# \{0,1\}//'
   exit 1

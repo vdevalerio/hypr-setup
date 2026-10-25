@@ -1,26 +1,26 @@
 #!/usr/bin/env bash
-# Wallpaper: imagens e GIFs animados (awww), vídeos (mpvpaper),
-# e o tema de cores do sistema: automático (do wallpaper) ou um tema fixo (~/.config/hypr/themes).
+# Wallpaper: images and animated GIFs (awww), videos (mpvpaper),
+# and the system color theme: automatic (from the wallpaper) or a fixed theme (~/.config/hypr/themes).
 #
-#   wallpaper.sh set <arquivo>          aplica wallpaper e recolore o sistema
-#   wallpaper.sh pick                   seletor visual (rofi)
-#   wallpaper.sh random                 wallpaper aleatório da pasta
-#   wallpaper.sh restore                no login: reaplica o último wallpaper
-#   wallpaper.sh theme auto|<tema>|toggle  tema de cores: auto (do wallpaper), um tema fixo
-#                                         (theme.py list) ou alterna entre auto e o último fixo
+#   wallpaper.sh set <file>             applies the wallpaper and recolors the system
+#   wallpaper.sh pick                   visual picker (rofi)
+#   wallpaper.sh random                 random wallpaper from the folder
+#   wallpaper.sh restore                at login: reapplies the last wallpaper
+#   wallpaper.sh theme auto|<tema>|toggle  color theme: auto (from the wallpaper), a fixed theme
+#                                         (theme.py list) or toggles between auto and the last fixed one
 #
-# Os wallpapers ficam em ~/Pictures/Wallpapers (png, jpg, webp, gif, mp4, webm, mkv, mov).
+# Wallpapers live in ~/Pictures/Wallpapers (png, jpg, webp, gif, mp4, webm, mkv, mov).
 
 WALLDIR="$(xdg-user-dir PICTURES 2>/dev/null || echo "$HOME/Pictures")/Wallpapers"
 STATE="${XDG_CACHE_HOME:-$HOME/.cache}/wallpaper"
 CURRENT="$STATE/current"
-LOCKBG="$STATE/lock.png"   # fundo da tela de bloqueio (hyprlock.conf)
-MODE_FILE="$STATE/theme-mode"      # "auto" ou o id de um tema fixo
-LAST_FIXED="$STATE/theme-last"     # último tema fixo usado (para o "toggle")
+LOCKBG="$STATE/lock.png"   # lock screen background (hyprlock.conf)
+MODE_FILE="$STATE/theme-mode"      # "auto" or the id of a fixed theme
+LAST_FIXED="$STATE/theme-last"     # last fixed theme used (for "toggle")
 THEME=~/.config/hypr/themes/theme.py
 DEFAULT="$WALLDIR/aurora.mp4"
-# Escolha atual guardada também no look.conf (vai junto no hypr-setup): numa máquina nova
-# o restore usa o mesmo wallpaper e o mesmo modo de cor.
+# Current choice also stored in look.conf (ships with hypr-setup): on a new machine
+# restore uses the same wallpaper and the same color mode.
 LOOK=~/.config/hypr/look.conf
 mkdir -p "$STATE/thumbs"
 
@@ -33,7 +33,7 @@ kind() {
     esac
 }
 
-# Primeiro quadro (ou quadro em 1s nos vídeos) como PNG
+# First frame (or the frame at 1s for videos) as PNG
 frame() {
     local src=$1 out=$2 scale=${3:-}
     local vf=${scale:+-vf scale=$scale:-1}
@@ -62,18 +62,18 @@ show() {
     case "$(kind "$f")" in
         video)
             pkill -x mpvpaper || true
-            # Um mpvpaper por monitor. -p pausa o vídeo só no monitor em que ele está coberto
-            # (ex.: janela em tela cheia). Não usar "-a FULL": ele pausa todos os monitores
-            # se houver qualquer janela em tela cheia, mesmo num workspace escondido.
-            # 9>&- e setsid: o mpvpaper não herda a trava do script nem o terminal
+            # One mpvpaper per monitor. -p pauses the video only on the monitor where it is covered
+            # (e.g. a fullscreen window). Don't use "-a FULL": it pauses all monitors
+            # if there is any fullscreen window, even on a hidden workspace.
+            # 9>&- and setsid: mpvpaper inherits neither the script's lock nor the terminal
             local out
             for out in $(hyprctl monitors -j | jq -r '.[].name'); do
-                # igpu.sh + vaapi: decodifica na GPU integrada; na NVIDIA ela nunca desligaria
+                # igpu.sh + vaapi: decodes on the integrated GPU; on the NVIDIA it would never power off
                 setsid -f ~/.config/hypr/scripts/igpu.sh mpvpaper -f -p \
                     -o "no-audio --loop-file=inf --hwdec=vaapi,auto-safe --panscan=1.0 --really-quiet" \
                     "$out" "$f" </dev/null >/dev/null 2>&1 9>&-
             done
-            sleep 0.8 # deixa o vídeo aparecer antes de tirar a imagem anterior (sem piscar)
+            sleep 0.8 # let the video show up before removing the previous image (no flicker)
             pkill -x awww-daemon || true
             ;;
         image|gif)
@@ -88,10 +88,10 @@ show() {
     esac
 }
 
-# Quadro do wallpaper (imagem, GIF ou vídeo) para o fundo da tela de bloqueio
+# Wallpaper frame (image, GIF or video) for the lock screen background
 lock_bg() { frame "$1" "$LOCKBG.tmp.png" 2560 && mv -f "$LOCKBG.tmp.png" "$LOCKBG"; }
 
-remember() { # remember <chave> <valor>  (grava no look.conf)
+remember() { # remember <key> <value>  (writes to look.conf)
     [ -f "$LOOK" ] || return 0
     if grep -q "^$1=" "$LOOK"; then sed -i "s|^$1=.*|$1=$2|" "$LOOK"; else echo "$1=$2" >> "$LOOK"; fi
 }
@@ -99,14 +99,14 @@ remembered() { sed -n "s/^$1=//p" "$LOOK" 2>/dev/null | tail -1; }
 
 reload_apps() {
     hyprctl reload >/dev/null
-    pkill -SIGUSR2 -x waybar        # recarrega estilo da barra
+    pkill -SIGUSR2 -x waybar        # reload the bar style
     swaync-client -rs >/dev/null 2>&1
-    pkill -SIGUSR1 -x kitty         # recarrega cores dos terminais abertos
-    ~/.config/hypr/scripts/sddm-sync.sh 9>&- &  # tela de login: fundo e cores novos (sem herdar a trava)
-    fcitx5-remote -r 2>/dev/null    # tema da janela de candidatos (japonês)
+    pkill -SIGUSR1 -x kitty         # reload colors of open terminals
+    ~/.config/hypr/scripts/sddm-sync.sh 9>&- &  # login screen: new background and colors (without inheriting the lock)
+    fcitx5-remote -r 2>/dev/null    # candidate window theme (Japanese)
 }
 
-# Tema atual: "auto" ou id de tema fixo ("fixed" = versões antigas = Catppuccin)
+# Current theme: "auto" or a fixed theme id ("fixed" = old versions = Catppuccin)
 mode() {
     local m; m=$(cat "$MODE_FILE" 2>/dev/null)
     case "$m" in ""|auto) echo auto ;; fixed) echo catppuccin-mocha ;; *) echo "$m" ;; esac
@@ -185,7 +185,7 @@ theme() {
     notify-send -a wallpaper "Theme" "$(python3 "$THEME" name "$new")"
 }
 
-# Evita duas trocas ao mesmo tempo (ex.: clicar várias vezes)
+# Prevents two switches at the same time (e.g. clicking several times)
 exec 9>"$STATE/lock"
 lock() { flock -n 9 || exit 0; }
 
@@ -199,7 +199,7 @@ case "${1:-}" in
         f=$(cat "$CURRENT" 2>/dev/null)
         if [ -f "$f" ]; then show "$f"; [ -s "$LOCKBG" ] || lock_bg "$f"
         else
-            # máquina nova: modo de cor e wallpaper lembrados no look.conf, senão o padrão
+            # new machine: color mode and wallpaper remembered in look.conf, otherwise the default
             [ -f "$MODE_FILE" ] || [ -z "$(remembered colors)" ] || remembered colors > "$MODE_FILE"
             f="$WALLDIR/$(remembered wallpaper)"
             [ -f "$f" ] || f=$DEFAULT

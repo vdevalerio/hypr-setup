@@ -1,5 +1,5 @@
-# lazygit — cores pelos nomes ANSI: seguem o tema do terminal (theme.py → kitty), inclusive o automático.
-# magenta = acento principal do tema, blue = o segundo, black = superfície (color0).
+# lazygit — colors use ANSI names: they follow the terminal theme (theme.py → kitty), including the automatic one.
+# magenta = main theme accent, blue = the second, black = surface (color0).
 gui:
   nerdFontsVersion: "3"
   border: rounded

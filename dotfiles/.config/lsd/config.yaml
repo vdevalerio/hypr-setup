@@ -1,8 +1,8 @@
-# lsd — substituto do ls com ícones e grade compacta (colunas com largura variável)
+# lsd — ls replacement with icons and a compact grid (variable-width columns)
 classic: false
 color:
   when: auto
-  theme: custom          # usa colors.yaml (cores ANSI = paleta do terminal/wallpaper)
+  theme: custom          # uses colors.yaml (ANSI colors = terminal/wallpaper palette)
 icons:
   when: auto
   theme: fancy

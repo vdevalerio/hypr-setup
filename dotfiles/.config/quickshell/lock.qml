@@ -1,7 +1,7 @@
-// Tela de bloqueio (Quickshell): mesmo visual do hyprlock/SDDM, com o wallpaper animado.
-// Chamada por ~/.config/hypr/scripts/lock.sh (lock_cmd do hypridle); se falhar, o lock.sh usa o hyprlock.
-// Usa o protocolo ext-session-lock: se este processo cair, o Hyprland mantém a sessão bloqueada.
-// Teste sem digitar senha: QS_LOCK_TEST=8 qs -p ~/.config/quickshell/lock.qml   (desbloqueia sozinho em 8 s)
+// Lock screen (Quickshell): same look as hyprlock/SDDM, with the animated wallpaper.
+// Called by ~/.config/hypr/scripts/lock.sh (hypridle lock_cmd); if it fails, lock.sh falls back to hyprlock.
+// Uses the ext-session-lock protocol: if this process dies, Hyprland keeps the session locked.
+// Test without typing a password: QS_LOCK_TEST=8 qs -p ~/.config/quickshell/lock.qml   (unlocks by itself after 8 s)
 import QtQuick
 import Quickshell
 import Quickshell.Wayland
@@ -10,7 +10,7 @@ import Quickshell.Services.Pam
 ShellRoot {
     id: root
 
-    // Estado compartilhado por todas as telas: digitar em qualquer monitor vale para todos
+    // State shared by all screens: typing on any monitor applies to all of them
     property string password: ""
     property bool failed: false
     property bool busy: false
@@ -27,7 +27,7 @@ ShellRoot {
 
     PamContext {
         id: pam
-        config: "hyprlock"   // /etc/pam.d/hyprlock (inclui o login padrão)
+        config: "hyprlock"   // /etc/pam.d/hyprlock (includes the default login)
         onPamMessage: if (responseRequired) respond(root.password)
         onCompleted: result => {
             root.busy = false
@@ -42,7 +42,7 @@ ShellRoot {
         onError: () => { root.busy = false; root.failed = true; root.password = "" }
     }
 
-    // Some com uma transição curta e só então libera a sessão
+    // Fades out with a short transition and only then releases the session
     Timer {
         id: unlockTimer
         interval: 300

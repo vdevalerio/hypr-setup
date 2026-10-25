@@ -1,13 +1,13 @@
--- Python / data mining: REPL IPython com células "# %%" (estilo Jupyter),
--- notebooks .ipynb abertos como .py, CSV em tabela e gráficos em janela flutuante.
+-- Python / data mining: IPython REPL with cells "# %%" (Jupyter style),
+-- .ipynb notebooks opened as .py, CSV as a table and plots in a floating window.
 --
--- Fluxo: escreva células separadas por "# %%" num .py e use
---   <S-CR>      executa a célula atual e vai para a próxima (como no Jupyter)
---   <leader>jr  abre/fecha o REPL (IPython da .venv do projeto)
---   ]j / [j     próxima / anterior célula     <leader>ja  nova célula abaixo
+-- Workflow: write cells separated by "# %%" in a .py and use
+--   <S-CR>      runs the current cell and moves to the next (like Jupyter)
+--   <leader>jr  opens/closes the REPL (IPython from the project .venv)
+--   ]j / [j     next / previous cell         <leader>ja  new cell below
 
 local function python_repl()
-  -- Prefere o IPython da venv ativa (venv-selector ou .venv do projeto)
+  -- Prefers the IPython from the active venv (venv-selector or project .venv)
   local venv = vim.env.VIRTUAL_ENV
   if not venv then
     local found = vim.fs.find(".venv", { upward = true, type = "directory", path = vim.fn.expand("%:p:h") })[1]
@@ -28,7 +28,7 @@ local function goto_cell(flags)
 end
 
 return {
-  -- REPL interativo (IPython) recebendo células, linhas ou seleções
+  -- Interactive REPL (IPython) receiving cells, lines or selections
   {
     "Vigemus/iron.nvim",
     ft = { "python" },
@@ -96,13 +96,13 @@ return {
     },
   },
 
-  -- Grupo no which-key
+  -- Group in which-key
   {
     "folke/which-key.nvim",
     opts = { spec = { { "<leader>j", group = "jupyter / repl", icon = { icon = " ", color = "orange" } } } },
   },
 
-  -- Destaca as linhas de célula "# %%"
+  -- Highlights the cell lines "# %%"
   {
     "nvim-mini/mini.hipatterns",
     opts = function(_, opts)
@@ -111,14 +111,14 @@ return {
     end,
   },
 
-  -- Notebooks .ipynb: abre como .py com células "# %%" e salva de volta em .ipynb
-  -- (mantendo as saídas já existentes no notebook)
+  -- Notebooks .ipynb: opens as .py with "# %%" cells and saves back to .ipynb
+  -- (keeping the outputs already in the notebook)
   {
     "goerz/jupytext.nvim",
     lazy = false,
     opts = { format = "py:percent", filetype = "python", update = true },
   },
-  -- gitsigns não é compatível com .ipynb convertidos; desliga só para eles
+  -- gitsigns is not compatible with converted .ipynb; disabled only for them
   {
     "lewis6991/gitsigns.nvim",
     opts = function(_, opts)
@@ -134,7 +134,7 @@ return {
     end,
   },
 
-  -- CSV/TSV como tabela alinhada (Tab/Shift+Tab pulam colunas)
+  -- CSV/TSV as an aligned table (Tab/Shift+Tab jump between columns)
   {
     "hat0uma/csvview.nvim",
     ft = { "csv", "tsv" },
@@ -162,7 +162,7 @@ return {
     keys = { { "<leader>uv", "<cmd>CsvViewToggle<cr>", desc = "Toggle CSV table view" } },
   },
 
-  -- Python: type checking menos barulhento para análise de dados (pandas/numpy)
+  -- Python: less noisy type checking for data analysis (pandas/numpy)
   {
     "neovim/nvim-lspconfig",
     opts = {
@@ -183,7 +183,7 @@ return {
     },
   },
 
-  -- Parsers de sintaxe extras
+  -- Extra syntax parsers
   {
     "nvim-treesitter/nvim-treesitter",
     opts = {

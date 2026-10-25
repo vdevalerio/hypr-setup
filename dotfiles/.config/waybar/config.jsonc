@@ -1,11 +1,11 @@
-// Waybar — cores vêm de colors.css (geradas a partir do wallpaper), tamanhos de font.css (look.sh)
-// Só o essencial fica aqui. O resto (perfil de energia, brilho, bluetooth, wallpaper, aparência,
-// ferramentas...) está na central de controle: botão 󰒓 ou SUPER + A.
+// Waybar — colors come from colors.css (generated from the wallpaper), sizes from font.css (look.sh)
+// Only the essentials live here. The rest (power profile, brightness, bluetooth, wallpaper, appearance,
+// tools...) is in the control center: the 󰒓 button or SUPER + A.
 {
     "layer": "top",
     "position": "top",
     "height": 38,
-    "margin-top": 5,      // margens = gaps_out das janelas (atualizadas pelo look.sh gaps)
+    "margin-top": 5,      // margins = window gaps_out (updated by look.sh gaps)
     "margin-left": 5,
     "margin-right": 5,
     "spacing": 8,
@@ -15,7 +15,7 @@
     "modules-center": ["clock", "custom/media"],
     "modules-right":  ["group/tray-drawer", "group/monitor", "group/status", "group/actions"],
 
-    // ── Ilhas ────────────────────────────────────────────────
+    // ── Islands ────────────────────────────────────────────────
     "group/left": {
         "orientation": "horizontal",
         "modules": ["custom/launcher", "hyprland/workspaces", "hyprland/submap"]
@@ -38,7 +38,7 @@
         "modules": ["custom/recording", "custom/notification", "custom/control", "custom/power"]
     },
 
-    // ── Esquerda ─────────────────────────────────────────────
+    // ── Left ─────────────────────────────────────────────
     "custom/launcher": {
         "format": "\uf303",
         "tooltip-format": "Apps (SUPER + Space)\nRight click: keybinds",
@@ -49,7 +49,7 @@
     "hyprland/workspaces": {
         "format": "{icon}",
         "format-icons": {
-            // cada monitor tem seus workspaces: 11–20 no 2º monitor, 21–30 no 3º (workspaces.lua)
+            // each monitor has its own workspaces: 11–20 on the 2nd monitor, 21–30 on the 3rd (workspaces.lua)
             "1": "1", "2": "2", "3": "3", "4": "4", "5": "5",
             "6": "6", "7": "7", "8": "8", "9": "9", "10": "10",
             "11": "1", "12": "2", "13": "3", "14": "4", "15": "5",
@@ -74,8 +74,8 @@
         "format": "{}",
         "max-length": 50,
         "separate-outputs": true,
-        // Clique no título: janelas abertas em cada workspace (os botões dos workspaces não aceitam
-        // clique extra: o Waybar entrega o clique ao botão, nunca ao módulo)
+        // Click on the title: open windows in each workspace (the workspace buttons do not accept
+        // an extra click: Waybar delivers the click to the button, never to the module)
         "on-click": "setsid -f ~/.config/hypr/scripts/windows.sh",
         "on-click-right": "setsid -f ~/.config/hypr/scripts/windows.sh",
         "rewrite": {
@@ -85,7 +85,7 @@
         }
     },
 
-    // ── Centro ───────────────────────────────────────────────
+    // ── Center ───────────────────────────────────────────────
     "clock": {
         "format": "<span alpha='60%'>{:%a %d</span>  %H:%M}",
         "format-alt": "<span alpha='60%'>{:%A, %B %d %Y</span>  %H:%M:%S}",
@@ -109,7 +109,7 @@
         }
     },
 
-    // Música: script com playerctl (o módulo "mpris" embutido travava a barra)
+    // Music: playerctl script (the built-in "mpris" module froze the bar)
     "custom/media": {
         "exec": "~/.config/hypr/scripts/media.sh",
         "return-type": "json",
@@ -120,7 +120,7 @@
         "on-scroll-down": "playerctl next"
     },
 
-    // ── Direita ──────────────────────────────────────────────
+    // ── Right ──────────────────────────────────────────────
     "custom/tray-toggle": {
         "format": "󰅁",
         "tooltip-format": "Hover: background apps (Wi-Fi, Bluetooth...)"
@@ -130,7 +130,7 @@
         "spacing": 10
     },
 
-    // Monitoramento: clique abre o btop; a cor sobe para amarelo/vermelho com carga ou calor
+    // Monitoring: click opens btop; the color turns yellow/red under load or heat
     "cpu": {
         "interval": 2,
         "format": "󰻠 {usage}%",
@@ -139,7 +139,7 @@
         "on-click": "setsid -f ~/.config/hypr/scripts/sysmon.sh top"
     },
     "custom/gpu": {
-        "exec": "~/.config/hypr/scripts/sysmon.sh gpu",   // processo contínuo (uma linha a cada 3 s)
+        "exec": "~/.config/hypr/scripts/sysmon.sh gpu",   // long-running process (one line every 3 s)
         "return-type": "json",
         "format": "󰢮 {}",
         "on-click": "setsid -f ~/.config/hypr/scripts/sysmon.sh top"
@@ -214,7 +214,7 @@
         "escape": true
     },
 
-    // Mostra só o que foge do normal (tela sempre acesa, luz noturna, perfil de energia, BT conectado)
+    // Shows only what is out of the ordinary (screen always on, night light, power profile, BT connected)
     "custom/control": {
         "exec": "~/.config/hypr/scripts/controlcenter.sh status",
         "return-type": "json",
@@ -224,7 +224,7 @@
         "on-click-right": "setsid -f ~/.config/hypr/scripts/controlcenter.sh look"
     },
 
-    // Gravação de tela em andamento (some quando não está gravando)
+    // Screen recording in progress (hidden when not recording)
     "custom/recording": {
         "exec": "~/.config/hypr/scripts/record.sh status",
         "return-type": "json",

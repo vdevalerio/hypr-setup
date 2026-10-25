@@ -1,10 +1,10 @@
 #!/usr/bin/env bash
-# Tampa do notebook com monitor externo ("clamshell"). Chamado pelo Hyprland (binds.lua):
-#   lid.sh close   tampa fechada: com outro monitor, desliga só a tela do notebook
-#                  (sem monitor externo quem age é o systemd: suspende)
-#   lid.sh open    tampa aberta: liga a tela do notebook de novo
-#   lid.sh check   no login e ao desconectar monitor, se a tampa estiver fechada
-# Não grava nada no monitors.conf: é só enquanto a tampa estiver fechada.
+# Laptop lid with an external monitor ("clamshell"). Called by Hyprland (binds.lua):
+#   lid.sh close   lid closed: with another monitor, turns off only the laptop screen
+#                  (without an external monitor systemd acts: suspends)
+#   lid.sh open    lid open: turns the laptop screen back on
+#   lid.sh check   at login and when a monitor is disconnected, if the lid is closed
+# Writes nothing to monitors.conf: it only lasts while the lid is closed.
 internal=$(hyprctl monitors all -j | jq -r '[.[] | select(.name | test("^(eDP|LVDS|DSI)"))][0].name // empty')
 [ -n "$internal" ] || exit 0
 desc=$(hyprctl monitors all -j | jq -r --arg n "$internal" '.[] | select(.name == $n) | .description' | sed 's/[[:space:]]*$//')
@@ -13,13 +13,13 @@ lid_closed() { grep -qs closed /proc/acpi/button/lid/*/state; }
 
 close() {
     (( $(others) > 0 )) || return 0
-    # pela descrição: tem prioridade sobre as regras por nome (os ajustes de Displays são por descrição)
+    # by description: takes priority over name-based rules (Displays settings are by description)
     hyprctl eval "hl.monitor({ output = 'desc:$desc', disabled = true })" >/dev/null
 }
 
 open() {
-    # Recarregar a config religa a tela com os ajustes de Displays (uma regra nova por cima da
-    # de "desligado" não basta para o Hyprland reativar o monitor). Os workspaces voltam sozinhos.
+    # Reloading the config turns the screen back on with the Displays settings (a new rule on top of
+    # the "disabled" one isn't enough for Hyprland to re-enable the monitor). Workspaces come back on their own.
     hyprctl reload >/dev/null
     sleep 0.8
     hyprctl eval 'require("workspaces").setup()' >/dev/null
@@ -29,8 +29,8 @@ case "${1:-}" in
     close) close ;;
     open)  open ;;
     check)
-        # Só com a tampa fechada (abrir a tampa já chama "open" pelo evento do Hyprland):
-        # com monitor externo, mantém a tela do notebook desligada; sem nenhum, religa.
+        # Only with the lid closed (opening the lid already calls "open" via the Hyprland event):
+        # with an external monitor, keeps the laptop screen off; with none, turns it back on.
         lid_closed || exit 0
         if (( $(others) > 0 )); then close
         elif [ "$(hyprctl monitors -j | jq --arg n "$internal" 'any(.[]; .name == $n)')" = false ]; then open

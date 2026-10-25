@@ -1,37 +1,37 @@
 #!/usr/bin/env bash
 # ╭──────────────────────────────────────────────────────────────────────╮
-# │  hypr-setup — Arch Linux + Hyprland, do zero ao desktop completo     │
-# │  Veja README.md para detalhes.                                       │
+# │  hypr-setup — Arch Linux + Hyprland, from zero to a full desktop     │
+# │  See README.md for details.                                          │
 # │                                                                      │
-# │  ./install.sh            instalação completa (pacotes, sistema,      │
-# │                          configs, shell, Neovim)                     │
-# │  ./install.sh dotfiles   só copia as configs para a home (sem sudo)  │
-# │  ./install.sh nvim       só prepara o Neovim (plugins, LSPs)         │
-# │  ./install.sh save       copia as configs ATUAIS da home para cá     │
-# │  ./install.sh sddm       (re)instala o tema da tela de login         │
-# │  ./install.sh extras     firewall, zram, kernel reserva, bateria...  │
-# │  ./install.sh data       perfil de dados: SQL, DuckDB, Docker...     │
-# │  ./install.sh boot       tema do GRUB + splash (Plymouth) do tema    │
+# │  ./install.sh            full install (packages, system, configs,    │
+# │                          shell, Neovim)                              │
+# │  ./install.sh dotfiles   only copy the configs to home (no sudo)     │
+# │  ./install.sh nvim       only set up Neovim (plugins, LSPs)          │
+# │  ./install.sh save       copy the CURRENT configs from home to here  │
+# │  ./install.sh sddm       (re)install the login screen theme          │
+# │  ./install.sh extras     firewall, zram, fallback kernel, battery... │
+# │  ./install.sh data       data profile: SQL, DuckDB, Docker...        │
+# │  ./install.sh boot       GRUB theme + Plymouth splash for the theme  │
 # ╰──────────────────────────────────────────────────────────────────────╯
 set -euo pipefail
 
-# ── Ajuste aqui ─────────────────────────────────────────────────────────
-SYS_LANG="en_US.UTF-8"        # idioma do sistema
-CONSOLE_KEYMAP="br-abnt2"     # teclado no console (TTY)
-XKB_LAYOUT="br"               # teclado na tela de login (também em hypr/hyprland.lua)
+# ── Adjust here ──────────────────────────────────────────────────────────
+SYS_LANG="en_US.UTF-8"        # system language
+CONSOLE_KEYMAP="br-abnt2"     # console (TTY) keyboard
+XKB_LAYOUT="br"               # login screen keyboard (also in hypr/hyprland.lua)
 XKB_MODEL="abnt2"
 
-# Apps pessoais (remova o que não quiser). O atalho SUPER+B abre o "brave":
-# se tirar o brave-bin, troque `browser` em dotfiles/.config/hypr/binds.lua.
+# Personal apps (remove what you don't want). The SUPER+B shortcut opens "brave":
+# if you drop brave-bin, change `browser` in dotfiles/.config/hypr/binds.lua.
 PERSONAL_PKGS=(keepassxc htop tmux openssh qrencode vim man-db man-pages texinfo bash-completion wget pnpm)
 PERSONAL_AUR=(brave-bin claude-desktop)
-INSTALL_CLAUDE_CODE=1         # Claude Code (CLI) pelo instalador oficial; 0 para pular
+INSTALL_CLAUDE_CODE=1         # Claude Code (CLI) via the official installer; 0 to skip
 # ────────────────────────────────────────────────────────────────────────
 
 REPO="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 DOTS="$REPO/dotfiles"
 
-# Configs gerenciadas (caminhos relativos à home)
+# Managed configs (paths relative to home)
 MANAGED=(
     .config/hypr
     .config/waybar
@@ -70,12 +70,12 @@ MANAGED=(
     .config/claude-desktop-flags.conf
     .config/mimeapps.list
 )
-# Wallpapers padrão: só copiados na instalação (se faltarem). Os seus wallpapers, a foto de
-# perfil e outros arquivos pessoais não entram no pacote.
+# Default wallpapers: only copied at install time (if missing). Your own wallpapers, profile
+# picture and other personal files are not part of the package.
 DEFAULT_WALLS=(Pictures/Wallpapers/aurora.mp4 Pictures/Wallpapers/catppuccin-mountains.png)
 SAVE_EXCLUDE=(.config/hypr/wallpaper.png .config/hypr/themes/__pycache__ .config/fcitx5/conf/cached_layouts)
 
-# ── Pacotes (repositórios oficiais) ─────────────────────────────────────
+# ── Packages (official repositories) ─────────────────────────────────────
 PKGS_HYPR=(hyprland hyprlock hypridle quickshell qt6-multimedia qt6-multimedia-ffmpeg hyprpolkitagent hyprpicker hyprsunset hyprland-guiutils hyprshutdown
            xdg-desktop-portal-hyprland xdg-desktop-portal-gtk xdg-user-dirs xdg-utils qt5-wayland qt6-wayland)
 PKGS_DESKTOP=(rofi rofi-emoji rofi-calc swaync libnotify awww ffmpeg file)
@@ -83,7 +83,7 @@ PKGS_APPS=(kitty yazi poppler resvg 7zip unzip gvfs gvfs-mtp ffmpegthumbnailer f
            firefox mpv imv btop fastfetch libva-utils)
 PKGS_AUDIO=(pipewire pipewire-pulse pipewire-alsa pipewire-jack wireplumber pavucontrol playerctl sof-firmware)
 PKGS_SYSTEM=(networkmanager network-manager-applet bluez bluez-utils blueman power-profiles-daemon brightnessctl
-             ddcutil    # brilho de monitores externos (DDC/CI)
+             ddcutil    # external monitor brightness (DDC/CI)
              udiskie udisks2 reflector
              nftables zram-generator pacman-contrib fwupd linux-headers dkms)
 PKGS_CAPTURE=(grim slurp satty wl-clipboard cliphist jq imagemagick gpu-screen-recorder
@@ -91,39 +91,39 @@ PKGS_CAPTURE=(grim slurp satty wl-clipboard cliphist jq imagemagick gpu-screen-r
 PKGS_BACKUP=(restic rclone)
 PKGS_LOOK=(ttf-jetbrains-mono-nerd ttf-nerd-fonts-symbols noto-fonts noto-fonts-emoji noto-fonts-cjk adwaita-fonts
            papirus-icon-theme adw-gtk-theme nwg-look qt6ct)
-PKGS_INPUT=(fcitx5 fcitx5-mozc fcitx5-gtk fcitx5-qt fcitx5-configtool)   # idiomas: PT, EN, RU, JA
+PKGS_INPUT=(fcitx5 fcitx5-mozc fcitx5-gtk fcitx5-qt fcitx5-configtool)   # languages: PT, EN, RU, JA
 PKGS_LOGIN=(sddm xorg-server xorg-xrandr qt6-multimedia qt6-multimedia-ffmpeg qt6-svg qt6-declarative gnome-keyring)
 PKGS_SHELL=(zsh zsh-autosuggestions zsh-syntax-highlighting zsh-completions zsh-history-substring-search
             starship fzf zoxide lsd eza bat fd ripgrep lazygit git-delta
             atuin direnv mise tealdeer plocate)
 PKGS_DEV=(neovim git github-cli base-devel python-pip python-pynvim uv ipython nodejs npm tree-sitter-cli luarocks)
-# waybar-git: a 0.15.0 manda comandos no formato antigo e o Hyprland com config em Lua recusa
-# (clicar num workspace não faz nada). Corrigido no código do Waybar em 2026-08; volte para o
-# pacote "waybar" (em PKGS_DESKTOP) quando sair a 0.16.
-# Perfil de dados (./install.sh data — fora da instalação completa): análise, SQL, relatórios
+# waybar-git: 0.15.0 sends commands in the old format and Hyprland with a Lua config rejects them
+# (clicking a workspace does nothing). Fixed in Waybar's code in 2026-08; go back to the
+# "waybar" package (in PKGS_DESKTOP) once 0.16 is out.
+# Data profile (./install.sh data — not part of the full install): analysis, SQL, reports
 PKGS_DATA=(dbeaver postgresql mariadb-clients pgcli duckdb libreoffice-fresh
            docker docker-compose docker-buildx)
-UV_TOOLS_DATA=("harlequin[postgres,mysql]" mycli)   # IDE de SQL no terminal; cliente MySQL
+UV_TOOLS_DATA=("harlequin[postgres,mysql]" mycli)   # terminal SQL IDE; MySQL client
 
 AUR_PKGS=(mpvpaper bibata-cursor-theme-bin waybar-git)
-# Limite de carga da bateria (só notebooks Acer; em outros, a instalação só avisa e segue)
+# Battery charge limit (Acer laptops only; on others, the install just warns and moves on)
 AUR_BATTERY=(acer-wmi-battery-dkms-git)
 
-# Neovim: parsers de sintaxe e servidores de linguagem (Mason)
+# Neovim: syntax parsers and language servers (Mason)
 TS_PARSERS=(python sql csv markdown markdown_inline toml yaml json rst requirements lua bash regex vim vimdoc
             dockerfile git_config gitcommit diff)
 MASON_PKGS=(basedpyright ruff debugpy json-lsp yaml-language-server taplo marksman lua-language-server
             dockerfile-language-server docker-compose-language-service stylua shfmt sqlfluff hadolint
             markdownlint-cli2 markdown-toc)
 
-# ── Utilidades ──────────────────────────────────────────────────────────
+# ── Utilities ───────────────────────────────────────────────────────────
 step() { printf '\n\e[1;35m==>\e[0m \e[1m%s\e[0m\n' "$*"; }
 info() { printf '    %s\n' "$*"; }
 warn() { printf '\e[1;33m  ! %s\e[0m\n' "$*"; }
 
 need_user() {
     if [[ $EUID -eq 0 ]]; then
-        echo "Rode como usuário normal (o script chama sudo quando precisa)." >&2
+        echo "Run as a normal user (the script calls sudo when needed)." >&2
         exit 1
     fi
 }
@@ -133,16 +133,16 @@ sudo_keepalive() {
     while true; do sudo -n true; sleep 50; kill -0 "$$" 2>/dev/null || exit; done 2>/dev/null &
 }
 
-# ── Etapas ──────────────────────────────────────────────────────────────
+# ── Steps ───────────────────────────────────────────────────────────────
 setup_pacman() {
-    step "pacman: cores e downloads paralelos"
+    step "pacman: colors and parallel downloads"
     sudo sed -i 's/^#Color/Color/; s/^#ParallelDownloads.*/ParallelDownloads = 10/' /etc/pacman.conf
     grep -q '^ILoveCandy' /etc/pacman.conf || sudo sed -i '/^Color/a ILoveCandy' /etc/pacman.conf
     sudo pacman -Sy --needed --noconfirm pciutils
 }
 
 detect_hardware() {
-    step "Detectando hardware"
+    step "Detecting hardware"
     CPU_UCODE=()
     case "$(grep -m1 vendor_id /proc/cpuinfo | awk '{print $3}')" in
         AuthenticAMD) CPU_UCODE=(amd-ucode) ;;
@@ -156,7 +156,7 @@ detect_hardware() {
     if grep -qE '\b(AMD|ATI)\b' <<<"$GPU_LINES"; then GPU_PKGS+=(vulkan-radeon); fi
     if grep -q 'Intel' <<<"$GPU_LINES"; then GPU_PKGS+=(vulkan-intel intel-media-driver); fi
     if [[ -n $NV_ID ]]; then
-        # nvidia-open: placas Turing (GTX 16xx / RTX 20xx) ou mais novas
+        # nvidia-open: Turing cards (GTX 16xx / RTX 20xx) or newer
         local kernels
         kernels=$(pacman -Qq | grep -E '^linux(-lts|-zen|-hardened)?$' || true)
         if [[ $kernels == linux ]]; then
@@ -167,13 +167,13 @@ detect_hardware() {
         fi
         if [[ -n $IGPU_ID ]]; then GPU_PKGS+=(nvidia-prime); fi
     fi
-    info "CPU microcode: ${CPU_UCODE[*]:-nenhum}"
+    info "CPU microcode: ${CPU_UCODE[*]:-none}"
     info "GPUs:"; sed 's/^/      /' <<<"$GPU_LINES"
-    info "Pacotes de vídeo: ${GPU_PKGS[*]}"
+    info "Video packages: ${GPU_PKGS[*]}"
 }
 
 install_packages() {
-    step "Atualizando o sistema e instalando pacotes"
+    step "Updating the system and installing packages"
     sudo pacman -Syu --needed --noconfirm \
         "${PKGS_HYPR[@]}" "${PKGS_DESKTOP[@]}" "${PKGS_APPS[@]}" "${PKGS_AUDIO[@]}" "${PKGS_SYSTEM[@]}" \
         "${PKGS_CAPTURE[@]}" "${PKGS_LOOK[@]}" "${PKGS_INPUT[@]}" "${PKGS_LOGIN[@]}" "${PKGS_BACKUP[@]}" "${PKGS_SHELL[@]}" "${PKGS_DEV[@]}" \
@@ -188,16 +188,16 @@ install_aur() {
         (cd "$tmp/yay-bin" && makepkg -si --noconfirm)
         rm -rf "$tmp"
     fi
-    step "AUR: pacotes"
+    step "AUR: packages"
     local p
     for p in "${AUR_PKGS[@]}" "${PERSONAL_AUR[@]}"; do
-        yay -S --needed --noconfirm "$p" || warn "Falhou instalar $p (continuando)"
+        yay -S --needed --noconfirm "$p" || warn "Failed to install $p (continuing)"
     done
 }
 
 setup_system() {
     if [[ -n $IGPU_ID && -n $NV_ID ]]; then
-        step "GPU híbrida: links /dev/dri/igpu e /dev/dri/dgpu"
+        step "Hybrid GPU: links /dev/dri/igpu e /dev/dri/dgpu"
         printf '%s\n' \
             "KERNEL==\"card*\", KERNELS==\"$IGPU_ID\", SUBSYSTEM==\"drm\", SYMLINK+=\"dri/igpu\"" \
             "KERNEL==\"card*\", KERNELS==\"$NV_ID\", SUBSYSTEM==\"drm\", SYMLINK+=\"dri/dgpu\"" |
@@ -206,18 +206,18 @@ setup_system() {
         sudo udevadm trigger --subsystem-match=drm || true
     fi
     if [[ -n $NV_ID ]]; then
-        step "NVIDIA: suspensão e economia de energia"
+        step "NVIDIA: suspend and power saving"
         sudo systemctl enable nvidia-suspend.service nvidia-hibernate.service nvidia-resume.service
         echo 'options nvidia "NVreg_DynamicPowerManagement=0x02"' | sudo tee /etc/modprobe.d/nvidia-pm.conf >/dev/null
         sudo install -Dm644 "$REPO/system/etc/udev/rules.d/80-nvidia-pm.rules" /etc/udev/rules.d/80-nvidia-pm.rules
         echo auto | sudo tee /sys/bus/pci/devices/$NV_ID/power/control >/dev/null || true
     fi
 
-    step "Brilho de monitores externos (DDC/CI): módulo i2c-dev"
+    step "External monitor brightness (DDC/CI): i2c-dev module"
     echo i2c-dev | sudo tee /etc/modules-load.d/i2c-dev.conf >/dev/null
     sudo modprobe i2c-dev || true
 
-    step "Idioma ($SYS_LANG) e teclado ($CONSOLE_KEYMAP / $XKB_LAYOUT $XKB_MODEL)"
+    step "Language ($SYS_LANG) and keyboard ($CONSOLE_KEYMAP / $XKB_LAYOUT $XKB_MODEL)"
     sudo sed -i "s/^#\s*${SYS_LANG} UTF-8/${SYS_LANG} UTF-8/" /etc/locale.gen
     sudo locale-gen
     sudo localectl set-locale "LANG=$SYS_LANG"
@@ -226,7 +226,7 @@ setup_system() {
 
     setup_sddm
 
-    step "Serviços"
+    step "Services"
     sudo systemctl enable NetworkManager bluetooth power-profiles-daemon sddm
     systemctl --user enable pipewire.socket pipewire-pulse.socket wireplumber.service 2>/dev/null || true
 
@@ -236,13 +236,13 @@ setup_system() {
     fi
 }
 
-# Tela de login com o visual da tela de bloqueio (tema em system/sddm/hypr-setup).
-# A pasta dynamic/ pertence ao usuário: ~/.config/hypr/scripts/sddm-sync.sh copia para lá o fundo,
-# as cores e a foto, porque o SDDM não consegue ler a home.
+# Login screen styled like the lock screen (theme in system/sddm/hypr-setup).
+# The dynamic/ folder belongs to the user: ~/.config/hypr/scripts/sddm-sync.sh copies the
+# background, colors and photo there, because SDDM can't read the home directory.
 setup_sddm() {
-    step "Tela de login (SDDM): tema hypr-setup"
-    # xrandr: Xsetup (monitores espelhados) · qt6-multimedia: fundo animado. Antes de copiar o tema:
-    # sem o Qt Multimedia o tema não carrega.
+    step "Login screen (SDDM): hypr-setup theme"
+    # xrandr: Xsetup (mirrored monitors) · qt6-multimedia: animated background. Before copying the theme:
+    # without Qt Multimedia the theme doesn't load.
     sudo pacman -S --needed --noconfirm xorg-xrandr qt6-multimedia qt6-multimedia-ffmpeg
     local dst=/usr/share/sddm/themes/hypr-setup
     sudo mkdir -p "$dst/dynamic"
@@ -250,7 +250,7 @@ setup_sddm() {
     sudo chown "$USER:$USER" "$dst/dynamic"
     sudo chmod 755 "$dst/dynamic"
     sudo ln -sfn dynamic/theme.conf.user "$dst/theme.conf.user"
-    # Login espelhado em todos os monitores (inclusive os ligados na NVIDIA, em notebooks híbridos)
+    # Login mirrored on all monitors (including those wired to the NVIDIA GPU, on hybrid laptops)
     sudo install -m 755 "$REPO/system/sddm/Xsetup" /usr/share/sddm/scripts/hypr-setup-Xsetup
     sudo mkdir -p /etc/sddm.conf.d
     printf '[Theme]\nCurrent=hypr-setup\nCursorTheme=Bibata-Modern-Classic\nCursorSize=24\n\n[General]\nNumlock=on\n\n[X11]\nDisplayCommand=/usr/share/sddm/scripts/hypr-setup-Xsetup\n' |
@@ -258,95 +258,95 @@ setup_sddm() {
     [[ -x $HOME/.config/hypr/scripts/sddm-sync.sh ]] && "$HOME/.config/hypr/scripts/sddm-sync.sh" --force || true
 }
 
-# Proteção e manutenção (arquivos em system/etc/, espelho do /etc):
-# firewall, TRIM do SSD, limpeza do cache do pacman, firmware, zram, tampa e limite de bateria.
+# Protection and maintenance (files in system/etc/, mirroring /etc):
+# firewall, SSD TRIM, pacman cache cleanup, firmware, zram, lid and battery limit.
 setup_extras() {
-    step "Pacotes: firewall, zram, manutenção, gravação de tela, OCR, backup, GitHub"
+    step "Packages: firewall, zram, maintenance, screen recording, OCR, backup, GitHub"
     sudo pacman -S --needed --noconfirm nftables zram-generator pacman-contrib fwupd linux-headers dkms \
         gpu-screen-recorder tesseract tesseract-data-{eng,por,jpn,rus} restic rclone github-cli
 
-    step "Firewall (bloqueia o que entra, libera o que sai)"
+    step "Firewall (blocks inbound, allows outbound)"
     sudo install -Dm644 "$REPO/system/etc/nftables.conf" /etc/nftables.conf
-    sudo install -d /etc/nftables.d/input   # regras extras por máquina (veja nftables.conf)
+    sudo install -d /etc/nftables.d/input   # extra per-machine rules (see nftables.conf)
     sudo systemctl enable --now nftables.service
-    sudo systemctl restart nftables.service   # aplica as regras novas (não tem "reload")
+    sudo systemctl restart nftables.service   # applies the new rules (there is no "reload")
 
-    step "Manutenção automática: TRIM do SSD, cache do pacman, firmware"
+    step "Automatic maintenance: SSD TRIM, pacman cache, firmware"
     sudo systemctl enable --now fstrim.timer paccache.timer fwupd-refresh.timer
 
-    step "Rede de segurança: snapshot de pacotes + /etc antes de cada atualização"
+    step "Safety net: package + /etc snapshot before every update"
     sudo install -Dm755 "$REPO/system/usr/local/bin/hypr-setup-snapshot" /usr/local/bin/hypr-setup-snapshot
     sudo install -Dm644 "$REPO/system/etc/pacman.d/hooks/00-hypr-setup-snapshot.hook" /etc/pacman.d/hooks/00-hypr-setup-snapshot.hook
 
-    step "Kernel reserva (linux-lts): se uma atualização quebrar o boot, escolha-o no GRUB (Advanced options)"
+    step "Fallback kernel (linux-lts): if an update breaks boot, pick it in GRUB (Advanced options)"
     sudo pacman -S --needed --noconfirm linux-lts linux-lts-headers linux-headers
     if pacman -Qq nvidia-open &>/dev/null; then
-        info "NVIDIA: nvidia-open → nvidia-open-dkms (módulo compilado para os dois kernels)"
-        sudo pacman -S --needed --noconfirm --ask=4 nvidia-open-dkms   # --ask=4: aceita remover o conflitante
+        info "NVIDIA: nvidia-open → nvidia-open-dkms (module built for both kernels)"
+        sudo pacman -S --needed --noconfirm --ask=4 nvidia-open-dkms   # --ask=4: accepts removing the conflicting package
     fi
     if command -v grub-mkconfig >/dev/null && [[ -f /boot/grub/grub.cfg ]]; then
-        # O GRUB ordena os kernels pelo nome e poria o linux-lts como entrada principal
+        # GRUB sorts kernels by name and would make linux-lts the main entry
         if grep -q '^#\?GRUB_TOP_LEVEL=' /etc/default/grub; then
             sudo sed -i 's|^#\?GRUB_TOP_LEVEL=.*|GRUB_TOP_LEVEL="/boot/vmlinuz-linux"|' /etc/default/grub
         else
             echo 'GRUB_TOP_LEVEL="/boot/vmlinuz-linux"' | sudo tee -a /etc/default/grub >/dev/null
         fi
-        # Menu escondido: o boot não espera 5 s; segure Esc ou Shift para ver o menu (e o linux-lts)
+        # Hidden menu: boot doesn't wait 5 s; hold Esc or Shift to see the menu (and linux-lts)
         sudo sed -i 's/^GRUB_TIMEOUT=.*/GRUB_TIMEOUT=1/; s/^GRUB_TIMEOUT_STYLE=.*/GRUB_TIMEOUT_STYLE=hidden/' /etc/default/grub
         sudo grub-mkconfig -o /boot/grub/grub.cfg
     fi
 
-    step "Mirrors do pacman: os mais rápidos (Brasil + EUA), atualizados toda semana"
+    step "pacman mirrors: the fastest ones (Brazil + US), refreshed weekly"
     sudo pacman -S --needed --noconfirm reflector plocate
     sudo install -Dm644 "$REPO/system/etc/xdg/reflector/reflector.conf" /etc/xdg/reflector/reflector.conf
     sudo systemctl enable reflector.timer plocate-updatedb.timer
     sudo systemctl start plocate-updatedb.service || true
 
-    step "zram (swap comprimida na memória)"
+    step "zram (compressed swap in memory)"
     sudo install -Dm644 "$REPO/system/etc/systemd/zram-generator.conf" /etc/systemd/zram-generator.conf
     sudo install -Dm644 "$REPO/system/etc/sysctl.d/99-zram.conf" /etc/sysctl.d/99-zram.conf
     sudo systemctl daemon-reload
-    sudo systemctl start systemd-zram-setup@zram0.service || warn "zram: ativa no próximo boot"
+    sudo systemctl start systemd-zram-setup@zram0.service || warn "zram: activates on next boot"
     sudo sysctl -q --system
 
-    step "Tampa do notebook (com monitor externo não suspende; vale após reiniciar)"
+    step "Laptop lid (doesn't suspend with an external monitor; takes effect after reboot)"
     sudo install -Dm644 "$REPO/system/etc/systemd/logind.conf.d/10-lid.conf" /etc/systemd/logind.conf.d/10-lid.conf
 
     if grep -qi acer /sys/class/dmi/id/sys_vendor 2>/dev/null && [[ -d /sys/class/power_supply/BAT0 || -d /sys/class/power_supply/BAT1 ]]; then
-        step "Limite de carga da bateria em 80% (acer-wmi-battery)"
+        step "Battery charge limit at 80% (acer-wmi-battery)"
         sudo install -Dm644 "$REPO/system/etc/modprobe.d/acer-wmi-battery.conf" /etc/modprobe.d/acer-wmi-battery.conf
         if yay -S --needed --noconfirm "${AUR_BATTERY[@]}" && sudo modprobe acer-wmi-battery enable_health_mode=1; then
-            info "health_mode = $(cat /sys/bus/wmi/drivers/acer-wmi-battery/health_mode 2>/dev/null || echo '?') (1 = limite de 80% ativo)"
+            info "health_mode = $(cat /sys/bus/wmi/drivers/acer-wmi-battery/health_mode 2>/dev/null || echo '?') (1 = 80% limit active)"
         else
-            warn "Limite de bateria não disponível neste modelo/kernel (o resto segue normal)"
+            warn "Battery limit not available on this model/kernel (the rest carries on as normal)"
         fi
     fi
 }
 
-# Perfil de dados: clientes SQL, DuckDB, LibreOffice (abrir .xlsx de terceiros) e Docker para
-# bancos locais de teste. O servidor do PostgreSQL vem junto do pacote, mas fica desligado (só o psql).
+# Data profile: SQL clients, DuckDB, LibreOffice (to open third-party .xlsx) and Docker for
+# local test databases. The PostgreSQL server ships with the package but stays off (psql only).
 setup_data() {
-    step "Perfil de dados: pacotes"
+    step "Data profile: packages"
     sudo pacman -S --needed --noconfirm "${PKGS_DATA[@]}"
 
-    step "Docker (liga sob demanda, pelo socket)"
+    step "Docker (starts on demand, via the socket)"
     sudo systemctl enable --now docker.socket
-    # Grupo docker = poder de root via Docker; é o padrão em máquinas de desenvolvimento
+    # docker group = root power via Docker; it's the norm on development machines
     if ! id -nG "$USER" | grep -qw docker; then
         sudo usermod -aG docker "$USER"
-        info "Você entrou no grupo docker: vale no próximo login"
+        info "You were added to the docker group: takes effect on next login"
     fi
 
-    step "Ferramentas de terminal (uv tool)"
+    step "Terminal tools (uv tool)"
     local t
     for t in "${UV_TOOLS_DATA[@]}"; do
-        uv tool install --quiet "$t" 2>/dev/null || uv tool upgrade --quiet "${t%%[*}" || warn "$t falhou"
+        uv tool install --quiet "$t" 2>/dev/null || uv tool upgrade --quiet "${t%%[*}" || warn "$t failed"
     done
 }
 
-# Boot com a cara do desktop: tema do GRUB e splash do Plymouth com as cores e o fundo do tema
-# atual (system/boot/make-themes.sh). Rode de novo depois de trocar de tema para atualizar.
-set_grub() { # set_grub <VAR> <valor>: troca ou acrescenta a linha em /etc/default/grub
+# Boot that matches the desktop: GRUB theme and Plymouth splash with the colors and background
+# of the current theme (system/boot/make-themes.sh). Run again after switching themes to update.
+set_grub() { # set_grub <VAR> <value>: replaces or appends the line in /etc/default/grub
     if grep -q "^#\?$1=" /etc/default/grub; then
         sudo sed -i "s|^#\?$1=.*|$1=$2|" /etc/default/grub
     else
@@ -355,7 +355,7 @@ set_grub() { # set_grub <VAR> <valor>: troca ou acrescenta a linha em /etc/defau
 }
 
 setup_boot() {
-    step "Boot: Plymouth (splash) e temas"
+    step "Boot: Plymouth (splash) and themes"
     sudo pacman -S --needed --noconfirm plymouth imagemagick
     local tmp; tmp=$(mktemp -d)
     "$REPO/system/boot/make-themes.sh" "$tmp"
@@ -366,28 +366,28 @@ setup_boot() {
     rm -rf "$tmp"
     sudo plymouth-set-default-theme hypr-setup
 
-    step "Boot: splash no initramfs (hook plymouth) e na linha do kernel"
+    step "Boot: splash in the initramfs (plymouth hook) and on the kernel command line"
     if ! grep -q '^HOOKS=.*plymouth' /etc/mkinitcpio.conf; then
         sudo sed -i -E '/^HOOKS=/ s/\b(systemd|udev)\b/\1 plymouth/' /etc/mkinitcpio.conf
     fi
     local cmdline; cmdline=$(sed -n 's/^GRUB_CMDLINE_LINUX_DEFAULT="\(.*\)"/\1/p' /etc/default/grub)
     [[ " $cmdline " == *" splash "* ]] || set_grub GRUB_CMDLINE_LINUX_DEFAULT "\"$cmdline splash\""
     set_grub GRUB_THEME '"/boot/grub/themes/hypr-setup/theme.txt"'
-    set_grub GRUB_TIMEOUT_STYLE hidden   # Esc/Shift ao ligar mostra o menu
+    set_grub GRUB_TIMEOUT_STYLE hidden   # Esc/Shift at power-on shows the menu
     set_grub GRUB_TIMEOUT 1
-    set_grub GRUB_DISABLE_BOOTNEXT true  # sem as entradas "EFI BootNext" (PXE, shell...) do GRUB 2.16
+    set_grub GRUB_DISABLE_BOOTNEXT true  # no "EFI BootNext" entries (PXE, shell...) from GRUB 2.16
     sudo mkinitcpio -P
     sudo grub-mkconfig -o /boot/grub/grub.cfg
-    info "Pronto: o splash aparece no próximo boot (segure Esc para ver o menu do GRUB)"
+    info "Done: the splash shows on the next boot (hold Esc to see the GRUB menu)"
 }
 
 deploy_dotfiles() {
-    step "Copiando configs para a home"
-    [[ -d $DOTS ]] || { echo "Pasta $DOTS não encontrada." >&2; exit 1; }
+    step "Copying configs to home"
+    [[ -d $DOTS ]] || { echo "Folder $DOTS not found." >&2; exit 1; }
     local backup="$HOME/.config-backup/$(date +%Y%m%d-%H%M%S)" rel src dst moved=0
     for rel in "${MANAGED[@]}"; do
         src="$DOTS/$rel"; dst="$HOME/$rel"
-        [[ -e $src ]] || { warn "faltando no pacote: $rel"; continue; }
+        [[ -e $src ]] || { warn "missing from the package: $rel"; continue; }
         if [[ -e $dst ]] && ! diff -rq "$src" "$dst" >/dev/null 2>&1; then
             mkdir -p "$backup/$(dirname "$rel")"
             mv "$dst" "$backup/$rel"
@@ -401,67 +401,67 @@ deploy_dotfiles() {
             cp -a "$src" "$dst"
         fi
     done
-    if (( moved )); then info "Configs antigas diferentes foram movidas para $backup"; fi
+    if (( moved )); then info "Old configs that differed were moved to $backup"; fi
 
     for rel in "${DEFAULT_WALLS[@]}"; do
         mkdir -p "$HOME/$(dirname "$rel")"
         [[ -e $HOME/$rel ]] || cp -a "$DOTS/$rel" "$HOME/$rel"
     done
 
-    # Pastas pessoais em inglês (Desktop, Documents, Projects, ...)
+    # Personal folders in English (Desktop, Documents, Projects, ...)
     local d
     for d in Desktop Documents Downloads Music Pictures Projects Public Templates Videos; do mkdir -p "$HOME/$d"; done
     mkdir -p "$HOME/Pictures/Screenshots"
 
-    # Git: assinatura de commits com a chave SSH (se existir) e agente SSH do gnome-keyring
+    # Git: commit signing with the SSH key (if present) and the gnome-keyring SSH agent
     if [[ -f $HOME/.ssh/id_ed25519.pub ]]; then
         printf '%s %s\n' "$(git config --get user.email)" "$(cut -d' ' -f1,2 "$HOME/.ssh/id_ed25519.pub")" \
             > "$HOME/.config/git/allowed_signers"
     else
-        warn "Sem ~/.ssh/id_ed25519: commits não serão assinados. Crie com: ssh-keygen -t ed25519 (veja README)"
+        warn "No ~/.ssh/id_ed25519: commits won't be signed. Create one with: ssh-keygen -t ed25519 (see README)"
         git config --file "$HOME/.config/git/local" commit.gpgsign false
         git config --file "$HOME/.config/git/local" tag.gpgsign false
     fi
     systemctl --user enable gcr-ssh-agent.socket 2>/dev/null || true
 
-    # Yazi abre pastas
+    # Yazi opens folders
     update-desktop-database "$HOME/.local/share/applications" 2>/dev/null || true
     if command -v xdg-mime >/dev/null; then xdg-mime default yazi-kitty.desktop inode/directory; fi
 }
 
 setup_shell() {
-    step "Shell padrão: zsh"
+    step "Default shell: zsh"
     [[ "$(getent passwd "$USER" | cut -d: -f7)" == /usr/bin/zsh ]] || sudo chsh -s /usr/bin/zsh "$USER"
     if (( INSTALL_CLAUDE_CODE )) && ! command -v claude >/dev/null && [[ ! -x $HOME/.local/bin/claude ]]; then
         step "Claude Code (CLI)"
-        curl -fsSL https://claude.ai/install.sh | bash || warn "Claude Code falhou (instale depois: https://claude.ai/install.sh)"
+        curl -fsSL https://claude.ai/install.sh | bash || warn "Claude Code failed (install later: https://claude.ai/install.sh)"
     fi
-    step "jupytext (notebooks .ipynb no Neovim)"
-    uv tool install --quiet jupytext 2>/dev/null || uv tool upgrade --quiet jupytext || warn "jupytext falhou"
+    step "jupytext (.ipynb notebooks in Neovim)"
+    uv tool install --quiet jupytext 2>/dev/null || uv tool upgrade --quiet jupytext || warn "jupytext failed"
 }
 
 setup_nvim() {
-    step "Neovim: plugins (versões fixadas em lazy-lock.json)"
+    step "Neovim: plugins (versions pinned in lazy-lock.json)"
     nvim --headless "+Lazy! restore" +qa >/dev/null 2>&1 || nvim --headless "+Lazy! sync" +qa >/dev/null 2>&1 || true
 
-    step "Neovim: parsers de sintaxe"
-    # grep -o: o progresso do nvim-treesitter não quebra linha, então o resultado sai colado no fim
+    step "Neovim: syntax parsers"
+    # grep -o: nvim-treesitter's progress output has no line breaks, so the result comes glued to the end
     local ts_list mason_list
     ts_list=$(printf '"%s",' "${TS_PARSERS[@]}")
     nvim --headless -c "lua vim.defer_fn(function()
         local ts = require('nvim-treesitter')
         ts.install({${ts_list}}):wait(600000)
         print('parsers: ' .. #ts.get_installed())
-        vim.cmd('qa!') end, 1000)" 2>&1 | grep -oE 'parsers: [0-9]+' || warn "parsers: verifique com :checkhealth"
+        vim.cmd('qa!') end, 1000)" 2>&1 | grep -oE 'parsers: [0-9]+' || warn "parsers: check with :checkhealth"
 
-    step "Neovim: servidores de linguagem e ferramentas (Mason)"
+    step "Neovim: language servers and tools (Mason)"
     mason_list=$(printf '"%s",' "${MASON_PKGS[@]}")
     nvim --headless -c 'Lazy load mason.nvim' -c "lua
         local reg = require('mason-registry')
         local names, deadline = {${mason_list}}, vim.uv.now() + 900000
         reg.refresh(function()
-          -- o LazyVim já instala sozinho parte da lista (ensure_installed) ao carregar o Mason:
-          -- pacote em instalação não aceita outro install (assert), então só espera por ele
+          -- LazyVim already installs part of the list on its own (ensure_installed) when Mason loads:
+          -- a package being installed doesn't accept another install (assert), so just wait for it
           for _, name in ipairs(names) do
             local ok, p = pcall(reg.get_package, name)
             if ok and not p:is_installed() and not p:is_installing() then
@@ -474,37 +474,37 @@ setup_nvim() {
             if #busy == 0 or vim.uv.now() > deadline then
               local missing = vim.tbl_filter(function(n)
                 local ok, p = pcall(reg.get_package, n); return not (ok and p:is_installed()) end, names)
-              print('mason: ' .. #reg.get_installed_package_names() .. ' instalados'
-                .. (#missing > 0 and (' | faltando: ' .. table.concat(missing, ' ')) or ''))
+              print('mason: ' .. #reg.get_installed_package_names() .. ' installed'
+                .. (#missing > 0 and (' | missing: ' .. table.concat(missing, ' ')) or ''))
               vim.cmd('qa!')
             else vim.defer_fn(wait, 1000) end
           end
           vim.defer_fn(wait, 1000)
-        end)" 2>&1 | grep -oE 'mason: .*' || warn "mason: verifique com :Mason"
+        end)" 2>&1 | grep -oE 'mason: .*' || warn "mason: check with :Mason"
 }
 
 save_dotfiles() {
-    step "Salvando configs atuais da home em $DOTS"
+    step "Saving current configs from home to $DOTS"
     local rel src dst ex
     for rel in "${MANAGED[@]}"; do
         src="$HOME/$rel"; dst="$DOTS/$rel"
-        [[ -e $src ]] || { warn "não existe na home: $rel"; continue; }
+        [[ -e $src ]] || { warn "not in home: $rel"; continue; }
         rm -rf "$dst"
         mkdir -p "$(dirname "$dst")"
         cp -a "$src" "$dst"
     done
     for ex in "${SAVE_EXCLUDE[@]}"; do rm -rf "${DOTS:?}/$ex"; done
 
-    info "Pronto. Tamanho: $(du -sh "$DOTS" | cut -f1)"
+    info "Done. Size: $(du -sh "$DOTS" | cut -f1)"
 }
 
 usage() { sed -n '2,15p' "$0" | sed 's/^# \{0,1\}//'; }
 
-# ── Principal ───────────────────────────────────────────────────────────
+# ── Main ───────────────────────────────────────────────────────────────
 case "${1:-all}" in
     all)
         need_user
-        step "Pedindo a senha do sudo (uma vez só)"
+        step "Asking for the sudo password (just once)"
         sudo_keepalive
         setup_pacman
         detect_hardware
@@ -515,8 +515,8 @@ case "${1:-all}" in
         deploy_dotfiles
         setup_shell
         setup_nvim
-        printf '\n\e[1;32mPronto!\e[0m Reinicie (sudo reboot) e entre na sessão "Hyprland".\n'
-        printf 'No primeiro login o wallpaper animado é aplicado e as cores são geradas. SUPER + F1 mostra os atalhos.\n'
+        printf '\n\e[1;32mDone!\e[0m Reboot (sudo reboot) and log into the "Hyprland" session.\n'
+        printf 'On first login the animated wallpaper is applied and the colors are generated. SUPER + F1 shows the shortcuts.\n'
         ;;
     dotfiles) need_user; deploy_dotfiles ;;
     nvim)     need_user; setup_nvim ;;

@@ -1,5 +1,5 @@
 #!/usr/bin/env bash
-# Menu de energia (SUPER + X ou botão na barra)
+# Power menu (SUPER + X or the bar button)
 lock=$'  Lock'
 logout=$'  Log out'
 suspend=$'  Suspend'

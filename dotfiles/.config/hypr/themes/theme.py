@@ -1,17 +1,18 @@
 #!/usr/bin/env python3
-"""Temas de cor do sistema: um tema fixo (palettes/*.txt) ou "auto", gerado a partir do wallpaper.
+"""System color themes: a fixed theme (palettes/*.txt) or "auto", generated from the wallpaper.
 
-    theme.py list              temas disponíveis: id, nome e amostras de cor
-    theme.py set <id>          aplica um tema fixo (ex.: catppuccin-mocha)
-    theme.py auto <imagem>     gera e aplica a paleta a partir de uma imagem (quadro do wallpaper)
-    theme.py name <id>         nome legível do tema
+    theme.py list              available themes: id, name and color swatches
+    theme.py set <id>          apply a fixed theme (e.g. catppuccin-mocha)
+    theme.py auto <image>     generate and apply the palette from an image (wallpaper frame)
+    theme.py name <id>         human-readable theme name
 
-Grava as cores em: Hyprland (bordas), hyprlock, Waybar, SwayNC, Rofi, kitty, GTK, Qt (qt6ct), btop,
-Quickshell (bloqueio, visão geral), fcitx5 e tela de login. lazygit e yazi usam as cores do terminal (nomes ANSI) e seguem sozinhos. Quem recarrega os apps é o wallpaper.sh (wallpaper.sh theme <id|auto>).
+Writes the colors to: Hyprland (borders), hyprlock, Waybar, SwayNC, Rofi, kitty, GTK, Qt (qt6ct), btop,
+Quickshell (lock screen, overview), fcitx5 and the login screen. lazygit and yazi use the terminal colors
+(ANSI names) and follow along on their own. wallpaper.sh reloads the apps (wallpaper.sh theme <id|auto>).
 
-Todos os temas têm as mesmas 26 cores nomeadas (nomes do Catppuccin): "mauve" é o acento
-principal (bordas, workspace ativo, seleção), "blue" o segundo tom dos gradientes. Para criar um
-tema, copie um arquivo de palettes/ e troque as cores.
+All themes have the same 26 named colors (Catppuccin names): "mauve" is the main accent
+(borders, active workspace, selection), "blue" the second tone of the gradients. To create a
+theme, copy a file from palettes/ and change the colors.
 """
 import colorsys
 import re
@@ -23,11 +24,11 @@ HERE = Path(__file__).resolve().parent
 PALETTES = HERE / "palettes"
 KEYS = ("rosewater flamingo pink mauve lavender blue sapphire sky teal green yellow peach maroon red "
         "text subtext1 subtext0 overlay2 overlay1 overlay0 surface2 surface1 surface0 base mantle crust").split()
-# Cores com significado (erro, ok, aviso…) no modo automático: fixas, do Catppuccin
+# Colors with meaning (error, ok, warning…) in automatic mode: fixed, from Catppuccin
 SEMANTIC = ("teal", "green", "yellow", "peach", "maroon", "red")
 
 
-# ── Paletas ───────────────────────────────────────────────────────────
+# ── Palettes ───────────────────────────────────────────────────────────
 def load(tid):
     pal, name = {}, tid
     for line in (PALETTES / f"{tid}.txt").read_text().splitlines():
@@ -38,7 +39,7 @@ def load(tid):
             pal[k] = v.lower().lstrip("#")
     missing = [k for k in KEYS if k not in pal]
     if missing:
-        sys.exit(f"tema {tid}: faltam cores {missing}")
+        sys.exit(f"theme {tid}: missing colors {missing}")
     return name, pal
 
 
@@ -57,7 +58,7 @@ def hue_dist(a, b):
 
 
 def auto(image):
-    """Paleta a partir das cores dominantes da imagem (k-means do ImageMagick)."""
+    """Palette from the image's dominant colors (ImageMagick k-means)."""
     out = subprocess.run(["magick", f"{image}[0]", "-resize", "160x160", "-kmeans", "10",
                           "-format", "%c", "histogram:info:-"],
                          capture_output=True, text=True, check=True).stdout
@@ -72,16 +73,16 @@ def auto(image):
         chroma = s * (1 - abs(2 * l - 1))
         clusters.append({"count": count, "h": h, "l": l, "s": s, "chroma": chroma})
     if not clusters:
-        sys.exit("não consegui ler as cores da imagem")
+        sys.exit("could not read the image colors")
     total = sum(c["count"] for c in clusters)
     for c in clusters:
         c["score"] = c["chroma"] * (c["count"] / total) ** 0.5
     ranked = sorted(clusters, key=lambda c: c["score"], reverse=True)
 
-    # Cor dominante (área, com algum peso para cor): tinge o fundo e é o 2º tom dos gradientes.
-    # Acento principal: a cor mais viva que contrasta com a dominante (≥ 40° de matiz, ≥ 2% da
-    # imagem) — o rosa da árvore no céu azul, o vermelho do portal na noite… Sem contraste,
-    # o acento é a própria dominante.
+    # Dominant color (by area, with some weight for color): tints the background and is the 2nd gradient tone.
+    # Main accent: the most vivid color that contrasts with the dominant one (≥ 40° of hue, ≥ 2% of the
+    # image) — the pink tree against the blue sky, the red portal at night… With no contrast,
+    # the accent is the dominant color itself.
     dominant = max(clusters, key=lambda c: c["count"] * (0.25 + c["chroma"]))
     hd = dominant["h"]
     contrast = [c for c in clusters if c["chroma"] > 0.08 and c["count"] / total >= 0.02
@@ -92,15 +93,15 @@ def auto(image):
         h1, h2 = accent["h"], hd
     elif colorful:
         h1, h2 = colorful[0]["h"], colorful[0]["h"] + 50 / 360
-    else:          # wallpaper sem cor (cinza/preto e branco): acento discreto no matiz dominante
+    else:          # colorless wallpaper (gray/black and white): subtle accent on the dominant hue
         h1, h2 = hd, hd + 50 / 360
-    # 3º matiz: outra cor da imagem diferente das duas (≥ 30°), senão o acento girado
+    # 3rd hue: another image color different from the two (≥ 30°), otherwise the rotated accent
     h3 = next((c["h"] for c in colorful
                if hue_dist(c["h"], h1) >= 30 / 360 and hue_dist(c["h"], h2) >= 30 / 360), h1 - 50 / 360)
 
     vivid = accent["chroma"] if accent else (colorful[0]["chroma"] if colorful else 0.0)
-    S = max(0.35, min(0.85, 0.35 + vivid * 2.2))     # saturação dos acentos (imagem apagada → acentos discretos)
-    bg = max(0.10, min(0.24, 0.10 + vivid * 0.5))    # quanto o fundo puxa o matiz principal
+    S = max(0.35, min(0.85, 0.35 + vivid * 2.2))     # accent saturation (dull image → subtle accents)
+    bg = max(0.10, min(0.24, 0.10 + vivid * 0.5))    # how much the background pulls toward the main hue
 
     pal = {
         "mauve":     hexc(h1, S, 0.74),
@@ -129,8 +130,8 @@ def auto(image):
     return pal
 
 
-# ── Arquivos de saída ─────────────────────────────────────────────────
-HEADER = "GERADO AUTOMATICAMENTE por ~/.config/hypr/themes/theme.py — não edite"
+# ── Output files ─────────────────────────────────────────────────
+HEADER = "AUTO-GENERATED by ~/.config/hypr/themes/theme.py — do not edit"
 
 
 def hypr_lua(c):
@@ -159,7 +160,7 @@ def gtk_colors(c):
 
 def rofi(c):
     rows = "\n".join(f"    {k}: #{c[k]};" for k in KEYS)
-    # Gradiente pronto: o rofi não aceita @cor dentro de linear-gradient()
+    # Ready-made gradient: rofi doesn't accept @color inside linear-gradient()
     return (f"/* {HEADER} */\n* {{\n{rows}\n    base-alpha: #{c['base']}ee;\n"
             f"    accent-gradient: linear-gradient(135, #{c['mauve']}, #{c['blue']});\n}}\n")
 
@@ -202,7 +203,7 @@ color15 #{c['subtext0']}
 
 
 def gtk_css(c):
-    return f"""/* {HEADER}. Cores para apps GTK/libadwaita (reabra o app). */
+    return f"""/* {HEADER}. Colors for GTK/libadwaita apps (reopen the app). */
 @define-color accent_color #{c['mauve']};
 @define-color accent_bg_color #{c['mauve']};
 @define-color accent_fg_color #{c['crust']};
@@ -224,7 +225,7 @@ def gtk_css(c):
 
 
 def qt6ct(c):
-    # Ordem dos papéis do QPalette: WindowText Button Light Midlight Dark Mid Text BrightText ButtonText
+    # QPalette role order: WindowText Button Light Midlight Dark Mid Text BrightText ButtonText
     # Base Window Shadow Highlight HighlightedText Link LinkVisited AlternateBase NoRole ToolTipBase
     # ToolTipText PlaceholderText Accent
     roles = ("text surface0 surface2 surface1 mantle surface1 text text text mantle base crust mauve crust "
@@ -232,14 +233,14 @@ def qt6ct(c):
     dim = {0: "overlay0", 6: "overlay0", 8: "overlay0", 12: "surface1", 13: "overlay1"}
     row = lambda r: ", ".join(f"#ff{c[k]}" for k in r)
     disabled = [dim.get(i, k) for i, k in enumerate(roles)]
-    return (f"# {HEADER}. Cores dos apps Qt (qt6ct; reabra o app).\n[ColorScheme]\n"
+    return (f"# {HEADER}. Qt app colors (qt6ct; reopen the app).\n[ColorScheme]\n"
             f"active_colors={row(roles)}\ndisabled_colors={row(disabled)}\ninactive_colors={row(roles)}\n")
 
 
 def btop(c):
     k = lambda key, col: f'theme[{key}]="#{c[col]}"'
     rows = [
-        'theme[main_bg]=""',  # vazio = fundo do terminal (transparência do kitty)
+        'theme[main_bg]=""',  # empty = terminal background (kitty transparency)
         k("main_fg", "text"), k("title", "text"), k("hi_fg", "mauve"),
         k("selected_bg", "surface1"), k("selected_fg", "mauve"), k("inactive_fg", "overlay0"),
         k("graph_text", "subtext0"), k("meter_bg", "surface1"), k("proc_misc", "mauve"),
@@ -255,7 +256,7 @@ def btop(c):
         k("upload_start", "pink"), k("upload_mid", "mauve"), k("upload_end", "blue"),
         k("process_start", "blue"), k("process_mid", "mauve"), k("process_end", "pink"),
     ]
-    return f"# {HEADER}. Tema do btop (reabra o btop).\n" + "\n".join(rows) + "\n"
+    return f"# {HEADER}. btop theme (reopen btop).\n" + "\n".join(rows) + "\n"
 
 
 def quickshell(c):
@@ -264,12 +265,12 @@ def quickshell(c):
 
 
 def fcitx5(c):
-    return f"""# {HEADER}. Janela de candidatos do fcitx5 (japonês).
+    return f"""# {HEADER}. fcitx5 candidate window (Japanese).
 [Metadata]
 Name=hypr-setup
 Version=1
 Author=hypr-setup
-Description=Cores do tema atual
+Description=Current theme colors
 ScaleWithDPI=True
 
 [InputPanel]
@@ -287,8 +288,8 @@ Right=9
 Top=6
 Bottom=6
 
-# Fundo e destaque são imagens (fcitx5_images): borda e seleção em gradiente, como o rofi.
-# Margin = cantos que não esticam (9-slice); ContentMargin = onde o texto começa.
+# Background and highlight are images (fcitx5_images): gradient border and selection, like rofi.
+# Margin = corners that don't stretch (9-slice); ContentMargin = where the text starts.
 [InputPanel/Background]
 Image=panel.png
 Color=#{c['base']}
@@ -347,8 +348,8 @@ Bottom=6
 
 
 def sddm(c):
-    return f"""# {HEADER}. Cores da tela de login (copiadas para o tema do SDDM
-# por ~/.config/hypr/scripts/sddm-sync.sh).
+    return f"""# {HEADER}. Login screen colors (copied to the SDDM theme
+# by ~/.config/hypr/scripts/sddm-sync.sh).
 [General]
 accent=#{c['mauve']}
 accent2=#{c['blue']}
@@ -380,23 +381,23 @@ OUTPUTS = [
 
 
 def fcitx5_images(c):
-    """Imagens do tema do fcitx5: painel com borda em gradiente e destaque em gradiente (ImageMagick)."""
+    """fcitx5 theme images: panel with a gradient border and a gradient highlight (ImageMagick)."""
     d = Path("~/.local/share/fcitx5/themes/hypr-setup").expanduser()
     grad = lambda size, angle: ["(", "-size", size, "-define", f"gradient:angle={angle}",
                                 f"gradient:#{c['mauve']}-#{c['blue']}", ")"]
     mask = lambda w, h, r, inset=0: ["(", "-size", f"{w}x{h}", "xc:none", "-fill", "white", "-draw",
                                      f"roundrectangle {inset},{inset} {w-1-inset},{h-1-inset} {r},{r}", ")"]
     try:
-        # Painel 64x64: gradiente arredondado (borda) com o fundo por cima, 2px para dentro
+        # 64x64 panel: rounded gradient (border) with the background on top, inset 2px
         subprocess.run(["magick", *grad("64x64", 135), *mask(64, 64, 10), "-compose", "CopyOpacity", "-composite",
                         "(", "-size", "64x64", "xc:none", "-fill", f"#{c['base']}", "-draw",
                         "roundrectangle 2,2 61,61 8,8", ")", "-compose", "Over", "-composite",
                         str(d / "panel.png")], check=True, capture_output=True)
-        # Destaque 40x24: pílula em gradiente horizontal
+        # 40x24 highlight: pill with a horizontal gradient
         subprocess.run(["magick", *grad("40x24", 90), *mask(40, 24, 6), "-compose", "CopyOpacity", "-composite",
                         str(d / "highlight.png")], check=True, capture_output=True)
     except (OSError, subprocess.CalledProcessError):
-        pass  # sem ImageMagick: o fcitx5 usa as cores sólidas (Color=) do theme.conf
+        pass  # no ImageMagick: fcitx5 uses the solid colors (Color=) from theme.conf
 
 
 def write(pal):
@@ -407,7 +408,7 @@ def write(pal):
         tmp.write_text(fn(pal))
         tmp.replace(dest)
     fcitx5_images(pal)
-    # qt6ct só aceita caminho absoluto para o esquema de cores (o arquivo versionado usa ~)
+    # qt6ct only accepts an absolute path for the color scheme (the versioned file uses ~)
     conf = Path("~/.config/qt6ct/qt6ct.conf").expanduser()
     if conf.exists():
         scheme = Path("~/.config/qt6ct/colors/hypr-setup.conf").expanduser()

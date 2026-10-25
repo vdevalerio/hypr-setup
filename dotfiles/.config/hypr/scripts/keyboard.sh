@@ -1,18 +1,18 @@
 #!/usr/bin/env bash
-# Idioma do teclado (fcitx5): português, inglês, russo e japonês.
-# A lista e a ordem vêm de ~/.config/fcitx5/profile.
+# Keyboard language (fcitx5): Portuguese, English, Russian and Japanese.
+# The list and its order come from ~/.config/fcitx5/profile.
 #
-#   keyboard.sh next | prev        próximo / anterior (SUPER + CTRL + Espaço / + SHIFT)
-#   keyboard.sh set <n|nome>       direto: 1..4 (SUPER + CTRL + 1..4) ou nome (keyboard-us, mozc...)
+#   keyboard.sh next | prev        next / previous (SUPER + CTRL + Space / + SHIFT)
+#   keyboard.sh set <n|name>       direct: 1..4 (SUPER + CTRL + 1..4) or name (keyboard-us, mozc...)
 #   keyboard.sh pick               menu (rofi)
-#   keyboard.sh status             JSON para o módulo custom/keyboard da Waybar
+#   keyboard.sh status             JSON for Waybar's custom/keyboard module
 
 PROFILE=~/.config/fcitx5/profile
 NOTIFY_ID="${XDG_RUNTIME_DIR:-/tmp}/keyboard-notify-id"
 
-# nome do fcitx5 -> sigla, nome legível
+# fcitx5 name -> abbreviation, readable name
 short() { case $1 in keyboard-br*) echo PT ;; keyboard-us*) echo EN ;; keyboard-ru*) echo RU ;; mozc) echo JA ;; *) echo "${1#keyboard-}" | tr a-z A-Z ;; esac; }
-label() { case $1 in keyboard-br*) echo "Português (ABNT2)" ;; keyboard-us*) echo English ;; keyboard-ru*) echo "Русский" ;; mozc) echo "日本語 (Mozc)" ;; *) echo "$1" ;; esac; }
+label() { case $1 in keyboard-br*) echo "Portuguese (ABNT2)" ;; keyboard-us*) echo English ;; keyboard-ru*) echo "Русский" ;; mozc) echo "日本語 (Mozc)" ;; *) echo "$1" ;; esac; }
 
 ims() { awk -F= '/^\[Groups\/0\/Items\/[0-9]+\]/ { item = 1; next } /^\[/ { item = 0 } item && $1 == "Name" { print $2 }' "$PROFILE"; }
 current() { fcitx5-remote -n 2>/dev/null; }
@@ -71,7 +71,7 @@ case "${1:-}" in
     prev)   running; step -1 ;;
     set)    running
             if [[ ${2:-} =~ ^[0-9]+$ ]]; then mapfile -t l < <(ims); [ -n "${l[$2 - 1]:-}" ] && switch_to "${l[$2 - 1]}"
-            else switch_to "${2:?nome}"; fi ;;
+            else switch_to "${2:?name}"; fi ;;
     pick)   running; pick ;;
     status) status ;;
     *) sed -n '2,9p' "$0" | sed 's/^# \{0,1\}//'; exit 1 ;;

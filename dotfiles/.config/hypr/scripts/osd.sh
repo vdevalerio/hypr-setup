@@ -1,17 +1,17 @@
 #!/usr/bin/env bash
-# OSD (aviso rápido com barra) de volume, microfone e Caps Lock, pelo swaync — igual ao do brilho.
+# OSD (quick notification with a bar) for volume, microphone and Caps Lock, via swaync — same as the brightness one.
 #
 #   osd.sh volume up|down|mute [passo]
 #   osd.sh mic mute
-#   osd.sh caps                   (chamado ao soltar Caps Lock; lê o estado do LED)
+#   osd.sh caps                   (called when Caps Lock is released; reads the LED state)
 #
-# Cada tipo reaproveita a mesma notificação (-r), então segurar a tecla não empilha avisos.
+# Each type reuses the same notification (-r), so holding the key doesn't stack notifications.
 
 STEP=5
 CACHE="${XDG_RUNTIME_DIR:-/tmp}/osd"
 mkdir -p "$CACHE"
 
-notify() { # notify <tipo> <título> <texto> [valor 0-100]
+notify() { # notify <type> <title> <text> [value 0-100]
     local id args=(-a osd -t 1200 -p)
     id=$(cat "$CACHE/$1" 2>/dev/null)
     [ -n "$id" ] && args+=(-r "$id")

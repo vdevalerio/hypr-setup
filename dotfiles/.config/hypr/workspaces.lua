@@ -1,15 +1,15 @@
 -------------------------------------
----- WORKSPACES POR MONITOR ---------
+---- WORKSPACES PER MONITOR ---------
 -------------------------------------
--- Cada monitor tem seus próprios workspaces 1–10 (SUPER + 1…0 vale para o monitor em foco).
--- Por dentro, a tela do notebook usa os workspaces 1–10 e os outros monitores (em ordem de
--- conector: DP-1, HDMI-A-1…) 11–20, 21–30… A ordem não depende da posição, para os workspaces
--- não trocarem de monitor quando você reposiciona as telas.
--- A Waybar mostra 1–10 em cada monitor (format-icons em waybar/config.jsonc).
+-- Each monitor has its own workspaces 1–10 (SUPER + 1…0 applies to the focused monitor).
+-- Internally, the laptop screen uses workspaces 1–10 and the other monitors (in connector
+-- order: DP-1, HDMI-A-1…) use 11–20, 21–30… The order doesn't depend on position, so the
+-- workspaces don't swap monitors when you reposition the screens.
+-- Waybar shows 1–10 on each monitor (format-icons in waybar/config.jsonc).
 
 local W = {}
 
--- Notebook primeiro, depois os outros pelo nome do conector
+-- Laptop first, then the others by connector name
 local function internal(m) return m.name:match("^eDP") or m.name:match("^LVDS") or m.name:match("^DSI") end
 local function sorted_monitors()
     local mons = hl.get_monitors()
@@ -20,7 +20,7 @@ local function sorted_monitors()
     return mons
 end
 
--- Primeiro id do conjunto do monitor (0, 10, 20…)
+-- First id of the monitor's set (0, 10, 20…)
 function W.base(mon)
     mon = mon or hl.get_active_monitor()
     if not mon then return 0 end
@@ -30,10 +30,10 @@ function W.base(mon)
     return 0
 end
 
--- Workspace n (1–10) do monitor em foco
+-- Workspace n (1–10) of the focused monitor
 function W.id(n) return W.base() + n end
 
--- Primeiro workspace vazio do monitor em foco
+-- First empty workspace of the focused monitor
 function W.first_empty()
     local base = W.base()
     for n = 1, 10 do
@@ -43,8 +43,8 @@ function W.first_empty()
     return base + 10
 end
 
--- Regras (1–5 de cada monitor ficam sempre na barra) e cada monitor no seu conjunto.
--- Chamado ao carregar a config e quando um monitor é conectado/desconectado.
+-- Rules (1–5 of each monitor always stay on the bar) and each monitor in its own set.
+-- Called when the config loads and when a monitor is connected/disconnected.
 local rules = {}
 function W.setup()
     for _, r in ipairs(rules) do pcall(function() r:set_enabled(false) end) end
@@ -61,7 +61,7 @@ function W.setup()
                 default    = n == 1,
             }))
         end
-        -- Monitor mostrando um workspace de outro conjunto (ex.: recém-conectado) vai para o seu 1
+        -- A monitor showing a workspace from another set (e.g. just connected) goes to its own 1
         local ws = m.active_workspace and m.active_workspace.id or 0
         if ws > 0 and (ws <= base or ws > base + 10) then
             hl.dispatch(hl.dsp.focus({ monitor = m.name }))
