@@ -1,4 +1,4 @@
--- Whitespace cleanup + re-indent: on save for the lines changed since the last write,
+-- Whitespace cleanup + re-indent/wrap at column 80: on save for the lines changed since the last write,
 -- and on demand for the whole file. Changed lines = buffer vs. the file on disk (no git needed).
 local M = {}
 
@@ -15,14 +15,37 @@ local function trim(first, last)
   vim.api.nvim_buf_set_lines(0, first - 1, last, false, lines)
 end
 
+-- Formatters (wrapping at column 80) that can format a line range; the others would rewrite the
+-- whole file, so they are left to <leader>cf.
+local function range_formatters()
+  local ok, conform = pcall(require, "conform")
+  if not ok then return nil end
+  local list = conform.list_formatters(0)
+  if #list == 0 then return nil end
+  for _, f in ipairs(list) do
+    local cfg = conform.get_formatter_config(f.name, 0)
+    if not (cfg and cfg.range_args) then return nil end
+  end
+  return conform
+end
+
 local function indent(first, last)
   if no_indent[vim.bo.filetype] or vim.bo.buftype ~= "" then return end
+  local conform = range_formatters()
+  if conform then
+    local line = vim.api.nvim_buf_get_lines(0, last - 1, last, false)[1] or ""
+    local done = conform.format({
+      async = false, timeout_ms = 3000, lsp_format = "never",
+      range = { start = { first, 0 }, ["end"] = { last, #line } },
+    })
+    if done then return end
+  end
   vim.cmd(("silent keepjumps keeppatterns %d,%dnormal! =="):format(first, last))
 end
 
 local function each_range(ranges, fn)
   local view = vim.fn.winsaveview()
-  for _, r in ipairs(ranges) do fn(r[1], r[2]) end
+  for i = #ranges, 1, -1 do fn(ranges[i][1], ranges[i][2]) end
   vim.fn.winrestview(view)
 end
 
@@ -61,12 +84,12 @@ function M.setup()
     end,
   })
   vim.api.nvim_create_user_command("CleanTrim", function() M.all("trim") end, { desc = "Trim trailing whitespace (whole file)" })
-  vim.api.nvim_create_user_command("CleanIndent", function() M.all("indent") end, { desc = "Re-indent (whole file)" })
+  vim.api.nvim_create_user_command("CleanIndent", function() M.all("indent") end, { desc = "Re-indent and wrap at column 80 (whole file)" })
   vim.api.nvim_create_user_command("CleanAll", function() M.all() end, { desc = "Trim and re-indent (whole file)" })
   local map = vim.keymap.set
   map("n", "<leader>cw", "<cmd>CleanTrim<cr>", { desc = "Trim trailing whitespace (file)" })
-  map("n", "<leader>ci", "<cmd>CleanIndent<cr>", { desc = "Re-indent (file)" })
-  map("n", "<leader>cW", "<cmd>CleanAll<cr>", { desc = "Trim + re-indent (file)" })
+  map("n", "<leader>ci", "<cmd>CleanIndent<cr>", { desc = "Re-indent + wrap at 80 (file)" })
+  map("n", "<leader>cW", "<cmd>CleanAll<cr>", { desc = "Trim + re-indent + wrap (file)" })
   map("n", "<leader>uW", function()
     vim.g.clean_on_save = not vim.g.clean_on_save
     vim.notify("Clean changed lines on save: " .. (vim.g.clean_on_save and "on" or "off"))
