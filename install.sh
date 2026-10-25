@@ -120,7 +120,7 @@ TS_PARSERS=(python sql csv markdown markdown_inline toml yaml json rst requireme
             dockerfile git_config gitcommit diff)
 MASON_PKGS=(basedpyright ruff debugpy json-lsp yaml-language-server taplo marksman lua-language-server
             dockerfile-language-server docker-compose-language-service stylua shfmt sqlfluff hadolint
-            markdownlint-cli2 markdown-toc)
+            markdownlint-cli2 markdown-toc prettier)
 
 # ── Utilities ───────────────────────────────────────────────────────────
 step() { printf '\n\e[1;35m==>\e[0m \e[1m%s\e[0m\n' "$*"; }

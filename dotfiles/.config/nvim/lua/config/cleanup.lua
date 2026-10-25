@@ -79,11 +79,22 @@ end
 -- column 80; plain re-indent when there is none.
 function M.format_all()
   local view = vim.fn.winsaveview()
-  trim(1, vim.api.nvim_buf_line_count(0))
-  local ok, conform = pcall(require, "conform")
-  local done = ok and not no_indent[vim.bo.filetype]
-    and conform.format({ async = false, timeout_ms = 5000, lsp_format = "fallback" })
-  if not done then indent(1, vim.api.nvim_buf_line_count(0)) end
+  local last = vim.api.nvim_buf_line_count(0)
+  trim(1, last)
+  if vim.bo.filetype == "text" then
+    -- Plain prose: hard-wrap every paragraph at column 80
+    local tw, fe = vim.bo.textwidth, vim.bo.formatexpr
+    vim.bo.textwidth, vim.bo.formatexpr = 80, "" -- LazyVim's formatexpr would hand gq to a formatter
+    vim.cmd("silent keepjumps keeppatterns normal! gggqG")
+    vim.bo.textwidth, vim.bo.formatexpr = tw, fe
+  else
+    local ok, conform = pcall(require, "conform")
+    -- markdown goes through prettier (code blocks and tables stay intact); other prose is skipped
+    local skip = no_indent[vim.bo.filetype] and vim.bo.filetype ~= "markdown"
+    local done = ok and not skip
+      and conform.format({ async = false, timeout_ms = 5000, lsp_format = "fallback" })
+    if not done and not no_indent[vim.bo.filetype] then indent(1, last) end
+  end
   vim.fn.winrestview(view)
 end
 
