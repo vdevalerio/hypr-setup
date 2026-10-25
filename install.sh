@@ -11,6 +11,7 @@
 # │  ./install.sh sddm       (re)instala o tema da tela de login         │
 # │  ./install.sh extras     firewall, zram, kernel reserva, bateria...  │
 # │  ./install.sh data       perfil de dados: SQL, DuckDB, Docker...     │
+# │  ./install.sh boot       tema do GRUB + splash (Plymouth) do tema    │
 # ╰──────────────────────────────────────────────────────────────────────╯
 set -euo pipefail
 
@@ -48,6 +49,9 @@ MANAGED=(
     .config/atuin/config.toml
     .config/direnv/direnv.toml
     .config/tealdeer/config.toml
+    .config/lazygit/config.yml
+    .config/btop/btop.conf
+    .config/fastfetch/config.jsonc
     .config/gtk-3.0/settings.ini
     .config/gtk-3.0/gtk.css
     .config/gtk-4.0/settings.ini
@@ -339,6 +343,42 @@ setup_data() {
     done
 }
 
+# Boot com a cara do desktop: tema do GRUB e splash do Plymouth com as cores e o fundo do tema
+# atual (system/boot/make-themes.sh). Rode de novo depois de trocar de tema para atualizar.
+set_grub() { # set_grub <VAR> <valor>: troca ou acrescenta a linha em /etc/default/grub
+    if grep -q "^#\?$1=" /etc/default/grub; then
+        sudo sed -i "s|^#\?$1=.*|$1=$2|" /etc/default/grub
+    else
+        echo "$1=$2" | sudo tee -a /etc/default/grub >/dev/null
+    fi
+}
+
+setup_boot() {
+    step "Boot: Plymouth (splash) e temas"
+    sudo pacman -S --needed --noconfirm plymouth imagemagick
+    local tmp; tmp=$(mktemp -d)
+    "$REPO/system/boot/make-themes.sh" "$tmp"
+    sudo rm -rf /boot/grub/themes/hypr-setup /usr/share/plymouth/themes/hypr-setup
+    sudo install -d /boot/grub/themes
+    sudo cp -r "$tmp/grub" /boot/grub/themes/hypr-setup
+    sudo cp -r "$tmp/plymouth" /usr/share/plymouth/themes/hypr-setup
+    rm -rf "$tmp"
+    sudo plymouth-set-default-theme hypr-setup
+
+    step "Boot: splash no initramfs (hook plymouth) e na linha do kernel"
+    if ! grep -q '^HOOKS=.*plymouth' /etc/mkinitcpio.conf; then
+        sudo sed -i -E '/^HOOKS=/ s/\b(systemd|udev)\b/\1 plymouth/' /etc/mkinitcpio.conf
+    fi
+    local cmdline; cmdline=$(sed -n 's/^GRUB_CMDLINE_LINUX_DEFAULT="\(.*\)"/\1/p' /etc/default/grub)
+    [[ " $cmdline " == *" splash "* ]] || set_grub GRUB_CMDLINE_LINUX_DEFAULT "\"$cmdline splash\""
+    set_grub GRUB_THEME '"/boot/grub/themes/hypr-setup/theme.txt"'
+    set_grub GRUB_TIMEOUT_STYLE hidden   # Esc/Shift ao ligar mostra o menu
+    set_grub GRUB_TIMEOUT 1
+    sudo mkinitcpio -P
+    sudo grub-mkconfig -o /boot/grub/grub.cfg
+    info "Pronto: o splash aparece no próximo boot (segure Esc para ver o menu do GRUB)"
+}
+
 deploy_dotfiles() {
     step "Copiando configs para a home"
     [[ -d $DOTS ]] || { echo "Pasta $DOTS não encontrada." >&2; exit 1; }
@@ -450,7 +490,7 @@ save_dotfiles() {
     info "Pronto. Tamanho: $(du -sh "$DOTS" | cut -f1)"
 }
 
-usage() { sed -n '2,14p' "$0" | sed 's/^# \{0,1\}//'; }
+usage() { sed -n '2,15p' "$0" | sed 's/^# \{0,1\}//'; }
 
 # ── Principal ───────────────────────────────────────────────────────────
 case "${1:-all}" in
@@ -476,6 +516,7 @@ case "${1:-all}" in
     sddm)     need_user; setup_sddm ;;
     extras)   need_user; sudo_keepalive; setup_extras ;;
     data)     need_user; sudo_keepalive; setup_data ;;
+    boot)     need_user; sudo_keepalive; setup_boot ;;
     -h|--help|help) usage ;;
     *) usage; exit 1 ;;
 esac

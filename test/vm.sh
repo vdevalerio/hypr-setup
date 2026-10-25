@@ -93,6 +93,7 @@ live() {
 
 run() {
     running && { echo "A VM já está ligada" >&2; exit 1; }
+    [[ -f $DISK && -f $VARS ]] || { echo "A VM não existe (test/vm.sh create, live, install)" >&2; exit 1; }
     qemu
     echo "VM ligada pelo disco."
 }

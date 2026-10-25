@@ -190,6 +190,9 @@ Testado em: Ryzen 7 7735HS + Radeon 680M + RTX 4050 (notebook), Hyprland 0.56.
   filtra por sessão/pasta. Só local (sem conta). ↑ continua buscando pelo que já foi digitado.
 - **direnv:** um `.envrc` na pasta do projeto carrega variáveis ao entrar e descarrega ao sair
   (`direnv allow` na primeira vez). **mise:** versões de Node/Python/Go… por projeto (`mise use node@22`).
+- **Apps de terminal no tema:** btop (tema gerado pelo `theme.py`, com gradientes), lazygit e yazi (cores do
+  terminal, seguem qualquer tema sozinhos). O terminal abre com o **fastfetch**; para desligar, ponha
+  `export FASTFETCH_ON_START=0` no começo do `~/.zshrc`.
 - `help <comando>` (tldr) mostra exemplos curtos; `locate <nome>` acha arquivos no disco todo na hora.
 - **Pendrives/HDs externos** montam sozinhos em `/run/media/$USER/` (udiskie) com notificação.
 

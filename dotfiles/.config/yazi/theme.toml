@@ -1,0 +1,30 @@
+# Yazi — só o que muda em relação ao tema padrão. Cores pelos nomes ANSI: seguem o tema do terminal
+# (theme.py → kitty), inclusive o automático. magenta = acento principal, blue = segundo,
+# black = superfície (color0), darkgray = superfície mais clara (color8).
+
+[mgr]
+cwd          = { fg = "magenta", bold = true }
+border_style = { fg = "darkgray" }
+
+[tabs]
+active    = { fg = "black", bg = "magenta", bold = true }
+inactive  = { fg = "magenta", bg = "black" }
+sep_inner = { open = "", close = "" }
+sep_outer = { open = "", close = "" }
+
+[mode]
+normal_main = { fg = "black", bg = "magenta", bold = true }
+normal_alt  = { fg = "magenta", bg = "black" }
+select_main = { fg = "black", bg = "blue", bold = true }
+select_alt  = { fg = "blue", bg = "black" }
+unset_main  = { fg = "black", bg = "red", bold = true }
+unset_alt   = { fg = "red", bg = "black" }
+
+[indicator]
+current = { fg = "black", bg = "magenta" }
+parent  = { fg = "magenta", bg = "black" }
+
+[status]
+sep_left        = { open = "", close = "" }
+sep_right       = { open = "", close = "" }
+progress_normal = { fg = "magenta", bg = "black" }

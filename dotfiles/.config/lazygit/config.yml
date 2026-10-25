@@ -1,0 +1,18 @@
+# lazygit — cores pelos nomes ANSI: seguem o tema do terminal (theme.py → kitty), inclusive o automático.
+# magenta = acento principal do tema, blue = o segundo, black = superfície (color0).
+gui:
+  nerdFontsVersion: "3"
+  border: rounded
+  theme:
+    activeBorderColor: [magenta, bold]
+    inactiveBorderColor: [black]
+    searchingActiveBorderColor: [yellow, bold]
+    optionsTextColor: [blue]
+    selectedLineBgColor: [black]
+    inactiveViewSelectedLineBgColor: [black]
+    cherryPickedCommitFgColor: [magenta]
+    cherryPickedCommitBgColor: [black]
+    unstagedChangesColor: [red]
+git:
+  diffRenderers:
+    - command: delta --paging=never

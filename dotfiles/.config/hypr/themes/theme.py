@@ -6,8 +6,8 @@
     theme.py auto <imagem>     gera e aplica a paleta a partir de uma imagem (quadro do wallpaper)
     theme.py name <id>         nome legível do tema
 
-Grava as cores em: Hyprland (bordas), hyprlock, Waybar, SwayNC, Rofi, kitty, GTK, Qt (qt6ct), fcitx5
-e tela de login. Quem recarrega os apps é o wallpaper.sh (wallpaper.sh theme <id|auto>).
+Grava as cores em: Hyprland (bordas), hyprlock, Waybar, SwayNC, Rofi, kitty, GTK, Qt (qt6ct), btop,
+fcitx5 e tela de login. lazygit e yazi usam as cores do terminal (nomes ANSI) e seguem sozinhos. Quem recarrega os apps é o wallpaper.sh (wallpaper.sh theme <id|auto>).
 
 Todos os temas têm as mesmas 26 cores nomeadas (nomes do Catppuccin): "mauve" é o acento
 principal (bordas, workspace ativo, seleção), "blue" o segundo tom dos gradientes. Para criar um
@@ -236,6 +236,28 @@ def qt6ct(c):
             f"active_colors={row(roles)}\ndisabled_colors={row(disabled)}\ninactive_colors={row(roles)}\n")
 
 
+def btop(c):
+    k = lambda key, col: f'theme[{key}]="#{c[col]}"'
+    rows = [
+        'theme[main_bg]=""',  # vazio = fundo do terminal (transparência do kitty)
+        k("main_fg", "text"), k("title", "text"), k("hi_fg", "mauve"),
+        k("selected_bg", "surface1"), k("selected_fg", "mauve"), k("inactive_fg", "overlay0"),
+        k("graph_text", "subtext0"), k("meter_bg", "surface1"), k("proc_misc", "mauve"),
+        k("cpu_box", "mauve"), k("mem_box", "blue"), k("net_box", "lavender"), k("proc_box", "mauve"),
+        k("div_line", "surface1"),
+        k("temp_start", "green"), k("temp_mid", "yellow"), k("temp_end", "red"),
+        k("cpu_start", "blue"), k("cpu_mid", "mauve"), k("cpu_end", "pink"),
+        k("free_start", "green"), k("free_mid", "green"), k("free_end", "teal"),
+        k("cached_start", "sapphire"), k("cached_mid", "sapphire"), k("cached_end", "blue"),
+        k("available_start", "teal"), k("available_mid", "teal"), k("available_end", "green"),
+        k("used_start", "yellow"), k("used_mid", "peach"), k("used_end", "red"),
+        k("download_start", "blue"), k("download_mid", "mauve"), k("download_end", "pink"),
+        k("upload_start", "pink"), k("upload_mid", "mauve"), k("upload_end", "blue"),
+        k("process_start", "blue"), k("process_mid", "mauve"), k("process_end", "pink"),
+    ]
+    return f"# {HEADER}. Tema do btop (reabra o btop).\n" + "\n".join(rows) + "\n"
+
+
 def fcitx5(c):
     return f"""# {HEADER}. Janela de candidatos do fcitx5 (japonês).
 [Metadata]
@@ -345,6 +367,7 @@ OUTPUTS = [
     ("~/.config/gtk-3.0/gtk.css", gtk_css),
     ("~/.config/gtk-4.0/gtk.css", gtk_css),
     ("~/.config/qt6ct/colors/hypr-setup.conf", qt6ct),
+    ("~/.config/btop/themes/hypr-setup.theme", btop),
     ("~/.local/share/fcitx5/themes/hypr-setup/theme.conf", fcitx5),
     ("~/.config/hypr/sddm-colors.conf", sddm),
 ]

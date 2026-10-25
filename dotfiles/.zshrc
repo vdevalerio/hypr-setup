@@ -142,5 +142,12 @@ y() {
     rm -f -- "$tmp"
 }
 
+# ── fastfetch ao abrir o terminal (FASTFETCH_ON_START=0 desliga) ──
+# Só no primeiro shell de uma janela do kitty, fora de nvim/yazi/ssh e com espaço na janela
+if [[ ${FASTFETCH_ON_START:-1} == 1 && $TERM == xterm-kitty && $SHLVL -le 1 && -z $NVIM$YAZI_LEVEL$SSH_CONNECTION ]] \
+   && (( LINES >= 20 && COLUMNS >= 70 )) && (( $+commands[fastfetch] )); then
+    fastfetch
+fi
+
 # ── Prompt ───────────────────────────────────────────────────
 (( $+commands[starship] )) && eval "$(starship init zsh)"
