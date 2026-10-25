@@ -20,3 +20,11 @@ opt.wrap = false
 -- LazyVim formats the whole file on save; cleanup.lua handles changed lines only
 -- (use <leader>cf to format the whole file on demand).
 vim.g.autoformat = false
+
+-- Spell checking: English + Brazilian Portuguese. `zg` adds a word to the first spellfile (en),
+-- `2zg` to the second (pt); both live in the config so they are versioned with the repo.
+opt.spelllang = { "en", "pt_br" }
+opt.spellfile = {
+  vim.fn.stdpath("config") .. "/spell/en.utf-8.add",
+  vim.fn.stdpath("config") .. "/spell/pt.utf-8.add",
+}
