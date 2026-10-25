@@ -13,6 +13,10 @@ if not vim.env.PATH:find(local_bin, 1, true) then
 end
 
 local opt = vim.opt
-opt.colorcolumn = "89" -- ruff line length limit (88)
+opt.colorcolumn = "80" -- always-on ruler at column 80
 opt.scrolloff = 8
 opt.wrap = false
+
+-- LazyVim formats the whole file on save; cleanup.lua handles changed lines only
+-- (use <leader>cf to format the whole file on demand).
+vim.g.autoformat = false
