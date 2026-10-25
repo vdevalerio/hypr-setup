@@ -12,6 +12,7 @@
 # │  ./install.sh extras     firewall, zram, fallback kernel, battery... │
 # │  ./install.sh data       data profile: SQL, DuckDB, Docker...        │
 # │  ./install.sh boot       GRUB theme + Plymouth splash for the theme  │
+# │  ./install.sh claude     Claude Code: status line + settings merge    │
 # ╰──────────────────────────────────────────────────────────────────────╯
 set -euo pipefail
 
@@ -69,6 +70,7 @@ MANAGED=(
     .config/brave-flags.conf
     .config/claude-desktop-flags.conf
     .config/mimeapps.list
+    .claude/statusline.sh
 )
 # Default wallpapers: only copied at install time (if missing). Your own wallpapers, profile
 # picture and other personal files are not part of the package.
@@ -381,6 +383,24 @@ setup_boot() {
     info "Done: the splash shows on the next boot (hold Esc to see the GRUB menu)"
 }
 
+# Claude Code: status line script + settings fragment (claude/settings.json) merged into
+# ~/.claude/settings.json. Merged, not copied: other tools (e.g. the company's Growth Opera
+# installer) keep their own hooks there. Objects are merged deeply; permissions.allow is a union.
+setup_claude() {
+    step "Claude Code: status line and settings"
+    command -v jq >/dev/null || sudo pacman -S --needed --noconfirm jq
+    install -Dm755 "$DOTS/.claude/statusline.sh" "$HOME/.claude/statusline.sh"
+    local cur="$HOME/.claude/settings.json" tmp
+    [[ -s $cur ]] || echo '{}' > "$cur"
+    cp "$cur" "$cur.bak.hypr-setup"
+    tmp=$(mktemp)
+    jq -s '.[0] as $cur | .[1] as $new
+        | ($cur * ($new | del(.permissions)))
+        | .permissions.allow = ((($cur.permissions.allow // []) + ($new.permissions.allow // [])) | unique)' \
+        "$cur" "$REPO/claude/settings.json" > "$tmp" && mv "$tmp" "$cur"
+    info "Merged into $cur (backup: settings.json.bak.hypr-setup). Restart Claude Code to apply."
+}
+
 deploy_dotfiles() {
     step "Copying configs to home"
     [[ -d $DOTS ]] || { echo "Folder $DOTS not found." >&2; exit 1; }
@@ -498,7 +518,7 @@ save_dotfiles() {
     info "Done. Size: $(du -sh "$DOTS" | cut -f1)"
 }
 
-usage() { sed -n '2,15p' "$0" | sed 's/^# \{0,1\}//'; }
+usage() { sed -n '2,16p' "$0" | sed 's/^# \{0,1\}//'; }
 
 # ── Main ───────────────────────────────────────────────────────────────
 case "${1:-all}" in
@@ -515,6 +535,7 @@ case "${1:-all}" in
         deploy_dotfiles
         setup_shell
         setup_nvim
+        setup_claude
         printf '\n\e[1;32mDone!\e[0m Reboot (sudo reboot) and log into the "Hyprland" session.\n'
         printf 'On first login the animated wallpaper is applied and the colors are generated. SUPER + F1 shows the shortcuts.\n'
         ;;
@@ -525,6 +546,7 @@ case "${1:-all}" in
     extras)   need_user; sudo_keepalive; setup_extras ;;
     data)     need_user; sudo_keepalive; setup_data ;;
     boot)     need_user; sudo_keepalive; setup_boot ;;
+    claude)   need_user; setup_claude ;;
     -h|--help|help) usage ;;
     *) usage; exit 1 ;;
 esac

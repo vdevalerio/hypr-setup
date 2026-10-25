@@ -22,7 +22,7 @@
     },
     "group/monitor": {
         "orientation": "horizontal",
-        "modules": ["cpu", "custom/gpu", "custom/temp", "memory", "disk"]
+        "modules": ["cpu", "custom/gpu", "custom/temp", "memory", "disk", "custom/claude"]
     },
     "group/tray-drawer": {
         "orientation": "horizontal",
@@ -157,6 +157,14 @@
         "states": { "warning": 75, "critical": 90 },
         "tooltip-format": "<b>RAM</b>  {used:0.1f} / {total:0.1f} GiB\n<b>Swap</b>  {swapUsed:0.1f} / {swapTotal:0.1f} GiB\n\nClick: btop",
         "on-click": "setsid -f ~/.config/hypr/scripts/sysmon.sh top"
+    },
+    // Claude Code: plan 5-hour usage while a session is open (status line cache), else today's tokens
+    "custom/claude": {
+        "exec": "~/.config/hypr/scripts/claude-usage.py",
+        "return-type": "json",
+        "interval": 60,
+        "format": "󰚩 {}",
+        "on-click": "setsid -f kitty --class btop-float --hold -e sh -c 'pnpm dlx ccusage@latest daily --breakdown; echo; pnpm dlx ccusage@latest blocks --active'"
     },
     "disk": {
         "interval": 60,

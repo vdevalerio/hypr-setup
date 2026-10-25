@@ -50,7 +50,7 @@ window#waybar.empty #window { background: transparent; border-color: transparent
 
 /* Items inside the islands: chip with hover */
 #custom-launcher, #workspaces, #submap,
-#cpu, #custom-gpu, #custom-temp, #memory, #disk,
+#cpu, #custom-gpu, #custom-temp, #memory, #disk, #custom-claude,
 #custom-tray-toggle, #tray,
 #pulseaudio, #battery,
 #custom-recording, #custom-notification, #custom-control, #custom-power {
@@ -62,7 +62,7 @@ window#waybar.empty #window { background: transparent; border-color: transparent
 }
 
 #custom-launcher:hover, #custom-tray-toggle:hover,
-#cpu:hover, #custom-gpu:hover, #custom-temp:hover, #memory:hover, #disk:hover,
+#cpu:hover, #custom-gpu:hover, #custom-temp:hover, #memory:hover, #disk:hover, #custom-claude:hover,
 #pulseaudio:hover, #battery:hover, #window:hover,
 #custom-notification:hover, #custom-control:hover, #custom-power:hover,
 #clock:hover, #custom-media:hover {
@@ -127,8 +127,9 @@ window#waybar.empty #window { background: transparent; border-color: transparent
 #custom-temp { color: @teal; }
 #memory     { color: @blue; }
 #disk       { color: @lavender; }
-#cpu.warning, #custom-gpu.warning, #custom-temp.warning, #memory.warning, #disk.warning { color: @yellow; }
-#cpu.critical, #custom-gpu.critical, #custom-temp.critical, #memory.critical, #disk.critical { color: @red; }
+#custom-claude { color: @peach; }
+#cpu.warning, #custom-gpu.warning, #custom-temp.warning, #memory.warning, #disk.warning, #custom-claude.warning { color: @yellow; }
+#cpu.critical, #custom-gpu.critical, #custom-temp.critical, #memory.critical, #disk.critical, #custom-claude.critical { color: @red; }
 #custom-temp.critical { animation: rec 1s steps(10) infinite alternate; }
 #custom-gpu.hidden { padding: 0; margin: 0; }
 

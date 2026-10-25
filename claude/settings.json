@@ -1,0 +1,27 @@
+{
+  "model": "opusplan",
+  "statusLine": { "type": "command", "command": "~/.claude/statusline.sh", "padding": 0 },
+  "env": {
+    "CLAUDE_CODE_AUTO_COMPACT_WINDOW": "300000",
+    "CLAUDE_AUTOCOMPACT_PCT_OVERRIDE": "70",
+    "CLAUDE_COST_CONTEXT_ALERT_TOKENS": "150000",
+    "BASH_MAX_OUTPUT_LENGTH": "20000",
+    "MAX_MCP_OUTPUT_TOKENS": "10000",
+    "CLAUDE_CODE_SUBAGENT_MODEL": "sonnet"
+  },
+  "permissions": {
+    "allow": [
+      "Bash(git status *)", "Bash(git diff *)", "Bash(git log *)", "Bash(git show *)",
+      "Bash(git ls-files *)", "Bash(git rev-parse *)",
+      "Bash(ls *)", "Bash(rg *)", "Bash(fd *)", "Bash(grep *)", "Bash(head *)", "Bash(tail *)", "Bash(wc *)",
+      "Bash(jq *)", "Bash(file *)", "Bash(stat *)", "Bash(du *)", "Bash(df *)", "Bash(which *)", "Bash(command -v *)",
+      "Bash(bash -n *)", "Bash(zsh -n *)", "Bash(python3 -m py_compile *)",
+      "Bash(hyprctl clients *)", "Bash(hyprctl monitors *)", "Bash(hyprctl activewindow *)",
+      "Bash(hyprctl activeworkspace *)", "Bash(hyprctl workspaces *)", "Bash(hyprctl layers *)",
+      "Bash(hyprctl configerrors)", "Bash(hyprctl getoption *)", "Bash(hyprctl binds *)",
+      "Bash(pacman -Q *)", "Bash(pacman -Ql *)", "Bash(pacman -Si *)", "Bash(systemctl status *)",
+      "Bash(systemctl --user status *)",
+      "Read(~/.config/**)", "Read(~/hypr-setup/**)", "Read(~/Projects/**)"
+    ]
+  }
+}

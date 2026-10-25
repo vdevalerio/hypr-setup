@@ -98,6 +98,7 @@ fi
 (( $+commands[bat] )) && alias cat='bat --style=plain --paging=never'
 alias grep='grep --color=auto'
 alias v='nvim' vim='nvim'
+alias ccu='pnpm dlx ccusage@latest'   # Claude Code token usage (daily, blocks, session)
 alias lg='lazygit'
 alias help='tldr'                                       # short examples for a command: help tar
 alias ..='cd ..' ...='cd ../..'

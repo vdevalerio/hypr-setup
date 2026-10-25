@@ -485,6 +485,18 @@ hypr-setup/
     └── Pictures/Wallpapers/      # aurora.mp4, catppuccin-mountains.png
 ```
 
+## Claude Code
+
+`./install.sh claude` installs the status line (`~/.claude/statusline.sh`) and merges `claude/settings.json` into `~/.claude/settings.json` (backup in `settings.json.bak.hypr-setup`; existing hooks and permissions are kept):
+
+- **Model `opusplan`**: Opus while in plan mode (Shift+Tab), Sonnet for execution. Subagents default to Sonnet.
+- **Context hygiene**: auto-compact at 70% of a 300k window; Bash output capped at 20k chars, MCP output at 10k tokens.
+- **Status line**: model · context bar (green/yellow/red) · session cost · 5-hour plan usage · dir · branch. `/clear` before the bar turns red.
+- **Fewer prompts**: read-only commands (git status/diff/log, rg, ls, hyprctl queries…) are pre-approved.
+- **Waybar chip** (monitor island, 󰚩): 5-hour plan usage while a session is open, otherwise today's tokens; tooltip shows today / 7 days by model. Click for the `ccusage` report. In the terminal: `ccu daily`, `ccu blocks --active`.
+
+Start `claude` inside `~/hypr-setup` when working on the desktop so `CLAUDE.md` (workflow and gotchas) and the `desktop-verifier` agent (cheap Haiku post-change checks) are loaded. Restart Claude Code after `install.sh claude`.
+
 ## Keeping it up to date (GitHub)
 
 This folder is **self-sufficient**: with it, a freshly installed Arch machine ends up just like this one,
