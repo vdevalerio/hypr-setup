@@ -25,6 +25,7 @@ tooltip label { color: @text; padding: 2px 4px; }
 
 /* ── Ilhas ──────────────────────────────────────────────────── */
 #left,
+#monitor,
 #clock,
 #custom-media,
 #tray-drawer,
@@ -40,6 +41,7 @@ tooltip label { color: @text; padding: 2px 4px; }
 
 /* Itens dentro das ilhas: chip com hover */
 #custom-launcher, #workspaces, #submap,
+#cpu, #custom-gpu, #custom-temp, #memory, #disk,
 #custom-tray-toggle, #tray,
 #custom-keyboard, #network, #pulseaudio, #battery,
 #custom-recording, #custom-notification, #custom-control, #custom-power {
@@ -51,6 +53,7 @@ tooltip label { color: @text; padding: 2px 4px; }
 }
 
 #custom-launcher:hover, #custom-tray-toggle:hover,
+#cpu:hover, #custom-gpu:hover, #custom-temp:hover, #memory:hover, #disk:hover,
 #custom-keyboard:hover, #network:hover, #pulseaudio:hover, #battery:hover,
 #custom-notification:hover, #custom-control:hover, #custom-power:hover,
 #clock:hover, #custom-media:hover {
@@ -109,6 +112,18 @@ tooltip label { color: @text; padding: 2px 4px; }
 #custom-media.paused { color: @overlay1; }
 
 /* ── Direita ────────────────────────────────────────────────── */
+/* Monitoramento: chips mais justos; cor sobe para amarelo/vermelho com carga ou calor */
+#cpu, #custom-gpu, #custom-temp, #memory, #disk { padding: 0 7px; }
+#cpu        { color: @mauve; }
+#custom-gpu { color: @green; }
+#custom-temp { color: @teal; }
+#memory     { color: @blue; }
+#disk       { color: @lavender; }
+#cpu.warning, #custom-gpu.warning, #custom-temp.warning, #memory.warning, #disk.warning { color: @yellow; }
+#cpu.critical, #custom-gpu.critical, #custom-temp.critical, #memory.critical, #disk.critical { color: @red; }
+#custom-temp.critical { animation: rec 1s steps(10) infinite alternate; }
+#custom-gpu.hidden { padding: 0; margin: 0; }
+
 #custom-tray-toggle { color: @overlay1; }
 #tray > .passive { -gtk-icon-effect: dim; }
 #tray > .needs-attention { -gtk-icon-effect: highlight; background: alpha(@red, 0.6); border-radius: 6px; }

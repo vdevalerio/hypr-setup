@@ -308,7 +308,13 @@ para trocar), layout do teclado e botões de suspender, reiniciar e desligar.
 ## Barra e central de controle
 
 A barra mostra só o essencial, em "ilhas": workspaces e janela ativa à esquerda; relógio e música no
-centro; Wi-Fi, volume, bateria, notificações, central de controle e energia à direita.
+centro; monitoramento, Wi-Fi, volume, bateria, notificações, central de controle e energia à direita.
+
+A ilha de **monitoramento** mostra o uso de CPU, o uso da GPU mais ocupada, a temperatura da CPU, a RAM e
+o disco `/`. Cada item fica amarelo ou vermelho com carga ou calor. O tooltip traz os detalhes de cada
+placa (uso, temperatura, VRAM, consumo) e de todos os sensores, e o clique abre o **btop**. A NVIDIA
+só é consultada se já estiver acordada, para a leitura não tirar a placa do modo de economia. Script:
+`~/.config/hypr/scripts/sysmon.sh` (`gpu`, `temp`, `top`).
 
 O botão `󰒓` (ou **SUPER + A**) abre a **central de controle**, um painel abaixo da barra com:
 

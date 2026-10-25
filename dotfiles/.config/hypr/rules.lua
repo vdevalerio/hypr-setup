@@ -32,6 +32,13 @@ hl.window_rule({
     size   = { "monitor_w*0.5", "monitor_h*0.6" },
 })
 
+-- btop (ilha de monitoramento da barra) precisa de mais espaço que os outros utilitários
+hl.window_rule({
+    name  = "btop-size",
+    match = { class = "^btop-float$" },
+    size  = { "monitor_w*0.75", "monitor_h*0.8" },
+})
+
 hl.window_rule({
     name  = "float-dialogs",
     match = { title = "^(Abrir arquivo|Abrir pasta|Salvar como|Open File|Open Folder|Save As|Save File|File Upload|Choose Files|Library)(.*)$" },
