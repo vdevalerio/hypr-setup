@@ -1,0 +1,7 @@
+#:schema https://yazi-rs.github.io/schemas/keymap.json
+# Ctrl+Y quits yazi (the shell then cd's to its folder), mirroring the Ctrl+Y widget in ~/.zshrc.
+
+[mgr]
+prepend_keymap = [
+    { on = "<C-y>", run = "quit", desc = "Back to the terminal (cd to this folder)" },
+]

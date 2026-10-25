@@ -143,6 +143,11 @@ y() {
     rm -f -- "$tmp"
 }
 
+# Ctrl+Y toggles the prompt <-> yazi (Ctrl+Y inside yazi quits it, see ~/.config/yazi/keymap.toml)
+_yazi_toggle() { zle -I; y; zle reset-prompt }
+zle -N _yazi_toggle
+bindkey '^Y' _yazi_toggle
+
 # ── fastfetch on terminal open (FASTFETCH_ON_START=0 disables it) ──
 # Only in the first shell of a kitty window, outside nvim/yazi/ssh and with room in the window
 if [[ ${FASTFETCH_ON_START:-1} == 1 && $TERM == xterm-kitty && $SHLVL -le 1 && -z $NVIM$YAZI_LEVEL$SSH_CONNECTION ]] \
