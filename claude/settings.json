@@ -21,7 +21,7 @@
       "Bash(hyprctl configerrors)", "Bash(hyprctl getoption *)", "Bash(hyprctl binds *)",
       "Bash(pacman -Q *)", "Bash(pacman -Ql *)", "Bash(pacman -Si *)", "Bash(systemctl status *)",
       "Bash(systemctl --user status *)",
-      "Read(~/.config/**)", "Read(~/hypr-setup/**)", "Read(~/Projects/**)"
+      "Read(~/.config/**)", "Read(~/Projects/Personal/hypr-setup/**)", "Read(~/Projects/**)"
     ]
   }
 }

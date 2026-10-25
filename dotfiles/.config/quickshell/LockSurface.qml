@@ -1,5 +1,5 @@
 // Content of a locked screen (one instance per monitor). Same measurements as hyprlock and the
-// SDDM theme (~/hypr-setup/system/sddm/hypr-setup/Main.qml): pixels of a 900-pixel-tall screen.
+// SDDM theme (~/Projects/Personal/hypr-setup/system/sddm/hypr-setup/Main.qml): pixels of a 900-pixel-tall screen.
 import QtQuick
 import QtQuick.Effects
 import QtMultimedia

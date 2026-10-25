@@ -1,5 +1,5 @@
 #!/usr/bin/env bash
-# Claude Code status line (managed by ~/hypr-setup, installed with `./install.sh claude`).
+# Claude Code status line (managed by ~/Projects/Personal/hypr-setup, installed with `./install.sh claude`).
 #   <model> · <context bar> <used>k/<window>k · $<session cost> · 5h <rate %> · <dir> <git branch>
 # Context color: green < 40%, yellow < 70%, red above — /clear or /compact before it gets red.
 # Also caches the subscription rate limits for the Waybar chip (scripts/claude-usage.py).

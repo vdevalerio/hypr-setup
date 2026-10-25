@@ -15,7 +15,7 @@ export RESTIC_PASSWORD_FILE="$HOME/.config/restic/password"
 STATUS=~/.cache/backup-last
 
 PATHS=(~/Projects/Growth ~/.ssh ~/.gnupg ~/.local/share/keyrings
-  ~/.config/keepassxc ~/hypr-setup)
+  ~/.config/keepassxc ~/Projects/Personal/hypr-setup)
 EXCLUDES=(node_modules .venv venv __pycache__ .mypy_cache .ruff_cache .pytest_cache .ipynb_checkpoints
   .cache target dist build '*.iso' '*.tmp')
 
