@@ -45,6 +45,7 @@ If you already have configs in your home, the script moves the ones that differ 
 | `./install.sh sddm` | (Re)installs the login screen theme (asks for sudo) |
 | `./install.sh extras` | Firewall, zram, automatic maintenance, rollback snapshots, disk health, VPN, lid and battery limit (asks for sudo) |
 | `./install.sh gaming` | Steam, GameMode and MangoHud; enables multilib (asks for sudo, not part of the full install) |
+| `./install.sh wipe` | **Destructive** factory reset back to a bare Arch: removes all packages outside the base set, the user and its home, history, logs and caches (`--dry-run` shows the plan; asks for the hostname; needs a root password). Tested in the VM only |
 
 ### What to adjust before running
 

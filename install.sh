@@ -15,6 +15,7 @@
 # │  ./install.sh claude     Claude Code: status line + settings merge    │
 # │  ./install.sh tts        natural voices (Piper) for Foliate & co.    │
 # │  ./install.sh gaming     Steam, GameMode, MangoHud (needs multilib)  │
+# │  ./install.sh wipe       DESTRUCTIVE: back to a bare Arch (--dry-run) │
 # ╰──────────────────────────────────────────────────────────────────────╯
 set -euo pipefail
 
@@ -623,7 +624,28 @@ save_dotfiles() {
     info "Done. Size: $(du -sh "$DOTS" | cut -f1)"
 }
 
-usage() { sed -n '2,16p' "$0" | sed 's/^# \{0,1\}//'; }
+# Factory reset (system/wipe.sh): removes packages, configs, the user and its data, history and logs,
+# leaving a bare Arch (kernel, GRUB, NetworkManager, sshd, sudo, nano, root). Test it in the VM only.
+wipe_system() {
+    local script="$REPO/system/wipe.sh" host; host=$(uname -n)
+    if [[ ${1:-} == --dry-run ]]; then bash "$script" --plan "$USER"; return; fi
+    step "WIPE: back to a bare Arch Linux"
+    bash "$script" --plan "$USER"
+    # After this the user no longer exists: root needs a working password to log in
+    if [[ $(sudo passwd -S root | awk '{print $2}') != P ]]; then
+        echo "root has no password: set one first (sudo passwd root), or you will be locked out." >&2
+        exit 1
+    fi
+    warn "Deletes user '$USER', its whole home, all packages above, history and logs. NOT reversible."
+    local ans=${WIPE_CONFIRM:-}
+    if [[ -z $ans ]]; then read -r -p "    Type this machine's hostname ($host) to continue: " ans; fi
+    [[ $ans == "$host" ]] || { echo "Cancelled." >&2; exit 1; }
+    sudo install -m700 "$script" /run/hypr-setup-wipe.sh   # the repo lives in the home that is about to go
+    sudo systemd-run --unit=hypr-setup-wipe --description="hypr-setup wipe" --setenv=WIPE_END="${WIPE_END:-reboot}" bash /run/hypr-setup-wipe.sh "$USER"
+    info "Running detached; this session ends soon and the machine reboots. Log: /root/hypr-setup-wipe.log"
+}
+
+usage() { sed -n '2,19p' "$0" | sed 's/^# \{0,1\}//'; }
 
 # ── Main ───────────────────────────────────────────────────────────────
 case "${1:-all}" in
@@ -655,6 +677,7 @@ case "${1:-all}" in
     claude)   need_user; setup_claude ;;
     tts)      need_user; setup_tts ;;
     gaming)   need_user; sudo_keepalive; setup_gaming ;;
+    wipe)     need_user; [[ ${2:-} == --dry-run ]] || sudo_keepalive; wipe_system "${2:-}" ;;
     -h|--help|help) usage ;;
     *) usage; exit 1 ;;
 esac
