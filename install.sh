@@ -13,6 +13,7 @@
 # │  ./install.sh data       data profile: SQL, DuckDB, Docker...        │
 # │  ./install.sh boot       GRUB theme + Plymouth splash for the theme  │
 # │  ./install.sh claude     Claude Code: status line + settings merge    │
+# │  ./install.sh tts        natural voices (Piper) for Foliate & co.    │
 # ╰──────────────────────────────────────────────────────────────────────╯
 set -euo pipefail
 
@@ -66,6 +67,8 @@ MANAGED=(
     .icons/default/index.theme
     .local/share/applications/yazi-kitty.desktop
     .local/share/applications/speechify.desktop
+    .local/bin/foliate-sentences
+    .local/share/piper-speechd
     .local/share/fcitx5/themes/hypr-setup
     .config/systemd/user/backup.service
     .config/systemd/user/backup.timer
@@ -455,6 +458,12 @@ deploy_dotfiles() {
     fi
     systemctl --user enable gcr-ssh-agent.socket 2>/dev/null || true
 
+    # Foliate launcher override: sentence-level read-aloud highlighting (absolute path: launchers lack ~/.local/bin in PATH)
+    if [[ -f /usr/share/applications/com.github.johnfactotum.Foliate.desktop ]]; then
+        sed "s|^Exec=foliate|Exec=$HOME/.local/bin/foliate-sentences|" /usr/share/applications/com.github.johnfactotum.Foliate.desktop \
+            > "$HOME/.local/share/applications/com.github.johnfactotum.Foliate.desktop"
+    fi
+
     # Yazi opens folders
     update-desktop-database "$HOME/.local/share/applications" 2>/dev/null || true
     if command -v xdg-mime >/dev/null; then
@@ -465,6 +474,32 @@ deploy_dotfiles() {
         [[ -f $apps/com.github.johnfactotum.Foliate.desktop ]] &&
             xdg-mime default com.github.johnfactotum.Foliate.desktop application/epub+zip application/x-mobipocket-ebook
     fi
+}
+
+# Natural text-to-speech: Piper plus our own speech-dispatcher module. The stock sd_generic module
+# strips SSML, so clients (Foliate) never get index marks and cannot highlight the word being read;
+# .local/share/piper-speechd/sd_piper emits them. Voice per language: SUPER + SHIFT + V (voice.sh).
+setup_tts() {
+    step "Text-to-speech: Piper + voices"
+    if ! command -v piper-tts >/dev/null; then
+        # The AUR package ships a stale checksum for its 3-line wrapper script; retry without checks
+        yay -S --needed --noconfirm piper-tts-bin ||
+            yay -S --needed --noconfirm --mflags --skipchecksums piper-tts-bin ||
+            { warn "piper-tts-bin failed (retry: ./install.sh tts)"; return 0; }
+    fi
+    local dir=$HOME/.local/share/piper base=https://huggingface.co/rhasspy/piper-voices/resolve/main v
+    mkdir -p "$dir"
+    for v in pt/pt_BR/faber/medium/pt_BR-faber-medium en/en_US/ryan/high/en_US-ryan-high; do
+        [[ -f $dir/${v##*/}.onnx ]] ||
+            curl -fL --output-dir "$dir" -O "$base/$v.onnx" -O "$base/$v.onnx.json" || warn "Voice ${v##*/} failed"
+    done
+    # speechd config: the system one with our module as default (the path must be absolute)
+    local cfg=$HOME/.config/speech-dispatcher
+    mkdir -p "$cfg/modules"
+    : > "$cfg/modules/piper.conf"
+    sed 's/^DefaultModule .*/DefaultModule piper/' /etc/speech-dispatcher/speechd.conf > "$cfg/speechd.conf"
+    printf '\nAddModule "piper" "%s/.local/share/piper-speechd/sd_piper" "piper.conf"\n' "$HOME" >> "$cfg/speechd.conf"
+    pkill -x speech-dispatch || true   # restarts with the new config on the next use
 }
 
 setup_shell() {
@@ -557,6 +592,7 @@ case "${1:-all}" in
         setup_system
         setup_extras
         deploy_dotfiles
+        setup_tts
         setup_shell
         setup_nvim
         setup_claude
@@ -571,6 +607,7 @@ case "${1:-all}" in
     data)     need_user; sudo_keepalive; setup_data ;;
     boot)     need_user; sudo_keepalive; setup_boot ;;
     claude)   need_user; setup_claude ;;
+    tts)      need_user; setup_tts ;;
     -h|--help|help) usage ;;
     *) usage; exit 1 ;;
 esac

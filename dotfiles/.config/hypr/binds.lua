@@ -29,6 +29,7 @@ bind(M("Tab"),           hl.dsp.exec_cmd("~/.config/hypr/scripts/overview.sh"), 
 bind(M("E"),             hl.dsp.exec_cmd(fileManager),                   "File manager")
 bind(M("B"),             hl.dsp.exec_cmd(browser),                       "Web browser")
 bind(M("V"),             hl.dsp.exec_cmd(scripts .. "clipboard.sh"),     "Clipboard history")
+bind(M("SHIFT + V"),    hl.dsp.exec_cmd(scripts .. "voice.sh pick"),    "Text-to-speech voice (Piper)")
 bind(M("semicolon"),     hl.dsp.exec_cmd("pkill -x rofi || rofi -show emoji -modi emoji"), "Emoji picker")
 bind(M("equal"),         hl.dsp.exec_cmd("pkill -x rofi || rofi -show calc -modi calc -no-show-match -no-sort"), "Quick calculator")
 bind(M("N"),            hl.dsp.exec_cmd("swaync-client -t -sw"),        "Notification center")

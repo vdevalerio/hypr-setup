@@ -1,0 +1,534 @@
+#!/usr/bin/env python3
+"""Speech Dispatcher output module for Piper TTS, with SSML index marks.
+
+Why this exists: the stock sd_generic module strips SSML, so clients such as
+Foliate never get INDEX_MARK events and cannot highlight the word being read.
+This module splits the SSML at <mark/> elements, synthesizes sentence by
+sentence (next sentence is prefetched) and emits each mark in real time, with
+the sentence duration spread over its words in proportion to their length.
+
+Voice choice: ~/.config/piper-speechd/voices.json maps a language ("en", "pt")
+to a model id (e.g. "en_US-ryan-high"); `piper-voice` edits it. The language
+comes from the SSML xml:lang, else is guessed from the text.
+Set PIPER_SPEECHD_DEBUG=1 or touch ~/.config/piper-speechd/debug to log the
+protocol to ~/.cache/piper-speechd.log.
+"""
+import concurrent.futures
+import glob
+import html
+import array
+import json
+import os
+import queue
+import re
+import subprocess
+import sys
+import threading
+import time
+
+HOME = os.path.expanduser("~")
+CONF = os.path.join(HOME, ".config/piper-speechd")
+VOICE_DIRS = [os.path.join(HOME, ".local/share/piper"), "/usr/share/piper-voices"]
+LOG = os.path.join(HOME, ".cache/piper-speechd.log")
+DEBUG = bool(os.environ.get("PIPER_SPEECHD_DEBUG")) or os.path.exists(os.path.join(CONF, "debug"))
+PREFERRED = {"en": "en_US-ryan-high", "pt": "pt_BR-faber-medium"}
+PREFETCH = 3         # sentences synthesized ahead (also the number of piper processes)
+START_DELAY = 0.06   # seconds between handing audio to the player and hearing it
+MARK_LEAD = 0.10     # marks fire this much early; ~/.config/piper-speechd/lead overrides it
+TAIL = 0.10          # seconds of silence kept after each sentence (piper pads ~0.3 s); ~/.config/piper-speechd/tail overrides it
+LIMITS = (45, 110)   # characters; the first pieces of a message are short so playback starts sooner
+MAX_CHUNK = 240      # characters; longer sentences are split at commas/spaces
+
+out_lock = threading.Lock()
+
+
+def log(*a):
+    if not DEBUG:
+        return
+    with open(LOG, "a") as f:
+        f.write(time.strftime("%H:%M:%S ") + " ".join(str(x) for x in a) + "\n")
+
+
+def send(text):
+    """Write a protocol line (or block) to speechd."""
+    with out_lock:
+        sys.stdout.write(text if text.endswith("\n") else text + "\n")
+        sys.stdout.flush()
+    log(">>", text.strip().replace("\n", " | "))
+
+
+# ---------------------------------------------------------------- voices
+
+def find_voices():
+    """Return {model_id: (path, language)} for every installed Piper model."""
+    voices = {}
+    for d in reversed(VOICE_DIRS):  # user dir wins over the system one
+        for p in glob.glob(os.path.join(d, "**", "*.onnx"), recursive=True):
+            vid = os.path.basename(p)[:-5]
+            voices[vid] = (p, vid.split("_")[0])
+    return voices
+
+
+def chosen_voice(lang):
+    voices = find_voices()
+    try:
+        with open(os.path.join(CONF, "voices.json")) as f:
+            pick = json.load(f).get(lang)
+    except (OSError, ValueError):
+        pick = None
+    for vid in (pick, PREFERRED.get(lang)):
+        if vid in voices:
+            return vid, voices[vid][0]
+    for vid, (p, l) in sorted(voices.items()):
+        if l == lang:
+            return vid, p
+    return None, None
+
+
+PT_WORDS = "de que não um uma para com os as do da em se por mais é são foi ele ela você nos seu sua".split()
+EN_WORDS = "the of and to in is that it for with was as on are he she you his her they this be".split()
+last_lang = "en"
+
+
+def guess_lang(text):
+    global last_lang
+    words = set(re.findall(r"[^\W\d_]+", text.lower()))
+    pt = sum(w in words for w in PT_WORDS) + (1 if re.search("[ãõçáéíóú]", text.lower()) else 0)
+    en = sum(w in words for w in EN_WORDS)
+    if pt > en:
+        last_lang = "pt"
+    elif en > pt:
+        last_lang = "en"
+    return last_lang
+
+
+# ------------------------------------------------------------------ SSML
+
+MARK_RE = re.compile(r"<mark\s+name=(?:\"([^\"]*)\"|'([^']*)')\s*/?>", re.I)
+TAG_RE = re.compile(r"<[^>]+>")
+
+
+def parse_ssml(data):
+    """Return (lang, text, marks): marks is [(name, char offset in text)]."""
+    m = re.search(r"<speak[^>]*xml:lang=[\"']([A-Za-z-]+)", data)
+    lang = m.group(1).split("-")[0].lower() if m else None
+    text, marks, pos = [], [], 0
+    for tok in re.split(r"(<[^>]+>)", data):
+        if not tok:
+            continue
+        mm = MARK_RE.fullmatch(tok)
+        if mm:
+            marks.append((mm.group(1) if mm.group(1) is not None else mm.group(2), pos))
+        elif TAG_RE.fullmatch(tok):
+            continue
+        else:
+            s = html.unescape(tok)
+            text.append(s)
+            pos += len(s)
+    return lang, "".join(text), marks
+
+
+def chunks(text):
+    """Yield (start, end) offsets of sentence-sized pieces of text; the first ones are short."""
+    n = 0
+    for m in re.finditer(r"\S.*?(?:[.!?…]+[\"')\]”’]*(?=\s|$)|$)", text, re.S):
+        s, e = m.start(), m.end()
+        while True:
+            limit = LIMITS[n] if n < len(LIMITS) else MAX_CHUNK
+            if e - s <= limit:
+                break
+            cut = max(text.rfind(c, s, s + limit) for c in (",", ";", ":"))
+            if cut <= s:
+                cut = text.rfind(" ", s, s + limit)
+            if cut <= s:
+                cut = s + limit
+            yield s, cut + 1
+            s = cut + 1
+            n += 1
+        if text[s:e].strip():
+            yield s, e
+            n += 1
+
+
+# -------------------------------------------------------------- synthesis
+
+def sample_rate(model):
+    try:
+        with open(model + ".json") as f:
+            return json.load(f)["audio"]["sample_rate"]
+    except (OSError, ValueError, KeyError):
+        return 22050
+
+
+def trim_tail(pcm, sr):
+    """Cut piper's trailing silence down to TAIL seconds: it is what makes sentences gap."""
+    try:
+        with open(os.path.join(CONF, "tail")) as f:
+            keep = float(f.read())
+    except (OSError, ValueError):
+        keep = TAIL
+    a = array.array("h")
+    a.frombytes(pcm[:len(pcm) // 2 * 2])
+    n = len(a)
+    while n > 0 and abs(a[n - 1]) < 300:
+        n -= 1
+    end = min(len(a), n + int(keep * sr))
+    return a[:end].tobytes()
+
+
+class Worker:
+    """A piper process kept alive between chunks: loading the voice costs ~0.9 s per start.
+    One line in, one block of raw PCM out; the end of a block is piper's "Real-time factor" log."""
+
+    def __init__(self, key):
+        self.key = key
+        model, length_scale = key
+        self.p = subprocess.Popen(
+            ["piper-tts", "--model", model, "--output-raw", "--length_scale", f"{length_scale:.3f}"],
+            stdin=subprocess.PIPE, stdout=subprocess.PIPE, stderr=subprocess.PIPE)
+        self.cv = threading.Condition()
+        self.buf = bytearray()
+        self.last = 0.0   # time of the last byte read from stdout
+        self.done = 0     # number of finished requests
+        self.dead = False
+        threading.Thread(target=self._read_out, daemon=True).start()
+        threading.Thread(target=self._read_err, daemon=True).start()
+
+    def _read_out(self):
+        fd = self.p.stdout.fileno()
+        while chunk := os.read(fd, 65536):
+            with self.cv:
+                self.buf += chunk
+                self.last = time.monotonic()
+                self.cv.notify_all()
+        self._die()
+
+    def _read_err(self):
+        for line in self.p.stderr:
+            if b"Real-time factor" in line:
+                with self.cv:
+                    self.done += 1
+                    self.cv.notify_all()
+        self._die()
+
+    def _die(self):
+        with self.cv:
+            self.dead = True
+            self.cv.notify_all()
+
+    def kill(self):
+        self._die()
+        self.p.kill()
+
+    def run(self, text):
+        """Synthesize one line; b'' if the process was killed meanwhile."""
+        with self.cv:
+            self.buf.clear()
+            target = self.done + 1
+        try:
+            self.p.stdin.write(text.encode() + b"\n")
+            self.p.stdin.flush()
+        except OSError:
+            self.kill()
+            return b""
+        with self.cv:
+            while self.done < target and not self.dead:
+                self.cv.wait()
+            # the log line and the audio come over different pipes: wait until stdout is quiet
+            while not self.dead and (idle := time.monotonic() - self.last) < 0.04:
+                self.cv.wait(0.04 - idle)
+            data = bytes(self.buf) if self.done >= target else b""
+            self.buf.clear()
+        return data
+
+
+pool_lock = threading.Lock()
+pool_key = None
+idle_workers = []
+
+
+def acquire(key):
+    """A warm worker for this voice and speed, or a new one."""
+    global pool_key
+    with pool_lock:
+        if key != pool_key:  # voice or speed changed: the old workers are useless
+            for w in idle_workers:
+                w.kill()
+            idle_workers.clear()
+            pool_key = key
+        while idle_workers:
+            w = idle_workers.pop()
+            if not w.dead:
+                return w
+    return Worker(key)
+
+
+def release(w):
+    with pool_lock:
+        if not w.dead and w.key == pool_key and len(idle_workers) < PREFETCH:
+            idle_workers.append(w)
+            return
+    w.kill()
+
+
+def prewarm(key):
+    """Top the idle workers up to PREFETCH in the background (after a stop kills some)."""
+    def fill():
+        while True:
+            with pool_lock:
+                if key != pool_key or len(idle_workers) >= PREFETCH:
+                    return
+            w = Worker(key)
+            release(w)
+    threading.Thread(target=fill, daemon=True).start()
+
+
+def synth(key, text, procs, sr):
+    """Run piper on one chunk, return raw s16le mono PCM (b'' if aborted)."""
+    w = acquire(key)
+    procs.add(w)
+    try:
+        pcm = w.run(" ".join(text.split()))
+    finally:
+        procs.discard(w)
+        release(w)
+    return trim_tail(pcm, sr)
+
+
+class Utterance(threading.Thread):
+    def __init__(self, data, settings):
+        super().__init__(daemon=True)
+        self.data, self.settings = data, dict(settings)
+        self.stop_ev = threading.Event()
+        self.silent = False  # superseded by a newer SPEAK: report nothing
+        self.procs = set()
+        self.player = None
+        self.finished_at = 0.0  # set when the message played to its end
+
+    def stop(self, silent=False):
+        self.silent = silent
+        self.stop_ev.set()
+        for p in list(self.procs):
+            p.kill()
+        if self.player:
+            self.player.kill()
+
+    def emit(self, text):
+        """Report an event to speechd, unless a newer SPEAK has superseded this utterance."""
+        if not self.silent:
+            send(text)
+
+    def run(self):
+        try:
+            self.speak()
+        except Exception as e:  # never take the module down
+            log("speak error:", repr(e))
+            self.emit("702 END")
+
+    def speak(self):
+        lang, text, marks = parse_ssml(self.data)
+        if not text.strip():
+            self.emit("701 BEGIN")
+            for name, _ in marks:
+                self.emit(f"700-{name}\n700 INDEX MARK")
+            self.emit("702 END")
+            return
+        lang = lang if lang and chosen_voice(lang)[0] else guess_lang(text)
+        vid, model = chosen_voice(lang)
+        if not model:
+            log("no voice for", lang)
+            self.emit("702 END")
+            return
+        rate = int(self.settings.get("rate", 0))
+        length_scale = 2 ** (-max(-100, min(100, rate)) / 100)
+        sr = sample_rate(model)
+        pieces = list(chunks(text))
+        log("speak", vid, f"{len(pieces)} chunks", f"{len(marks)} marks")
+
+        pool = concurrent.futures.ThreadPoolExecutor(max_workers=PREFETCH)
+        futs = {}
+
+        def submit(i):
+            if i < len(pieces) and i not in futs:
+                s, e = pieces[i]
+                futs[i] = pool.submit(synth, (model, round(length_scale, 3)), text[s:e], self.procs, sr)
+
+        submit(0)  # piper uses every core: a parallel start would delay the first sound
+        audio = queue.Queue()   # PCM chunks -> player (decoupled so a slow pipe never stalls synthesis)
+        events = queue.Queue()  # (due time, mark name) in order, emitted by a clock of its own
+        self.player = subprocess.Popen(
+            ["pw-cat", "-p", "-a", "--rate", str(sr), "--channels", "1", "--format", "s16",
+             "--latency", "100ms", "-"],
+            stdin=subprocess.PIPE, stderr=subprocess.DEVNULL)
+
+        def writer():
+            try:
+                while (pcm := audio.get()) is not None:
+                    self.player.stdin.write(pcm)
+                    self.player.stdin.flush()
+                self.player.stdin.close()
+            except (BrokenPipeError, ValueError, OSError):
+                pass
+
+        def marker():
+            while (ev := events.get()) is not None:
+                if self.stop_ev.wait(max(0.0, ev[0] - time.monotonic())):
+                    return
+                self.emit(f"700-{ev[1]}\n700 INDEX MARK")
+
+        wt = threading.Thread(target=writer, daemon=True)
+        mt = threading.Thread(target=marker, daemon=True)
+        wt.start()
+        mt.start()
+        aborted = False
+        try:
+            with open(os.path.join(CONF, "lead")) as f:
+                mark_lead = float(f.read())
+        except (OSError, ValueError):
+            mark_lead = MARK_LEAD
+        play_end = 0.0   # projected wall-clock time at which the queued audio finishes
+        mi = 0           # next mark to schedule
+        try:
+            # Start as soon as the first piece is ready (it is kept short, see chunks()): the
+            # wait here is the silence between paragraphs. The others synthesize meanwhile.
+            futs[0].result()
+            for i in range(1, PREFETCH):
+                submit(i)
+            if self.stop_ev.is_set():
+                raise InterruptedError
+            self.emit("701 BEGIN")
+            for i, (s, e) in enumerate(pieces):
+                pcm = futs[i].result()
+                submit(i + PREFETCH)
+                if self.stop_ev.is_set():
+                    aborted = True
+                    break
+                dur = len(pcm) / 2 / sr
+                now = time.monotonic()
+                start = max(play_end, now + START_DELAY)
+                if play_end and start > play_end + 0.05:
+                    log(f"underrun: chunk {i} late by {start - play_end:.2f}s")
+                play_end = start + dur
+                span = max(e - s, 1)
+                # marks falling in this chunk (those before its text belong to it too)
+                while mi < len(marks) and (marks[mi][1] < e or i == len(pieces) - 1):
+                    events.put((start + dur * max(0, marks[mi][1] - s) / span - mark_lead, marks[mi][0]))
+                    mi += 1
+                audio.put(pcm)
+            if not aborted:
+                events.put(None)
+                audio.put(None)
+                mt.join()
+                self.stop_ev.wait(max(0.0, play_end - time.monotonic()))  # let the audio play out
+                aborted = self.stop_ev.is_set()
+        except InterruptedError:
+            aborted = True
+        except Exception as e:
+            log("speak loop error:", repr(e))
+            aborted = True
+        finally:
+            events.put(None)
+            audio.put(None)
+            pool.shutdown(wait=False, cancel_futures=True)
+            prewarm((model, round(length_scale, 3)))
+            if aborted:
+                self.player.kill()
+            else:
+                wt.join(timeout=5)
+                self.player.wait()
+        if not aborted:
+            self.finished_at = time.monotonic()
+        self.emit("703 STOP" if aborted else "702 END")
+
+
+# --------------------------------------------------------------- protocol
+
+def read_block(stdin):
+    lines = []
+    for line in stdin:
+        line = line.rstrip("\r\n")
+        log("<<", line)
+        if line == ".":
+            break
+        lines.append(line[1:] if line.startswith("..") else line)
+    return lines
+
+
+def main():
+    stdin = sys.stdin
+    settings = {}
+    current = None
+
+    def stop_current(silent=False):
+        nonlocal current
+        if current and current.is_alive():
+            current.stop(silent)
+            current.join(timeout=0.3)
+        current = None
+
+    for raw in stdin:
+        cmd = raw.strip()
+        log("<<", cmd)
+        if not cmd:
+            continue
+        if cmd == "INIT":
+            send("299-Piper module ready\n299 OK LOADED SUCCESSFULLY")
+        elif cmd == "AUDIO":
+            send("207 OK RECEIVING AUDIO SETTINGS")
+            read_block(stdin)
+            send("203 OK AUDIO INITIALIZED")
+        elif cmd == "LOGLEVEL":
+            send("207 OK RECEIVING LOGLEVEL SETTINGS")
+            read_block(stdin)
+            send("203 OK LOGLEVEL SET")
+        elif cmd == "DEBUG":
+            send("202 OK RECEIVING DEBUGGING SETTINGS")
+            read_block(stdin)
+            send("203 OK DEBUGGING SET")
+        elif cmd == "SET":
+            send("203 OK RECEIVING SETTINGS")
+            for line in read_block(stdin):
+                k, _, v = line.partition("=")
+                settings[k.strip()] = v.strip()
+            send("203 OK SETTINGS RECEIVED")
+        elif cmd == "SPEAK":
+            send("202 OK RECEIVING MESSAGE")
+            body = "\n".join(read_block(stdin))
+            # Foliate changes speed with SET + SPEAK and no STOP: a 703 for the old message
+            # would be taken as the new one stopping (speechd then drops its marks).
+            if current and current.data == body and time.monotonic() - current.finished_at < 3:
+                # Foliate sometimes re-sends the message that just finished: skip the repeat
+                log("duplicate SPEAK skipped")
+                send("200 OK SPEAKING\n701 BEGIN\n702 END")
+                continue
+            stop_current(silent=True)
+            current = Utterance(body, settings)
+            send("200 OK SPEAKING")
+            current.start()
+        elif cmd == "STOP":
+            # No reply: speechd sends STOP without waiting for one, so an answer would be
+            # read as the reply to its next command and shift every later reply by one,
+            # after which it drops all our events (marks included). 703 is the confirmation.
+            stop_current()
+        elif cmd == "PAUSE":
+            stop_current()  # no reply, same as STOP
+        elif cmd in ("CHAR", "KEY", "SOUND_ICON"):
+            send("202 OK RECEIVING MESSAGE")
+            read_block(stdin)
+            send("300 ERROR NOT SUPPORTED")
+        elif cmd.startswith("BLOCK"):
+            send("260 OK")
+        elif cmd == "LIST VOICES":
+            for vid, (_, lang) in sorted(find_voices().items()):
+                send(f"249-{vid}\t{lang}\tnone")
+            send("249 OK VOICE LIST SENT")
+        elif cmd == "QUIT":
+            stop_current()
+            send("210 OK QUIT")
+            return
+        else:
+            send("300 ERROR UNKNOWN COMMAND")
+
+
+if __name__ == "__main__":
+    main()

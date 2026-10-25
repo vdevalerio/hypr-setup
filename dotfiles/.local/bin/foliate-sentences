@@ -1,0 +1,19 @@
+#!/usr/bin/env bash
+# Foliate with sentence-level read-aloud highlighting (it always highlights words,
+# and the highlight froze after rate changes) that also starts reading where the page is,
+# not at the top of the chapter. Patches foliate-js' view.js default
+# granularity through a GResource overlay: no root, nothing installed system-wide,
+# rebuilt whenever the Foliate package changes.
+R=/usr/share/com.github.johnfactotum.Foliate/com.github.johnfactotum.Foliate.gresource
+P=/com/github/johnfactotum/Foliate/foliate-js/view.js
+O=${XDG_CACHE_HOME:-$HOME/.cache}/foliate-overlay/view.js
+
+if [ ! -s "$O" ] || [ "$R" -nt "$O" ] || [ "$0" -nt "$O" ]; then
+    mkdir -p "${O%/*}"
+    gresource extract "$R" "$P" | sed \
+        -e "s/initTTS(granularity = 'word')/initTTS(granularity = 'sentence')/" \
+        -e "s|this.renderer.scrollToAnchor(range, true), granularity)|&\n        const t = this.tts, start = t.start.bind(t)\n        t.start = () => { const r = this.lastLocation?.range; return r ? t.from(r) : start() }|" > "$O.tmp" \
+        && mv "$O.tmp" "$O"
+fi
+[ -s "$O" ] && export G_RESOURCE_OVERLAYS="$P=$O"
+exec foliate "$@"
