@@ -28,7 +28,7 @@ XKB_MODEL="abnt2"
 # Personal apps (remove what you don't want). The SUPER+B shortcut opens "brave":
 # if you drop brave-bin, change `browser` in dotfiles/.config/hypr/binds.lua.
 PERSONAL_PKGS=(keepassxc htop tmux openssh qrencode vim man-db man-pages texinfo bash-completion wget pnpm)
-PERSONAL_AUR=(brave-bin claude-desktop)
+PERSONAL_AUR=(brave-bin claude-desktop pritunl-client-bin)   # pritunl-client-bin: Pritunl VPN client (prebuilt)
 INSTALL_CLAUDE_CODE=1         # Claude Code (CLI) via the official installer; 0 to skip
 # ────────────────────────────────────────────────────────────────────────
 
@@ -244,6 +244,8 @@ setup_system() {
 
     step "Services"
     sudo systemctl enable NetworkManager bluetooth power-profiles-daemon sddm
+    # Pritunl VPN client daemon (the GUI talks to it); only when the package is installed
+    systemctl cat pritunl-client.service >/dev/null 2>&1 && sudo systemctl enable --now pritunl-client.service
     systemctl --user enable pipewire.socket pipewire-pulse.socket wireplumber.service 2>/dev/null || true
 
     if command -v grub-mkconfig >/dev/null && [[ -f /boot/grub/grub.cfg ]]; then

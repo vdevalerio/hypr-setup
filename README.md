@@ -176,6 +176,9 @@ Tested on: Ryzen 7 7735HS + Radeon 680M + RTX 4050 (laptop), Hyprland 0.56.
   tunnels; click one to connect or disconnect, or import a `.conf` (`nmcli` stores it, so it also shows up
   in `nm-connection-editor`). `󰖂` shows on the bar while a VPN is connected (click to manage). Tailscale signs
   in once, in the browser. The firewall still blocks **incoming** connections on the VPN interface too.
+  The **Pritunl** client (`pritunl-client-bin`, prebuilt) is installed too: its `pritunl-client.service` daemon
+  is enabled by `install.sh`; open "Pritunl" from the launcher and import your profile (URI or `.tar`).
+  Don't install `pritunl-git`: that is the VPN *server*, not the client.
 - **Games** (`./install.sh gaming`): Steam runs on the integrated GPU like everything else, so the NVIDIA GPU
   stays off. For a game, set its Steam launch option to `game %command%` (right click → Properties):
   it runs on the NVIDIA GPU with GameMode (performance power profile while playing) and MangoHud
