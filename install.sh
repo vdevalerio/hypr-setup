@@ -46,6 +46,7 @@ MANAGED=(
     .config/fcitx5
     .config/yazi
     .config/zathura
+    .config/tmux
     .config/lsd
     .config/nvim
     .config/starship.toml

@@ -8,3 +8,4 @@ dotfiles/.config/hypr/wallpaper.png
 __pycache__/
 *.pyc
 dotfiles/.config/fcitx5/conf/cached_layouts
+private**

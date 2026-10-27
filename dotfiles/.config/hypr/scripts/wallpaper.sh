@@ -102,6 +102,7 @@ reload_apps() {
     pkill -SIGUSR2 -x waybar        # reload the bar style
     swaync-client -rs >/dev/null 2>&1
     pkill -SIGUSR1 -x kitty         # reload colors of open terminals
+    tmux source-file ~/.config/tmux/tmux.conf 2>/dev/null  # running tmux server (no-op without one)
     ~/.config/hypr/scripts/sddm-sync.sh 9>&- &  # login screen: new background and colors (without inheriting the lock)
     fcitx5-remote -r 2>/dev/null    # candidate window theme (Japanese)
 }

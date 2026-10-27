@@ -7,7 +7,7 @@
     theme.py name <id>         human-readable theme name
 
 Writes the colors to: Hyprland (borders), hyprlock, Waybar, SwayNC, Rofi, kitty, GTK, Qt (qt6ct), btop,
-Quickshell (lock screen, overview), fcitx5 and the login screen. lazygit and yazi use the terminal colors
+tmux, Quickshell (lock screen, overview), fcitx5 and the login screen. lazygit and yazi use the terminal colors
 (ANSI names) and follow along on their own. wallpaper.sh reloads the apps (wallpaper.sh theme <id|auto>).
 
 All themes have the same 26 named colors (Catppuccin names): "mauve" is the main accent
@@ -170,6 +170,27 @@ def zathura(c):
         q("index-active-bg", "mauve"), q("index-active-fg", "base"),
         q("highlight-color", "yellow"), q("highlight-active-color", "mauve"),
         q("recolor-lightcolor", "base"), q("recolor-darkcolor", "text"),
+    ]
+    return f"# {HEADER}\n" + "\n".join(rows) + "\n"
+
+
+def tmux(c):
+    # Mauve→blue gradient: the active window is mauve, the session badge blue
+    rows = [
+        f"set -g status-style               'bg=#{c['mantle']},fg=#{c['text']}'",
+        f"set -g message-style              'bg=#{c['surface0']},fg=#{c['text']}'",
+        f"set -g message-command-style      'bg=#{c['surface0']},fg=#{c['mauve']}'",
+        f"set -g mode-style                 'bg=#{c['mauve']},fg=#{c['base']}'",
+        f"set -g pane-border-style          'fg=#{c['surface1']}'",
+        f"set -g pane-active-border-style   'fg=#{c['mauve']}'",
+        f"set -g display-panes-colour       '#{c['surface2']}'",
+        f"set -g display-panes-active-colour '#{c['mauve']}'",
+        f"set -g clock-mode-colour          '#{c['mauve']}'",
+        f"set -g status-left                '#[bg=#{c['blue']},fg=#{c['crust']},bold] #S #[bg=#{c['mantle']}] '",
+        f"set -g status-right               '#[fg=#{c['subtext0']}] %a %d/%m  %H:%M '",
+        f"set -g window-status-format       '#[fg=#{c['overlay1']}] #I #W '",
+        f"set -g window-status-current-format '#[bg=#{c['mauve']},fg=#{c['crust']},bold] #I #W '",
+        f"set -g window-status-bell-style   'fg=#{c['yellow']}'",
     ]
     return f"# {HEADER}\n" + "\n".join(rows) + "\n"
 
@@ -395,6 +416,7 @@ OUTPUTS = [
     ("~/.config/qt6ct/colors/hypr-setup.conf", qt6ct),
     ("~/.config/btop/themes/hypr-setup.theme", btop),
     ("~/.config/zathura/colors", zathura),
+    ("~/.config/tmux/colors.conf", tmux),
     ("~/.config/quickshell/colors.json", quickshell),
     ("~/.local/share/fcitx5/themes/hypr-setup/theme.conf", fcitx5),
     ("~/.config/hypr/sddm-colors.conf", sddm),
