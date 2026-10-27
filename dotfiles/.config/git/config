@@ -1,8 +1,7 @@
 # hypr-setup Git config. Single-machine settings (e.g. work e-mail per folder) go in
 # ~/.config/git/local, which is not versioned — see the [include] at the end.
 [user]
-	name = Marcos Valério
-	email = marcosvalerio.dev255@gmail.com
+	# name and email: private.env → ~/.config/git/local (install.sh writes it)
 	# Signs commits/tags with the SSH key (uploaded to GitHub as a "signing key")
 	signingkey = ~/.ssh/id_ed25519.pub
 [gpg]

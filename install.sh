@@ -423,7 +423,7 @@ setup_boot() {
 }
 
 # Claude Code: status line script + settings fragment (claude/settings.json) merged into
-# ~/.claude/settings.json. Merged, not copied: other tools (e.g. the company's Growth Opera
+# ~/.claude/settings.json. Merged, not copied: other tools (e.g. a work setup's own hooks
 # installer) keep their own hooks there. Objects are merged deeply; permissions.allow is a union.
 setup_claude() {
     step "Claude Code: status line, settings, forge skills"
@@ -442,6 +442,34 @@ setup_claude() {
         | .permissions.allow = ((($cur.permissions.allow // []) + ($new.permissions.allow // [])) | unique)' \
         "$cur" "$REPO/claude/settings.json" > "$tmp" && mv "$tmp" "$cur"
     info "Merged into $cur (backup: settings.json.bak.hypr-setup). Restart Claude Code to apply."
+}
+
+# Private settings (git-ignored private/ folder): git identity, extra backup paths, private spell words.
+# Live copies are in ~/.config/hypr-setup; private.env.example is the public template.
+PRIVATE_FILES=(private.env private.spell.add)
+deploy_private() {
+    local live="$HOME/.config/hypr-setup" f
+    mkdir -p "$live"
+    for f in "${PRIVATE_FILES[@]}"; do
+        [[ -f $REPO/private/$f && ! -e $live/$f ]] && cp -a "$REPO/private/$f" "$live/$f"
+    done
+    if [[ ! -e $live/private.env ]]; then
+        cp "$REPO/private.env.example" "$live/private.env"
+        warn "No private/private.env: copied the example to $live/private.env. Edit it (git name/e-mail, backup paths)."
+    fi
+    chmod 600 "$live/private.env"
+    # shellcheck disable=SC1091
+    ( . "$live/private.env"
+      mkdir -p "$HOME/.config/git"
+      [[ -n ${GIT_NAME:-} ]]  && git config --file "$HOME/.config/git/local" user.name  "$GIT_NAME"
+      [[ -n ${GIT_EMAIL:-} ]] && git config --file "$HOME/.config/git/local" user.email "$GIT_EMAIL" ) || true
+}
+save_private() {
+    local live="$HOME/.config/hypr-setup" f
+    mkdir -p "$REPO/private"
+    for f in "${PRIVATE_FILES[@]}"; do
+        [[ -f $live/$f ]] && cp -a "$live/$f" "$REPO/private/$f"
+    done
 }
 
 deploy_dotfiles() {
@@ -475,6 +503,8 @@ deploy_dotfiles() {
     local d
     for d in Desktop Documents Downloads Music Pictures Projects Public Templates Videos; do mkdir -p "$HOME/$d"; done
     mkdir -p "$HOME/Pictures/Screenshots"
+
+    deploy_private
 
     # Git: commit signing with the SSH key (if present) and the gnome-keyring SSH agent
     if [[ -f $HOME/.ssh/id_ed25519.pub ]]; then
@@ -623,6 +653,7 @@ save_dotfiles() {
         cp -a "$src" "$dst"
     done
     for ex in "${SAVE_EXCLUDE[@]}"; do rm -rf "${DOTS:?}/$ex"; done
+    save_private
 
     info "Done. Size: $(du -sh "$DOTS" | cut -f1)"
 }

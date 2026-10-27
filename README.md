@@ -56,6 +56,19 @@ At the top of `install.sh`:
 - **Personal apps:** `PERSONAL_PKGS` and `PERSONAL_AUR` (Brave, KeePassXC, Claude Desktop, tmux…).
   SUPER + B opens Brave; if you remove Brave, change `browser` in `dotfiles/.config/hypr/binds.lua`.
 
+### Private settings
+
+Anything personal stays out of the repo. Copy `private.env.example` to
+`private/private.env` (the whole `private/` folder is git-ignored) and edit it:
+
+- `GIT_NAME` / `GIT_EMAIL`: your git identity, written to `~/.config/git/local`;
+- `BACKUP_EXTRA_PATHS`: extra folders for `backup`.
+
+`private/private.spell.add` is a fourth Neovim spelling list (`4zg`) for names you do not
+want to publish (clients, companies). `./install.sh` deploys both to `~/.config/hypr-setup/`
+(without a `private.env` it copies the example and warns), and `./install.sh save` copies
+them back to `private/`.
+
 ### Hardware
 
 The script detects the hardware on its own:
@@ -528,7 +541,7 @@ hypr-setup/
 - `/forge-skills` explores the current repo (via the cheap `pesquisador` agent) and writes 2-4 lean skills to `<repo>/.claude/skills/` (workflow, architecture, gotchas), kept out of git through `.git/info/exclude`.
 - The `friction-log.mjs` hook (tool failures and user corrections) appends short lines to `~/.claude/forge/friction/<repo>.jsonl`. No output and no model calls, so it costs no tokens.
 - `/retro` clusters the new friction and proposes **diffs** to the forged skills, the repo's `CLAUDE.md`, and the `forge-skills`/`retro` skills themselves. Nothing is applied without your approval.
-- Not connected to Growth Opera on purpose. `install.sh claude` merges the hooks without touching existing ones.
+- Not connected to any ticket-tracking system on purpose. `install.sh claude` merges the hooks without touching existing ones.
 
 Start `claude` inside `~/Projects/Personal/hypr-setup` when working on the desktop so `CLAUDE.md` (workflow and gotchas) and the `desktop-verifier` agent (cheap Haiku post-change checks) are loaded. Restart Claude Code after `install.sh claude`.
 

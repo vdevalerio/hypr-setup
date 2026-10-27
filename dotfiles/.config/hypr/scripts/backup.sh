@@ -14,8 +14,9 @@ export RESTIC_REPOSITORY="rclone:gdrive:Backups/restic-$(uname -n)" # uname: the
 export RESTIC_PASSWORD_FILE="$HOME/.config/restic/password"
 STATUS=~/.cache/backup-last
 
-PATHS=(~/Projects/Growth ~/.ssh ~/.gnupg ~/.local/share/keyrings
-  ~/.config/keepassxc ~/Projects/Personal/hypr-setup)
+PATHS=(~/.ssh ~/.gnupg ~/.local/share/keyrings ~/.config/keepassxc ~/Projects/Personal/hypr-setup)
+# Private extras (work folders...): BACKUP_EXTRA_PATHS in ~/.config/hypr-setup/private.env
+[ -r ~/.config/hypr-setup/private.env ] && . ~/.config/hypr-setup/private.env && PATHS+=("${BACKUP_EXTRA_PATHS[@]}")
 EXCLUDES=(node_modules .venv venv __pycache__ .mypy_cache .ruff_cache .pytest_cache .ipynb_checkpoints
   .cache target dist build '*.iso' '*.tmp')
 

@@ -15,7 +15,7 @@ start with the repo's real commands and conventions instead of re-exploring it.
   `.git/info/exclude` (not `.gitignore`) if it is not already there and the repo has no tracked `.claude/skills`.
 - Keep every SKILL.md under ~60 lines. Facts only, each one verified in the repo (cite `path:line`).
   No generic advice ("write clean code"), nothing already obvious from file names.
-- Do not call the `growth_opera` tools; this is tooling work, not ticket work.
+- Do not call ticket-tracking (MCP) tools; this is tooling work, not ticket work.
 
 ## Steps
 1. **Explore cheaply.** Delegate to the `pesquisador` agent: root layout, languages, package manager,

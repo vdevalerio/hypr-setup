@@ -23,13 +23,20 @@ vim.g.autoformat = false
 
 -- Spell checking: English + Brazilian Portuguese. `zg` adds a word to the first spellfile (en),
 -- `2zg` to the second (pt), `3zg` to the third (tech: technical terms, kept apart from the languages);
--- all live in the config so they are versioned with the repo.
+-- all live in the config so they are versioned with the repo (except the private list, see below).
 opt.spelllang = { "en", "pt_br" }
-opt.spellfile = {
+local spellfiles = {
   vim.fn.stdpath("config") .. "/spell/en.utf-8.add",
   vim.fn.stdpath("config") .. "/spell/pt.utf-8.add",
   vim.fn.stdpath("config") .. "/spell/tech.utf-8.add",
 }
+-- Fourth list, `4zg`: private words (client/company names). It lives outside the repo, in
+-- ~/.config/hypr-setup/private.spell.add (install.sh keeps it in the git-ignored private/ folder).
+local private_words = vim.fn.expand("~/.config/hypr-setup/private.spell.add")
+if vim.uv.fs_stat(private_words) then
+  table.insert(spellfiles, private_words)
+end
+opt.spellfile = spellfiles
 
 -- Word lists are plain text; Neovim only uses their compiled .spl (git-ignored), so build any
 -- that is missing or older than its list.
