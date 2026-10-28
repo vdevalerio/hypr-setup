@@ -72,6 +72,7 @@ MANAGED=(
     .local/share/applications/speechify.desktop
     .local/bin/foliate-sentences
     .local/bin/game
+    .local/bin/todo
     .config/gamemode.ini
     .local/share/piper-speechd
     .local/share/fcitx5/themes/hypr-setup

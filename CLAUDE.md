@@ -7,6 +7,7 @@ Everything in this repo is written in **English** (code, comments, docs, UI stri
 ## Workflow
 - The **live files in `~/.config` are the source of truth.** Edit them, test live, then `./install.sh save` (copies the MANAGED list into `dotfiles/`), commit, `git push` (private GitHub `vdevalerio/hypr-setup`, ssh).
 - `install.sh` subcommands: `all` (default) · `dotfiles` · `nvim` · `save` · `data` · `extras` · `boot` · `sddm`. Anything needing sudo is run **by the user** (`! ./install.sh <cmd>`); sudo asks for a password.
+- **Every change to the setup ships with its documentation** (README: features, shortcuts table, commands; this file for architecture/gotchas) in the same commit.
 - New config paths must be added to `MANAGED` (and generated/personal files to `SAVE_EXCLUDE`). Personal files (own wallpapers, `~/.face`) are never synced; default wallpapers are deploy-only.
 - Test a full install in the VM: `test/vm.sh` (QEMU/KVM, ssh `localhost:2222`, user tester/tester, files in `~/VMs/hypr-setup-test`). Screenshot the VM by `grim`-ing the qemu window geometry from `hyprctl clients -j`.
 
@@ -18,6 +19,7 @@ Everything in this repo is written in **English** (code, comments, docs, UI stri
 - Generated files carry an "AUTO-GENERATED … do not edit" header: change the generator, then regenerate.
 - Waybar (AUR `waybar-git` until 0.16) runs under `scripts/bar.sh` (supervisor). Islands: left, window, clock, media, tray drawer, monitor (`scripts/sysmon.sh`), status, actions. Reload config with `pkill -USR2 -x waybar` (CSS reloads by itself).
 - Quickshell: lock screen (`quickshell/lock.qml`, via `scripts/lock.sh`, hyprlock fallback) and workspace overview (`overview.qml` + `OverviewScreen.qml`, resident, toggled by `scripts/overview.sh` over IPC).
+- To-do list: `scripts/todo.sh` (todo.txt in `~/.local/share/todo/`, `todo` command in `~/.local/bin`, Waybar `custom/todo` signal 13, Rofi menu on SUPER + CTRL + T).
 - dGPU power: everything long-running is wrapped in `scripts/igpu.sh` so only Hyprland holds `/dev/nvidia*`.
 
 ## Gotchas (learned the hard way)

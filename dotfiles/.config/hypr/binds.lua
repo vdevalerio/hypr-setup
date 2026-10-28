@@ -26,6 +26,7 @@ bind(M("D"),             hl.dsp.exec_cmd("pkill -x rofi || rofi -show drun"), "A
 bind(M("SHIFT + Space"), hl.dsp.exec_cmd("pkill -x rofi || rofi -show run"),  "Run command")
 bind("ALT + Tab",        hl.dsp.exec_cmd("pkill -x rofi || rofi -show window"), "Switch window (list)")
 bind(M("Tab"),           hl.dsp.exec_cmd("~/.config/hypr/scripts/overview.sh"), "Workspace overview")
+bind(M("CTRL + T"),      hl.dsp.exec_cmd("pkill -x rofi || ~/.config/hypr/scripts/todo.sh menu"), "To-do list")
 bind(M("E"),             hl.dsp.exec_cmd(fileManager),                   "File manager")
 bind(M("B"),             hl.dsp.exec_cmd(browser),                       "Web browser")
 bind(M("V"),             hl.dsp.exec_cmd(scripts .. "clipboard.sh"),     "Clipboard history")

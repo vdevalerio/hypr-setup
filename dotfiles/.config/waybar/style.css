@@ -52,7 +52,7 @@ window#waybar.empty #window { background: transparent; border-color: transparent
 #custom-launcher, #workspaces, #submap,
 #cpu, #custom-gpu, #custom-temp, #memory, #disk, #custom-claude,
 #custom-tray-toggle, #tray,
-#custom-updates, #custom-vpn, #pulseaudio, #battery,
+#custom-todo, #custom-updates, #custom-vpn, #pulseaudio, #battery,
 #custom-recording, #custom-notification, #custom-control, #custom-power {
     background: transparent;
     padding: 0 9px;
@@ -63,7 +63,7 @@ window#waybar.empty #window { background: transparent; border-color: transparent
 
 #custom-launcher:hover, #custom-tray-toggle:hover,
 #cpu:hover, #custom-gpu:hover, #custom-temp:hover, #memory:hover, #disk:hover, #custom-claude:hover,
-#custom-updates:hover, #custom-vpn:hover, #pulseaudio:hover, #battery:hover, #window:hover,
+#custom-todo:hover, #custom-updates:hover, #custom-vpn:hover, #pulseaudio:hover, #battery:hover, #window:hover,
 #custom-notification:hover, #custom-control:hover, #custom-power:hover,
 #clock:hover, #custom-media:hover {
     background: alpha(@mauve, 0.18);
@@ -137,6 +137,8 @@ window#waybar.empty #window { background: transparent; border-color: transparent
 #tray > .passive { -gtk-icon-effect: dim; }
 #tray > .needs-attention { -gtk-icon-effect: highlight; background: alpha(@red, 0.6); border-radius: 6px; }
 
+#custom-todo { color: @green; }
+#custom-todo.empty { color: @overlay1; }
 #custom-updates { color: @blue; }
 #custom-updates.many { color: @peach; }
 #custom-vpn { color: @teal; }

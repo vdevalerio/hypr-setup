@@ -31,7 +31,7 @@
     },
     "group/status": {
         "orientation": "horizontal",
-        "modules": ["custom/updates", "custom/vpn", "pulseaudio", "battery"]
+        "modules": ["custom/todo", "custom/updates", "custom/vpn", "pulseaudio", "battery"]
     },
     "group/actions": {
         "orientation": "horizontal",
@@ -233,6 +233,14 @@
     },
 
     // Screen recording in progress (hidden when not recording)
+    "custom/todo": {
+        "exec": "~/.config/hypr/scripts/todo.sh status",
+        "return-type": "json",
+        "interval": 300,
+        "signal": 13,
+        "format": "{}",
+        "on-click": "setsid -f ~/.config/hypr/scripts/todo.sh menu"
+    },
     "custom/updates": {
         "exec": "~/.config/hypr/scripts/updates.sh status",
         "return-type": "json",
