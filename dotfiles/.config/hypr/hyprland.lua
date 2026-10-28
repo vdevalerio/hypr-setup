@@ -107,6 +107,7 @@ hl.on("hyprland.start", function()
     hl.exec_cmd("~/.config/hypr/scripts/audio-follow.sh")  -- Bluetooth headset becomes the default audio output
     hl.exec_cmd("~/.config/hypr/scripts/power.sh")         -- plugged in vs battery: 165/60 Hz and power profile
     hl.exec_cmd("~/.config/hypr/scripts/lid.sh check")     -- booted with the lid closed and an external monitor
+    hl.exec_cmd("~/.config/hypr/scripts/igpu.sh tmux new-session -d") -- tmux server: continuum restores the sessions saved before the reboot
     hl.exec_cmd("fcitx5 -d --replace") -- keyboard languages (SUPER + CTRL + Space)
     hl.exec_cmd("~/.config/hypr/scripts/look.sh apply") -- font sizes (GTK, bar, menus...)
     hl.exec_cmd("~/.config/hypr/scripts/sddm-sync.sh")  -- login screen matching the lock screen
