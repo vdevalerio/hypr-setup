@@ -10,7 +10,10 @@ while IFS=$'\t' read -r status player title artist; do
     fi
     [ "$status" = Playing ] && icon=󰐊 || icon=󰏤
     tip="$player: $title${artist:+ — $artist}"
-    (( ${#title} > 32 )) && title="${title:0:31}…"
+    # shorter title with a bigger font (look.sh), so the right end of the bar is not pushed off screen
+    font=$(sed -n 's/^font=//p' ~/.config/hypr/look.conf 2>/dev/null); max=$(( 2400 / ${font:-100} ))
+    (( max < 12 )) && max=12
+    (( ${#title} > max )) && title="${title:0:max-1}…"
     jq -cn --arg text "$icon  $title" --arg tip "$tip" --arg class "${status,,}" \
         '{text: $text, tooltip: ($tip + "\nClick: play/pause · Right click: next · Scroll: previous/next"), class: $class}'
 done

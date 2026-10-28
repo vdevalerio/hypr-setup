@@ -129,7 +129,7 @@ Tested on: Ryzen 7 7735HS + Radeon 680M + RTX 4050 (laptop), Hyprland 0.56.
 | SUPER + A | Control center |
 | SUPER + SHIFT + B | Show/hide the bar |
 | SUPER + Esc | Lock screen |
-| SUPER + X | Power menu |
+| SUPER + X | Power menu (lock, reload Hyprland, suspend, log out, reboot, shut down) |
 | SUPER + CTRL + Q | Exit Hyprland |
 
 ### Appearance (live, saved to `~/.config/hypr/look.conf`)
@@ -137,7 +137,8 @@ Tested on: Ryzen 7 7735HS + Radeon 680M + RTX 4050 (laptop), Hyprland 0.56.
 |---|---|
 | SUPER + ALT + `=` / `-` / `0` | Larger / smaller / default fonts |
 | SUPER + CTRL + `=` / `-` / `0` | Larger / smaller / default window gaps (can be held down) |
-| SUPER + CTRL + ALT + `=` / `-` / `0` | Larger / smaller / automatic display scale |
+| SUPER + CTRL + ALT + `=` / `-` / `0` | Larger / smaller / automatic display scale of **all** monitors |
+| SUPER + SHIFT + ALT + `=` / `-` / `0` | Larger / smaller / default scale of the **focused monitor only** |
 
 ### Keyboard language
 | Shortcut | Action |
@@ -353,7 +354,12 @@ to change), keyboard layout and suspend, reboot and shut down buttons.
   right of, above or below another), resolution and refresh rate, scale, rotation, mirroring another monitor,
   turning off/on, back to automatic. Applies immediately and is saved to `~/.config/hypr/monitors.conf`,
   by the monitor's description (still applies if you switch ports). With no adjustment, everything is automatic
-  (the new monitor goes to the right) and the scale follows SUPER + CTRL + ALT + `=` / `-`.
+  (the new monitor goes to the right) and the scale follows SUPER + CTRL + ALT + `=` / `-` (all monitors).
+- **Scale per monitor:** SUPER + SHIFT + ALT + `=` / `-` / `0` changes only the focused monitor (any monitor, however
+  many are connected; `0` returns it to the default). It is saved by the monitor's description in `monitors.conf`, so it
+  comes back when that monitor is reconnected. Monitors next to it are repositioned so no gap or overlap appears, and
+  only scales that give whole pixels on that screen are offered. Same thing in control center → Displays → Scale.
+  Script: `displays.sh scale <monitor|focused> up|down|reset|<value>`.
 - **Independent brightness:** the brightness keys change the focused monitor; the mouse wheel on the battery
   changes that bar's monitor; control center → Brightness lists them all.
   External monitors use **DDC/CI**: enable the "DDC/CI" option in the monitor's own menu. Test with
@@ -393,7 +399,7 @@ Script: `~/.config/hypr/scripts/controlcenter.sh` (`status`, or the name of a su
 - **Fonts** (SUPER + ALT + `=` / `-`): in 10% steps, from 50% to 200%. Changes the bar, menus, notifications,
   terminals (including open ones) and GTK and Qt apps (already-open ones update when reopened).
 - **Window gaps** (SUPER + CTRL + `=` / `-`): the gap to the screen edge follows.
-- **Display scale** (SUPER + CTRL + ALT + `=` / `-`): increases or decreases **everything** (fonts, icons,
+- **Display scale** (SUPER + CTRL + ALT + `=` / `-`, all monitors; one monitor: SUPER + SHIFT + ALT + `=` / `-`): increases or decreases **everything** (fonts, icons,
   windows). On this laptop (1920×1080) the automatic scale is 1.5. If everything looks big, try
   1.25 or 1.2. `0` goes back to automatic.
 - The values are stored in `~/.config/hypr/look.conf` and persist across reboots (`hyprland.lua`

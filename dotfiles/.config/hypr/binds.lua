@@ -53,9 +53,13 @@ bind(M("ALT + 0"),       hl.dsp.exec_cmd(scripts .. "look.sh font reset"), "Font
 bind(M("CTRL + equal"),  hl.dsp.exec_cmd(scripts .. "look.sh gaps up"),    "Window gaps: bigger",  { repeating = true })
 bind(M("CTRL + minus"),  hl.dsp.exec_cmd(scripts .. "look.sh gaps down"),  "Window gaps: smaller", { repeating = true })
 bind(M("CTRL + 0"),      hl.dsp.exec_cmd(scripts .. "look.sh gaps reset"), "Window gaps: reset")
-bind(M("CTRL + ALT + equal"), hl.dsp.exec_cmd(scripts .. "look.sh scale up"),    "Display scale: bigger (everything)")
-bind(M("CTRL + ALT + minus"), hl.dsp.exec_cmd(scripts .. "look.sh scale down"),  "Display scale: smaller (everything)")
-bind(M("CTRL + ALT + 0"),     hl.dsp.exec_cmd(scripts .. "look.sh scale reset"), "Display scale: automatic")
+bind(M("CTRL + ALT + equal"), hl.dsp.exec_cmd(scripts .. "look.sh scale up"),    "Display scale: bigger (ALL monitors)")
+bind(M("CTRL + ALT + minus"), hl.dsp.exec_cmd(scripts .. "look.sh scale down"),  "Display scale: smaller (ALL monitors)")
+bind(M("CTRL + ALT + 0"),     hl.dsp.exec_cmd(scripts .. "look.sh scale reset"), "Display scale: automatic (ALL monitors)")
+-- Scale of ONE monitor (the focused one; works for any monitor, neighbours are repositioned)
+bind(M("SHIFT + ALT + equal"), hl.dsp.exec_cmd(scripts .. "displays.sh scale focused up"),    "Monitor scale: bigger (focused monitor)")
+bind(M("SHIFT + ALT + minus"), hl.dsp.exec_cmd(scripts .. "displays.sh scale focused down"),  "Monitor scale: smaller (focused monitor)")
+bind(M("SHIFT + ALT + 0"),     hl.dsp.exec_cmd(scripts .. "displays.sh scale focused reset"), "Monitor scale: default (focused monitor)")
 
 -- ── Keyboard language (fcitx5, scripts/keyboard.sh) ─────────
 -- Hyprland keybinds stay on the br layout, whatever the active language.

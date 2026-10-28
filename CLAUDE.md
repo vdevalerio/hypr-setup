@@ -19,6 +19,7 @@ Everything in this repo is written in **English** (code, comments, docs, UI stri
 - Generated files carry an "AUTO-GENERATED … do not edit" header: change the generator, then regenerate.
 - Waybar (AUR `waybar-git` until 0.16) runs under `scripts/bar.sh` (supervisor). Islands: left, window, clock, media, tray drawer, monitor (`scripts/sysmon.sh`), status, actions. Reload config with `pkill -USR2 -x waybar` (CSS reloads by itself).
 - Quickshell: lock screen (`quickshell/lock.qml`, via `scripts/lock.sh`, hyprlock fallback) and workspace overview (`overview.qml` + `OverviewScreen.qml`, resident, toggled by `scripts/overview.sh` over IPC).
+- Scale: `look.sh scale` = ALL monitors (look.conf default); per monitor = `displays.sh scale <name|focused> …` (stored in `monitors.conf` by description, neighbours re-laid out by `relayout`, only whole-pixel scales). Works for any number of monitors.
 - To-do list: `scripts/todo.sh` (todo.txt in `~/.local/share/todo/`, `todo` command in `~/.local/bin`, Waybar `custom/todo` signal 13, Rofi menu on SUPER + CTRL + T).
 - dGPU power: everything long-running is wrapped in `scripts/igpu.sh` so only Hyprland holds `/dev/nvidia*`.
 

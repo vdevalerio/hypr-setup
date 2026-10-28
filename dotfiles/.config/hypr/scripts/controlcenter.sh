@@ -228,10 +228,10 @@ display_scale_menu() {
     local m=$1 cur s
     cur=$(mon_json "$m" '.scale * 100 | round / 100')
     add "󰁍" "Back" "" "exec $0 display:$m 3"
-    add "󰑓" "Default" "global $(look get scale)" "disp unset $m scale; exec $0 display:$m 3"
-    for s in 1 1.2 1.25 1.333333 1.5 1.6 2; do
+    add "󰑓" "Default" "global $(look get scale)" "disp scale $m reset; exec $0 display:$m 3"
+    for s in $(disp valid-scales "$m"); do
         add "󰐕" "×$s" "$(awk -v a="$s" -v b="$cur" 'BEGIN { if ((a - b) ^ 2 < 0.0001) print "● active" }')" \
-            "disp set $m scale $s; exec $0 display:$m 3"
+            "disp scale $m $s; exec $0 display:$m 3"
     done
     show "Scale: $(dlabel "$m")" "display-scale:$m"
 }

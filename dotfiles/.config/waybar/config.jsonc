@@ -72,7 +72,7 @@
 
     "hyprland/window": {
         "format": "{}",
-        "max-length": 50,
+        "max-length": 18,
         "separate-outputs": true,
         // Click on the title: open windows in each workspace (the workspace buttons do not accept
         // an extra click: Waybar delivers the click to the button, never to the module)
