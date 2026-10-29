@@ -164,7 +164,7 @@
         "return-type": "json",
         "interval": 60,
         "format": "󰚩 {}",
-        "on-click": "setsid -f kitty --class btop-float --hold -e sh -c 'pnpm dlx ccusage@latest daily --breakdown; echo; pnpm dlx ccusage@latest blocks --active'"
+        "on-click": "setsid -f kitty --class btop-float -e sh -c 'pnpm dlx ccusage@latest daily --breakdown; echo; pnpm dlx ccusage@latest blocks --active; echo; echo Press Enter to close; read _'"
     },
     "disk": {
         "interval": 60,
