@@ -1,19 +1,43 @@
 #!/usr/bin/env bash
 # Foliate with sentence-level read-aloud highlighting (it always highlights words,
-# and the highlight froze after rate changes) that also starts reading where the page is,
-# not at the top of the chapter. Patches foliate-js' view.js default
-# granularity through a GResource overlay: no root, nothing installed system-wide,
-# rebuilt whenever the Foliate package changes.
+# and the highlight froze after rate changes), reading that starts where the page is
+# (not at the top of the chapter) and keyboard control of the read-aloud:
+#   Ctrl+Space      play / pause          Ctrl+. / Ctrl+,          next / previous sentence
+#   Ctrl+Backspace  stop                  Ctrl+Alt+. / Ctrl+Alt+,  next / previous paragraph
+#   Ctrl+Return     read from the selected text (select it first; also works with the
+#                   selection popover open, which has its own key controller)
+# (Ctrl+arrows are eaten by the web view, hence the punctuation keys)
+# Patches foliate-js and the viewer through GResource overlays: no root, nothing
+# installed system-wide, rebuilt whenever the Foliate package or this script changes.
 R=/usr/share/com.github.johnfactotum.Foliate/com.github.johnfactotum.Foliate.gresource
-P=/com/github/johnfactotum/Foliate/foliate-js/view.js
-O=${XDG_CACHE_HOME:-$HOME/.cache}/foliate-overlay/view.js
+D=/com/github/johnfactotum/Foliate
+C=${XDG_CACHE_HOME:-$HOME/.cache}/foliate-overlay
 
-if [ ! -s "$O" ] || [ "$R" -nt "$O" ] || [ "$0" -nt "$O" ]; then
-    mkdir -p "${O%/*}"
-    gresource extract "$R" "$P" | sed \
-        -e "s/initTTS(granularity = 'word')/initTTS(granularity = 'sentence')/" \
-        -e "s|this.renderer.scrollToAnchor(range, true), granularity)|&\n        const t = this.tts, start = t.start.bind(t)\n        t.start = () => { const r = this.lastLocation?.range; return r ? t.from(r) : start() }|" > "$O.tmp" \
-        && mv "$O.tmp" "$O"
-fi
-[ -s "$O" ] && export G_RESOURCE_OVERLAYS="$P=$O"
+# overlay <resource path> <cache file> <sed args...>: extracts the resource, patches it, and
+# adds it to G_RESOURCE_OVERLAYS (an empty or missing result is skipped, Foliate runs stock)
+overlay() {
+    local res=$1 out=$C/$2; shift 2
+    if [ ! -s "$out" ] || [ "$R" -nt "$out" ] || [ "$0" -nt "$out" ]; then
+        mkdir -p "$C"
+        gresource extract "$R" "$D/$res" | sed "$@" > "$out.tmp" && mv "$out.tmp" "$out"
+    fi
+    [ -s "$out" ] && OVERLAYS+="${OVERLAYS:+:}$D/$res=$out"
+}
+
+OVERLAYS=
+overlay foliate-js/view.js view.js \
+    -e "s/initTTS(granularity = 'word')/initTTS(granularity = 'sentence')/" \
+    -e "s|this.renderer.scrollToAnchor(range, true), granularity)|&\n        const t = this.tts, start = t.start.bind(t)\n        t.start = () => { const r = this.lastLocation?.range; return r ? t.from(r) : start() }|"
+# step(delta): the sentence before/after the one being read (the paragraph before/after at the edges)
+overlay foliate-js/tts.js tts.js \
+    -e "s|^    setMark(mark) {|    step(delta) {\n        const names = [...this.#ranges.keys()], i = names.indexOf(this.#lastMark) + delta\n        if (i < 0) return this.prev()\n        if (i >= names.length) return this.next()\n        this.#lastMark = names[i]\n        const [doc] = this.#list.current() ?? []\n        return this.#speak(doc, ssml => this.#getMarkElement(ssml, this.#lastMark))\n    }\n&|"
+# the selected text, as the SSML to read from there (null without a selection)
+overlay reader/reader.js reader.js \
+    -e "s|^    printRange(doc, range) {|    async speakSelection() {\n        for (const { doc } of this.view.renderer.getContents()) {\n            const range = getSelectionRange(doc.getSelection())\n            if (!range) continue\n            await this.view.initTTS()\n            return this.view.tts.from(range)\n        }\n        return null\n    }\n&|"
+overlay book-viewer.js book-viewer.js \
+    -e "s|^    ttsSetMark(x) {.*|&\n    ttsStep(x) { return this.#exec('reader.view.tts.step', x) }\n    ttsSpeakSelection() { return this.#exec('reader.speakSelection') }|" \
+    -e "s|^            const popover = new SelectionPopover()|&\n            popover.add_controller(utils.addShortcuts({\n                '<ctrl>Return': () => { popover.activate_action('selection.speak-from-here', null); popover.popdown(); return true },\n                '<ctrl>space': () => { popover.popdown(); this._navbar.tts_box.play(); return true },\n            }))|" \
+    -e "s|^        this._view.webView.add_controller(utils.addShortcuts(shortcuts))|&\n        // the web view swallows Ctrl+Space: capture phase runs these first\n        const tts = this._navbar.tts_box, keys = {\n            '<ctrl>space': () => tts.play(),\n            '<ctrl>period': () => tts.speak(this._view.ttsStep(1)),\n            '<ctrl>comma': () => tts.speak(this._view.ttsStep(-1)),\n            '<ctrl><alt>period': () => tts.forward(),\n            '<ctrl><alt>comma': () => tts.backward(),\n            '<ctrl>BackSpace': () => tts.stop(),\n            '<ctrl>Return': () => this._view.ttsSpeakSelection().then(ssml => ssml ? tts.speak(ssml) : tts.start()),\n        }\n        // callbacks must return true or GTK keeps propagating (twice-run toggles, emoji picker)\n        for (const k in keys) { const f = keys[k]; keys[k] = () => (f(), true) }\n        for (const w of [this, this._view.webView]) {\n            const c = utils.addShortcuts(keys)\n            c.propagation_phase = Gtk.PropagationPhase.CAPTURE\n            w.add_controller(c)\n        }|"
+
+[ -n "$OVERLAYS" ] && export G_RESOURCE_OVERLAYS="$OVERLAYS"
 exec foliate "$@"

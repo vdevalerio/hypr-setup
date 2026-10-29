@@ -1,7 +1,8 @@
 #!/usr/bin/env bash
 # Text-to-speech voice (Piper, via the sd_piper speech-dispatcher module).
-# One voice per language, stored in ~/.config/piper-speechd/voices.json;
-# the module re-reads it on every utterance, so no restart is needed.
+# One selected voice, stored in ~/.config/piper-speechd/voices.json ("selected");
+# it speaks everything whatever the declared language of the text (e-book metadata is
+# often wrong). The module re-reads it on every utterance, so no restart is needed.
 #
 #   voice.sh pick            menu (rofi): choose a voice (SUPER + SHIFT + V)
 #   voice.sh set <voice>     direct, e.g. voice.sh set en_US-lessac-high
@@ -13,16 +14,16 @@ SAMPLE_en="The quick brown fox jumps over the lazy dog."
 SAMPLE_pt="A rápida raposa marrom pula sobre o cão preguiçoso."
 
 voices() { find "${DIRS[@]}" -name '*.onnx' -printf '%f\n' 2>/dev/null | sed 's/\.onnx$//' | sort -u; }
-active() { jq -r --arg l "$1" '.[$l] // empty' "$CONF" 2>/dev/null; }
+active() { jq -r '.selected // empty' "$CONF" 2>/dev/null; }
 
 set_voice() { # <voice id>
     local id=$1 lang=${1%%_*} tmp
     voices | grep -qx "$id" || { notify-send -a voice "Voice" "Unknown voice: $id"; exit 1; }
     mkdir -p "${CONF%/*}"
     tmp=$(mktemp)
-    jq --arg l "$lang" --arg v "$id" '. + {($l): $v}' "$CONF" 2>/dev/null > "$tmp" || echo "{\"$lang\": \"$id\"}" > "$tmp"
+    jq --arg v "$id" '{selected: $v}' <<<'{}' > "$tmp"
     mv "$tmp" "$CONF"
-    notify-send -a voice -t 2000 "󰔊  Voice" "${lang^^}: $id"
+    notify-send -a voice -t 2000 "󰔊  Voice" "$id"
     local s="SAMPLE_$lang"
     spd-say -l "$lang" "${!s:-$SAMPLE_en}" >/dev/null 2>&1
 }
@@ -33,7 +34,7 @@ pick() {
     mapfile -t list < <(voices)
     for id in "${list[@]}"; do
         lang=${id%%_*}; IFS=- read -r _ name q <<<"$id"
-        mark=; [ "$(active "$lang")" = "$id" ] && mark="● active"
+        mark=; [ "$(active)" = "$id" ] && mark="● active"
         rows+=("$(printf '%s   %-14s %-8s <span alpha="55%%">%s</span>' "${lang^^}" "$name" "$q" "$mark")")
     done
     [ ${#rows[@]} -gt 0 ] || { notify-send -a voice "Voice" "No Piper voices installed"; exit 1; }

@@ -7,9 +7,10 @@ This module splits the SSML at <mark/> elements, synthesizes sentence by
 sentence (next sentence is prefetched) and emits each mark in real time, with
 the sentence duration spread over its words in proportion to their length.
 
-Voice choice: ~/.config/piper-speechd/voices.json maps a language ("en", "pt")
-to a model id (e.g. "en_US-ryan-high"); `piper-voice` edits it. The language
-comes from the SSML xml:lang, else is guessed from the text.
+Voice choice: ~/.config/piper-speechd/voices.json has a "selected" model id
+(e.g. "pt_BR-faber-medium"), written by voice.sh. It is used for EVERYTHING:
+the language of the text (SSML xml:lang, e-book metadata) is ignored, since
+books often declare the wrong one.
 Set PIPER_SPEECHD_DEBUG=1 or touch ~/.config/piper-speechd/debug to log the
 protocol to ~/.cache/piper-speechd.log.
 """
@@ -31,7 +32,7 @@ CONF = os.path.join(HOME, ".config/piper-speechd")
 VOICE_DIRS = [os.path.join(HOME, ".local/share/piper"), "/usr/share/piper-voices"]
 LOG = os.path.join(HOME, ".cache/piper-speechd.log")
 DEBUG = bool(os.environ.get("PIPER_SPEECHD_DEBUG")) or os.path.exists(os.path.join(CONF, "debug"))
-PREFERRED = {"en": "en_US-ryan-high", "pt": "pt_BR-faber-medium"}
+PREFERRED = ("pt_BR-faber-medium", "en_US-ryan-high")  # when nothing is selected
 PREFETCH = 3         # sentences synthesized ahead (also the number of piper processes)
 START_DELAY = 0.06   # seconds between handing audio to the player and hearing it
 MARK_LEAD = 0.10     # marks fire this much early; ~/.config/piper-speechd/lead overrides it
@@ -69,37 +70,20 @@ def find_voices():
     return voices
 
 
-def chosen_voice(lang):
+def chosen_voice():
+    """The voice picked in voice.sh; the first installed one if it is missing."""
     voices = find_voices()
     try:
         with open(os.path.join(CONF, "voices.json")) as f:
-            pick = json.load(f).get(lang)
+            pick = json.load(f).get("selected")
     except (OSError, ValueError):
         pick = None
-    for vid in (pick, PREFERRED.get(lang)):
+    for vid in (pick, *PREFERRED):
         if vid in voices:
             return vid, voices[vid][0]
-    for vid, (p, l) in sorted(voices.items()):
-        if l == lang:
-            return vid, p
+    for vid, (p, _) in sorted(voices.items()):
+        return vid, p
     return None, None
-
-
-PT_WORDS = "de que não um uma para com os as do da em se por mais é são foi ele ela você nos seu sua".split()
-EN_WORDS = "the of and to in is that it for with was as on are he she you his her they this be".split()
-last_lang = "en"
-
-
-def guess_lang(text):
-    global last_lang
-    words = set(re.findall(r"[^\W\d_]+", text.lower()))
-    pt = sum(w in words for w in PT_WORDS) + (1 if re.search("[ãõçáéíóú]", text.lower()) else 0)
-    en = sum(w in words for w in EN_WORDS)
-    if pt > en:
-        last_lang = "pt"
-    elif en > pt:
-        last_lang = "en"
-    return last_lang
 
 
 # ------------------------------------------------------------------ SSML
@@ -109,9 +93,7 @@ TAG_RE = re.compile(r"<[^>]+>")
 
 
 def parse_ssml(data):
-    """Return (lang, text, marks): marks is [(name, char offset in text)]."""
-    m = re.search(r"<speak[^>]*xml:lang=[\"']([A-Za-z-]+)", data)
-    lang = m.group(1).split("-")[0].lower() if m else None
+    """Return (text, marks): marks is [(name, char offset in text)]."""
     text, marks, pos = [], [], 0
     for tok in re.split(r"(<[^>]+>)", data):
         if not tok:
@@ -125,7 +107,7 @@ def parse_ssml(data):
             s = html.unescape(tok)
             text.append(s)
             pos += len(s)
-    return lang, "".join(text), marks
+    return "".join(text), marks
 
 
 def chunks(text):
@@ -326,17 +308,16 @@ class Utterance(threading.Thread):
             self.emit("702 END")
 
     def speak(self):
-        lang, text, marks = parse_ssml(self.data)
+        text, marks = parse_ssml(self.data)
         if not text.strip():
             self.emit("701 BEGIN")
             for name, _ in marks:
                 self.emit(f"700-{name}\n700 INDEX MARK")
             self.emit("702 END")
             return
-        lang = lang if lang and chosen_voice(lang)[0] else guess_lang(text)
-        vid, model = chosen_voice(lang)
+        vid, model = chosen_voice()
         if not model:
-            log("no voice for", lang)
+            log("no voice installed")
             self.emit("702 END")
             return
         rate = int(self.settings.get("rate", 0))
