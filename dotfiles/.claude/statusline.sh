@@ -7,7 +7,7 @@ in=$(cat)
 CACHE=${XDG_CACHE_HOME:-$HOME/.cache}/claude
 mkdir -p "$CACHE"
 
-IFS=$'\t' read -r model pct size cost five five_reset week dir <<<"$(jq -r '[
+IFS=$'\t' read -r model pct size cost five five_reset week week_reset dir <<<"$(jq -r '[
     (.model.display_name // .model.id // "?"),
     (.context_window.used_percentage // 0),
     (.context_window.context_window_size // 200000),
@@ -15,13 +15,14 @@ IFS=$'\t' read -r model pct size cost five five_reset week dir <<<"$(jq -r '[
     (.rate_limits.five_hour.used_percentage // ""),
     (.rate_limits.five_hour.resets_at // ""),
     (.rate_limits.seven_day.used_percentage // ""),
+    (.rate_limits.seven_day.resets_at // ""),
     (.workspace.current_dir // .cwd // "")
 ] | @tsv' <<<"$in")"
 
 # Rate limits for the bar (only subscribers get them; keep the last known values)
 if [[ -n $five ]]; then
-    jq -n --argjson f "$five" --arg r "$five_reset" --arg w "$week" --argjson t "$(date +%s)" \
-        '{five_hour: $f, resets_at: $r, seven_day: ($w | tonumber? // null), updated: $t}' \
+    jq -n --argjson f "$five" --arg r "$five_reset" --arg w "$week" --arg wr "$week_reset" --argjson t "$(date +%s)" \
+        '{five_hour: $f, resets_at: $r, seven_day: ($w | tonumber? // null), seven_day_resets_at: $wr, updated: $t}' \
         > "$CACHE/ratelimits.json.tmp" && mv "$CACHE/ratelimits.json.tmp" "$CACHE/ratelimits.json"
 fi
 

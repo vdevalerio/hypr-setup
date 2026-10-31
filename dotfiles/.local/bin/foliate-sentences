@@ -27,10 +27,127 @@ overlay() {
 OVERLAYS=
 overlay foliate-js/view.js view.js \
     -e "s/initTTS(granularity = 'word')/initTTS(granularity = 'sentence')/" \
-    -e "s|this.renderer.scrollToAnchor(range, true), granularity)|&\n        const t = this.tts, start = t.start.bind(t)\n        t.start = () => { const r = this.lastLocation?.range; return r ? t.from(r) : start() }|"
-# step(delta): the sentence before/after the one being read (the paragraph before/after at the edges)
+    -e "s|^        this.tts = new TTS(doc, textWalker, range =>|        this.tts = new TTS(doc, textWalker, (range, select = true) =>|" \
+    -e "s|this.renderer.scrollToAnchor(range, true), granularity)|this.renderer.scrollToAnchor(range, select), granularity)\n        const t = this.tts, start = t.start.bind(t)\n        t.start = () => { const r = this.lastLocation?.range; return r ? t.from(r) : start() }|"
+
+# tts.js: step(delta) = the sentence before/after the one being read (the paragraph before/after at
+# the edges); setMark() paints the sentence and the word being spoken with the CSS Custom Highlight
+# API instead of selecting the text. The sd_piper module sends "<sentence mark>#<n>" marks, n being
+# the index of the whitespace-separated word inside the sentence.
+mkdir -p "$C"
+cat > "$C/tts-methods.js" <<'JS'
+    step(delta) {
+        const names = [...this.#ranges.keys()], i = names.indexOf(this.#lastMark) + delta
+        if (i < 0) return this.prev()
+        if (i >= names.length) return this.next()
+        this.#lastMark = names[i]
+        const [doc] = this.#list.current() ?? []
+        return this.#speak(doc, ssml => this.#getMarkElement(ssml, this.#lastMark))
+    }
+    #words = []
+    setMark(mark) {
+        const [name, n] = mark.split('#')
+        const range = this.#ranges.get(name)
+        if (!range) return
+        if (n === undefined || name !== this.#lastMark) {
+            this.#lastMark = name
+            this.highlight(range.cloneRange(), false)
+            paintRange(range, 'tts-sentence')
+            clearPaint('tts-word')
+            this.#words = wordRanges(range)  // once per sentence, not once per word
+        }
+        // past the end (the reader split the text differently): the last word
+        const word = n === undefined ? null : this.#words[Math.min(+n, this.#words.length - 1)]
+        if (word) paintRange(word, 'tts-word')
+    }
+JS
+cat > "$C/tts-helpers.js" <<'JS'
+
+// highlights live in the window (section) that was painted: the one before is cleared when the
+// reading moves to another, or its sentence and word stay painted there
+const painted = {}
+const clearPaint = key => {
+    try { painted[key]?.CSS.highlights.delete(key) } catch (e) {}
+    delete painted[key]
+}
+
+const paintRange = (range, key) => {
+    const doc = range.startContainer.ownerDocument, win = doc.defaultView
+    if (!win?.CSS?.highlights) return
+    if (painted[key] !== win) clearPaint(key)
+    if (!doc.getElementById('tts-highlight')) {
+        const style = doc.createElement('style')
+        style.id = 'tts-highlight'
+        style.textContent = '::highlight(tts-sentence) { background-color: rgba(137, 180, 250, .30) }'
+            + '::highlight(tts-word) { background-color: rgba(249, 226, 175, .85); color: #1e1e2e }'
+        doc.head.append(style)
+    }
+    win.CSS.highlights.set(key, new win.Highlight(range.cloneRange()))
+    painted[key] = win
+}
+
+// the whitespace-separated words of a range
+const wordRanges = range => {
+    const doc = range.startContainer.ownerDocument
+    const root = range.commonAncestorContainer
+    const nodes = []
+    if (root.nodeType === Node.TEXT_NODE) nodes.push(root)
+    else for (const w = doc.createTreeWalker(root, NodeFilter.SHOW_TEXT); w.nextNode();) nodes.push(w.currentNode)
+    const parts = []
+    let text = ''
+    for (const node of nodes) {
+        if (!range.intersectsNode(node)) continue
+        const lo = node === range.startContainer ? range.startOffset : 0
+        const hi = node === range.endContainer ? range.endOffset : node.length
+        parts.push({ node, lo, at: text.length, len: hi - lo })
+        text += node.data.slice(lo, hi)
+    }
+    const at = (pos, end) => {
+        for (const p of parts)
+            if (pos >= p.at && (end ? pos <= p.at + p.len : pos < p.at + p.len))
+                return [p.node, p.lo + pos - p.at]
+    }
+    const words = []
+    for (const m of text.matchAll(/\S+/g)) {
+        const a = at(m.index), b = at(m.index + m[0].length, true)
+        if (!a || !b) { words.push(null); continue }  // keeps the indexes
+        const r = doc.createRange()
+        r.setStart(...a)
+        r.setEnd(...b)
+        words.push(r)
+    }
+    return words
+}
+JS
+# speech.js: the client keeps one pending event per message, so the events that arrive while the
+# page is still handling a mark are dropped (the highlight then freezes on a word). A real queue
+# instead; a backlog of marks is skipped to the latest one, other events are never dropped.
+cat > "$C/ssip-iter.js" <<'JS'
+    #makeIter(msgID) {
+        const queue = []
+        let wake
+        this.#promises.set(msgID, { resolve: value => { queue.push(value); wake?.() } })
+        return {
+            next: async () => {
+                while (!queue.length) await new Promise(r => (wake = r))
+                while (queue.length > 1 && queue[0].mark && queue[1].mark) queue.shift()
+                return queue.shift()
+            },
+            return: () => { this.#promises.delete(msgID) },
+        }
+    }
+JS
+overlay speech.js speech.js \
+    -e '/^    #makeIter(msgID) {/,/^    }/{' \
+    -e "/^    }/r $C/ssip-iter.js" \
+    -e 'd' \
+    -e '}'
 overlay foliate-js/tts.js tts.js \
-    -e "s|^    setMark(mark) {|    step(delta) {\n        const names = [...this.#ranges.keys()], i = names.indexOf(this.#lastMark) + delta\n        if (i < 0) return this.prev()\n        if (i >= names.length) return this.next()\n        this.#lastMark = names[i]\n        const [doc] = this.#list.current() ?? []\n        return this.#speak(doc, ssml => this.#getMarkElement(ssml, this.#lastMark))\n    }\n&|"
+    -e '/^    setMark(mark) {/,/^    }/{' \
+    -e "/^    }/r $C/tts-methods.js" \
+    -e 'd' \
+    -e '}' \
+    -e "\$r $C/tts-helpers.js"
 # the selected text, as the SSML to read from there (null without a selection)
 overlay reader/reader.js reader.js \
     -e "s|^    printRange(doc, range) {|    async speakSelection() {\n        for (const { doc } of this.view.renderer.getContents()) {\n            const range = getSelectionRange(doc.getSelection())\n            if (!range) continue\n            await this.view.initTTS()\n            return this.view.tts.from(range)\n        }\n        return null\n    }\n&|"

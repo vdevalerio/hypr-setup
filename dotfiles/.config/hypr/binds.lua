@@ -85,7 +85,8 @@ bind(M("CTRL + S"),        hl.dsp.exec_cmd(scripts .. "ocr.sh"),           "Copy
 
 -- ── Screenshots ─────────────────────────────────────────────
 bind("Print",            hl.dsp.exec_cmd(scripts .. "screenshot.sh region"), "Screenshot: region")
-bind("SHIFT + Print",    hl.dsp.exec_cmd(scripts .. "screenshot.sh screen"), "Screenshot: full screen")
+bind("SHIFT + Print",    hl.dsp.exec_cmd(scripts .. "screenshot.sh screen"), "Screenshot: all monitors")
+bind("CTRL + Print",     hl.dsp.exec_cmd(scripts .. "screenshot.sh monitor"), "Screenshot: focused monitor")
 bind(M("Print"),         hl.dsp.exec_cmd(scripts .. "screenshot.sh edit"),   "Screenshot: region + edit")
 bind(M("SHIFT + S"),     hl.dsp.exec_cmd(scripts .. "screenshot.sh region"), "Screenshot: region")
 

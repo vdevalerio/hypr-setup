@@ -1,7 +1,7 @@
 #!/usr/bin/env python3
 """Claude Code usage for the Waybar monitor island (custom/claude).
 
-    claude-usage.py          JSON for Waybar: subscription 5-hour usage (from the status line cache)
+    claude-usage.py          JSON for Waybar: subscription session/weekly usage (from the status line cache)
                              or today's tokens; tooltip with today / last 7 days by model
     claude-usage.py report   the same numbers as plain text
 
@@ -12,6 +12,7 @@ so each run only parses new lines. Rate limits come from ~/.cache/claude/ratelim
 import json
 import sys
 import time
+from html import escape
 from datetime import datetime, timedelta
 from pathlib import Path
 
@@ -21,6 +22,7 @@ CACHE = HOME / ".cache" / "claude"
 INDEX = CACHE / "usage-index.json"
 LIMITS = CACHE / "ratelimits.json"
 KEEP_DAYS = 31
+CLOCK, CALENDAR = "\U000F0150", "\U000F00ED"   # nf-md-clock_outline, nf-md-calendar
 
 
 def load_index():
@@ -108,8 +110,24 @@ def lines_for(label, all_, by_model):
         out.append(f"  cache read {human(all_[1])} ({all_[1] * 100 // total}%)  ·  "
                    f"cache write {human(all_[2])}  ·  input {human(all_[0])}  ·  output {human(all_[3])}")
         for model, row in sorted(by_model.items(), key=lambda kv: -sum(kv[1][:4])):
-            out.append(f"  {model}: {human(sum(row[:4]))}")
+            if model.startswith("<") or not sum(row[:4]):   # <synthetic> is not a model (and breaks Pango markup)
+                continue
+            out.append(f"  {escape(model)}: {human(sum(row[:4]))}")
     return out
+
+
+def when(value):
+    """Reset time (epoch seconds or ISO 8601): `18:20` if today, else `Mon 02/11 18:20`."""
+    try:
+        if str(value).isdigit():
+            dt = datetime.fromtimestamp(int(value))
+        else:
+            dt = datetime.fromisoformat(str(value).replace("Z", "+00:00")).astimezone().replace(tzinfo=None)
+    except ValueError:
+        return str(value)
+    if dt.date() == datetime.now().date():
+        return dt.strftime("%H:%M")
+    return dt.strftime("%a %d/%m %H:%M")
 
 
 def limits():
@@ -133,26 +151,32 @@ def main():
 
     tip = lines_for("Today", t_all, t_models) + [""] + lines_for("Last 7 days", w_all, w_models)
     lim = limits()
-    pct = None
+    pct = week_pct = None
     if lim:
         pct = round(lim["five_hour"])
-        reset = lim.get("resets_at") or ""
-        try:
-            reset = datetime.fromisoformat(str(reset).replace("Z", "+00:00")).astimezone().strftime("%H:%M")
-        except ValueError:
-            pass
-        week_pct = lim.get("seven_day")
-        tip = [f"<b>Plan usage</b>  5h window {pct}%" + (f" (resets {reset})" if reset else "")
-               + (f"  ·  7 days {round(week_pct)}%" if week_pct is not None else ""), ""] + tip
+        week_pct = None if lim.get("seven_day") is None else round(lim["seven_day"])
+        week_line = f"  Week  {week_pct}%" if week_pct is not None else None
+        if week_line and lim.get("seven_day_resets_at"):
+            week_line += f"  ·  resets {when(lim['seven_day_resets_at'])}"
+        tip = ["<b>Plan usage</b>",
+               f"  Session (5h)  {pct}%" + (f"  ·  resets {when(lim['resets_at'])}" if lim.get("resets_at") else "")
+               ] + ([week_line] if week_line else []) + [""] + tip
     tip += ["", "Click: Claude Code usage report (ccusage)"]
 
     if "report" in sys.argv[1:]:
         print("\n".join(tip).replace("<b>", "").replace("</b>", ""))
         return
-    text = f"{pct}%" if pct is not None else human(sum(t_all[:4]))
+    if pct is None:
+        text = human(sum(t_all[:4]))
+    else:    # clock = session (5h), calendar = week; Material Design glyphs, dimmed
+        dim = '<span alpha="55%">{}</span>'
+        text = dim.format(CLOCK) + f" {pct}%"
+        if week_pct is not None:
+            text += "  " + dim.format(CALENDAR) + f" {week_pct}%"
     cls = "normal"
     if pct is not None:
-        cls = "critical" if pct >= 90 else "warning" if pct >= 70 else "normal"
+        worst = max(pct, week_pct or 0)
+        cls = "critical" if worst >= 90 else "warning" if worst >= 70 else "normal"
     print(json.dumps({"text": text, "tooltip": "\n".join(tip), "class": cls,
                       "percentage": pct if pct is not None else 0}))
 

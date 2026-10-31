@@ -578,7 +578,8 @@ setup_tts() {
     fi
     local dir=$HOME/.local/share/piper base=https://huggingface.co/rhasspy/piper-voices/resolve/main v
     mkdir -p "$dir"
-    for v in pt/pt_BR/faber/medium/pt_BR-faber-medium en/en_US/ryan/high/en_US-ryan-high; do
+    for v in pt/pt_BR/faber/medium/pt_BR-faber-medium en/en_US/ryan/high/en_US-ryan-high \
+             en/en_GB/alan/medium/en_GB-alan-medium; do
         [[ -f $dir/${v##*/}.onnx ]] ||
             curl -fL --output-dir "$dir" -O "$base/$v.onnx" -O "$base/$v.onnx.json" || warn "Voice ${v##*/} failed"
     done

@@ -322,7 +322,8 @@ to change), keyboard layout and suspend, reboot and shut down buttons.
 | SUPER + ALT + SHIFT + R | Record an area |
 | SUPER + CTRL + S | Copy the text from an area of the screen (OCR) |
 | Print (or SUPER + SHIFT + S) | Area, copied and saved to `~/Pictures/Screenshots` |
-| SHIFT + Print | Full screen |
+| SHIFT + Print | All monitors |
+| CTRL + Print | Focused monitor only |
 | SUPER + Print | Area + editor (satty) |
 
 ### Mouse
@@ -501,6 +502,7 @@ the password field on a glass card and, at the bottom, the music playing, the ke
   - `<space> j` has the rest: open/close the REPL, run line, selection or file, interrupt…
 - **`.ipynb` notebooks:** open as code with `# %%` cells and save back keeping the outputs.
 - **Data:** CSV/TSV open as a table (`Tab` jumps between columns) and SQL has a database browser (`<space> D`).
+- **Markdown:** tables and headings are rendered inline; they stay rendered while moving the cursor in normal mode and show the real characters only in insert mode (wide cells wrap to fit the window).
 - **Plots:** matplotlib's open in a floating window.
 - **Look:** transparent background, with the wallpaper colors updated live.
 
@@ -553,7 +555,7 @@ hypr-setup/
 - **Context hygiene**: auto-compact at 70% of a 300k window; Bash output capped at 20k chars, MCP output at 10k tokens.
 - **Status line**: model · context bar (green/yellow/red) · session cost · 5-hour plan usage · dir · branch. `/clear` before the bar turns red.
 - **Fewer prompts**: read-only commands (git status/diff/log, rg, ls, hyprctl queries…) are pre-approved.
-- **Waybar chip** (monitor island, 󰚩): 5-hour plan usage while a session is open, otherwise today's tokens; tooltip shows today / 7 days by model. Click for the `ccusage` report. In the terminal: `ccu daily`, `ccu blocks --active`.
+- **Waybar chip** (monitor island, 󰚩): session (clock icon, 5h) and weekly (calendar icon) plan usage while a session is open, otherwise today's tokens; the tooltip adds when each limit resets (the weekly one shows the day) plus today / 7 days by model. Click for the `ccusage` report. In the terminal: `ccu daily`, `ccu blocks --active`.
 
 ### Skill forge (self-improving skills per repository)
 

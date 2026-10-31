@@ -1,5 +1,5 @@
 #!/usr/bin/env bash
-# Screenshots: region | screen | edit
+# Screenshots: region | screen (all monitors) | monitor (the focused one) | edit
 dir="$(xdg-user-dir PICTURES 2>/dev/null || echo "$HOME/Pictures")/Screenshots"
 mkdir -p "$dir"
 file="$dir/$(date +%Y-%m-%d_%H-%M-%S).png"
@@ -7,6 +7,8 @@ file="$dir/$(date +%Y-%m-%d_%H-%M-%S).png"
 case "$1" in
     screen)
         grim "$file" ;;
+    monitor)
+        grim -o "$(hyprctl monitors -j | jq -r '.[] | select(.focused) | .name')" "$file" ;;
     edit)
         area=$(slurp -d -b 1e1e2e88 -c cba6f7ff -w 2) || exit 0
         grim -g "$area" - | satty --filename - --output-filename "$file" --early-exit

@@ -163,7 +163,7 @@
         "exec": "~/.config/hypr/scripts/claude-usage.py",
         "return-type": "json",
         "interval": 60,
-        "format": "󰚩 {}",
+        "format": "󰚩  {}",
         "on-click": "setsid -f kitty --class btop-float -e sh -c 'pnpm dlx ccusage@latest daily --breakdown; echo; pnpm dlx ccusage@latest blocks --active; echo; echo Press Enter to close; read _'"
     },
     "disk": {

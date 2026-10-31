@@ -18,6 +18,7 @@ import concurrent.futures
 import glob
 import html
 import array
+import bisect
 import json
 import os
 import queue
@@ -35,6 +36,8 @@ DEBUG = bool(os.environ.get("PIPER_SPEECHD_DEBUG")) or os.path.exists(os.path.jo
 PREFERRED = ("pt_BR-faber-medium", "en_US-ryan-high")  # when nothing is selected
 PREFETCH = 3         # sentences synthesized ahead (also the number of piper processes)
 START_DELAY = 0.06   # seconds between handing audio to the player and hearing it
+GAP_MIN = 0.05       # seconds of silence that count as a pause when timing words
+ANCHOR_TOL = 0.15    # how far (fraction of a piece) a pause may be from its punctuation
 MARK_LEAD = 0.10     # marks fire this much early; ~/.config/piper-speechd/lead overrides it
 TAIL = 0.10          # seconds of silence kept after each sentence (piper pads ~0.3 s); ~/.config/piper-speechd/tail overrides it
 LIMITS = (45, 110)   # characters; the first pieces of a message are short so playback starts sooner
@@ -110,6 +113,20 @@ def parse_ssml(data):
     return "".join(text), marks
 
 
+def with_words(text, marks):
+    """Add a "<sentence mark>#<n>" mark at every whitespace-separated word (n counts from 0 in
+    each sentence), so the reader can highlight the word being spoken. Marks speechd added
+    itself (__spd_*) delimit nothing."""
+    named = [(o, n) for n, o in marks if not n.startswith("__spd")]
+    out = list(marks)
+    for i, (o, name) in enumerate(named):
+        end = named[i + 1][0] if i + 1 < len(named) else len(text)
+        for k, m in enumerate(re.finditer(r"\S+", text[o:end])):
+            out.append((f"{name}#{k}", o + m.start()))
+    out.sort(key=lambda m: m[1])  # stable: a sentence mark stays before its first word
+    return out
+
+
 def chunks(text):
     """Yield (start, end) offsets of sentence-sized pieces of text; the first ones are short."""
     n = 0
@@ -156,6 +173,87 @@ def trim_tail(pcm, sr):
         n -= 1
     end = min(len(a), n + int(keep * sr))
     return a[:end].tobytes()
+
+
+def voiced_spans(pcm, sr):
+    """Spans (start, end) in seconds of the audio that is speech: silences of GAP_MIN or more
+    (pauses at commas and full stops) split it, shorter dips are inside a word or between two."""
+    a = array.array("h")
+    a.frombytes(pcm[:len(pcm) // 2 * 2])
+    step = sr // 100
+    spans, begin, quiet = [], None, 0
+    for f in range(0, len(a), step):
+        if max(map(abs, a[f:f + step])) >= 300:
+            if begin is None:
+                begin = f
+            quiet = 0
+        elif begin is not None:
+            quiet += 1
+            if quiet * step >= GAP_MIN * sr:
+                spans.append((begin / sr, (f - (quiet - 1) * step) / sr))
+                begin = None
+    if begin is not None:
+        spans.append((begin / sr, len(a) / sr))
+    return spans or [(0.0, len(a) / sr)]
+
+
+def spoken_at(spans, frac):
+    """Time (s) at which the fraction of the speech (silences left out) has been spoken."""
+    want = frac * sum(b - a for a, b in spans)
+    for a, b in spans:
+        if want <= b - a:
+            return a + want
+        want -= b - a
+    return spans[-1][1]
+
+
+VOWELS = re.compile(r"[aeiouyáéíóúâêôãõàü]+", re.I)
+SYLLABLE = 3.0       # weight of a vowel group, in letters (see weight())
+PHRASE_FINAL = 4.0   # extra weight of the word before a comma or full stop
+PHRASE_END = re.compile(r"[,;:.!?…][\"')\]”’]*\s")
+
+
+def word_clock(spans, piece):
+    """Return f(offset in piece) -> seconds into the audio. Every pause found in the audio is
+    matched with the punctuation of the text where the speech before it would end (within
+    ANCHOR_TOL of the text); each stretch between two pauses then spreads its own words over its
+    own speech, so an error cannot build up across the piece. Pauses without punctuation around
+    are ignored, as is punctuation without a pause."""
+    total = max(weight(piece), 1e-9)
+    cuts = [m.end() for m in PHRASE_END.finditer(piece) if m.end() < len(piece)]
+    voiced = max(sum(b - a for a, b in spans), 1e-9)
+    texts, groups, last, done = [0], [[spans[0]]], -1, spans[0][1] - spans[0][0]
+    for nxt in spans[1:]:
+        want = done / voiced
+        done += nxt[1] - nxt[0]
+        best = min(((abs(weight(piece[:c]) / total - want), j) for j, c in enumerate(cuts) if j > last),
+                   default=None)
+        if best and best[0] <= ANCHOR_TOL:
+            last = best[1]
+            texts.append(cuts[last])
+            groups.append([nxt])
+        else:
+            groups[-1].append(nxt)
+    texts.append(len(piece))
+
+    def at(o):
+        k = min(max(0, bisect.bisect_right(texts, o) - 1), len(groups) - 1)
+        size = max(weight(piece[texts[k]:texts[k + 1]]), 1e-9)
+        return spoken_at(groups[k], min(1.0, weight(piece[texts[k]:max(o, texts[k])]) / size))
+    return at
+
+
+def weight(piece):
+    """How long a piece of text takes to say, relatively: letters and digits count, and each
+    group of vowels (about a syllable) a good deal more; the word before a comma or full stop
+    is drawn out a little; spaces and punctuation are nothing (the pauses are in the audio).
+    Fitted against sentences synthesized word by word."""
+    total = 0.0
+    for word in piece.split():
+        total += sum(1.0 for c in word if c.isalnum()) + SYLLABLE * len(VOWELS.findall(word))
+        if word[-1] in ",;:.!?…":
+            total += PHRASE_FINAL
+    return total
 
 
 class Worker:
@@ -315,6 +413,7 @@ class Utterance(threading.Thread):
                 self.emit(f"700-{name}\n700 INDEX MARK")
             self.emit("702 END")
             return
+        marks = with_words(text, marks)
         vid, model = chosen_voice()
         if not model:
             log("no voice installed")
@@ -355,6 +454,8 @@ class Utterance(threading.Thread):
             while (ev := events.get()) is not None:
                 if self.stop_ev.wait(max(0.0, ev[0] - time.monotonic())):
                     return
+                if time.monotonic() - ev[0] > 0.04:
+                    log(f"mark {ev[1]} late by {time.monotonic() - ev[0]:.2f}s")
                 self.emit(f"700-{ev[1]}\n700 INDEX MARK")
 
         wt = threading.Thread(target=writer, daemon=True)
@@ -390,10 +491,11 @@ class Utterance(threading.Thread):
                 if play_end and start > play_end + 0.05:
                     log(f"underrun: chunk {i} late by {start - play_end:.2f}s")
                 play_end = start + dur
-                span = max(e - s, 1)
+                spans = voiced_spans(pcm, sr)
+                clock = word_clock(spans, text[s:e])
                 # marks falling in this chunk (those before its text belong to it too)
                 while mi < len(marks) and (marks[mi][1] < e or i == len(pieces) - 1):
-                    events.put((start + dur * max(0, marks[mi][1] - s) / span - mark_lead, marks[mi][0]))
+                    events.put((start + clock(min(max(marks[mi][1], s), e) - s) - mark_lead, marks[mi][0]))
                     mi += 1
                 audio.put(pcm)
             if not aborted:
