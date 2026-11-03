@@ -106,6 +106,24 @@ alias ..='cd ..' ...='cd ../..'
 alias update='~/.config/hypr/scripts/update.sh'
 alias backup='~/.config/hypr/scripts/backup.sh'
 alias py='python'
+
+# ── Containers and databases: readable output ──
+# less: keep colors (-R), exit if it fits one screen (-F), don't clear the screen (-X), smart-case search (-i)
+export LESS='-RFXi'
+# docker ps / docker images columns come from ~/.docker/config.json (install.sh data sets them)
+alias lzd='lazydocker' lzq='lazysql'
+alias hq='harlequin --theme catppuccin-mocha'          # SQL IDE in the terminal (Postgres, MySQL, SQLite, DuckDB)
+alias csv='csvlens'                                    # CSV/TSV viewer: scroll, search, filter columns
+alias dstat='docker stats --no-stream --format "table {{.Name}}\t{{.CPUPerc}}\t{{.MemUsage}}\t{{.NetIO}}"'
+dinspect() { docker inspect "$@" | fx; }               # browse the JSON (fx): dinspect <container|image>
+dsh() { docker exec -it "$1" "${2:-sh}"; }             # shell in a running container: dsh <name> [bash]
+# grc colors the output of these commands (only where it has a rule file, and only when printing to the screen)
+if (( $+commands[grc] )); then
+    for _c in ping traceroute dig df mount ps ss netstat nmap; do
+        [[ -r /usr/share/grc/conf.$_c ]] && alias $_c="grc --colour=auto $_c"
+    done
+    unset _c
+fi
 alias ipy='ipython'
 
 # ── Python: activates .venv automatically when entering the folder ──

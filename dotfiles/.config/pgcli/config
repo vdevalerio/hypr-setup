@@ -1,0 +1,17 @@
+# pgcli — only what differs from the defaults (the rest is filled in by pgcli itself).
+# Test the file with: pgcli --pgclirc ~/.config/pgcli/config -h localhost
+[main]
+# Unicode box drawing instead of +---+ ASCII; colors follow the terminal palette
+table_format = psql_unicode
+syntax_style = dracula
+# Wide result? Switch to one-column-per-line automatically instead of wrapping the table
+auto_expand = True
+# Long results go through the pager (less -SRXF: no line wrap, sideways scroll)
+enable_pager = True
+# Show how long each query took
+timing = True
+# Bigger completion menu with the table next to each column
+wider_completion_menu = True
+keyword_casing = upper
+null_string = '∅'
+less_chatty = True

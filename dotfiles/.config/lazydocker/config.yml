@@ -1,0 +1,11 @@
+# lazydocker — only what differs from the defaults (`lazydocker --config` prints them all).
+gui:
+  nerdFontsVersion: "3"
+  theme:
+    activeBorderColor: [magenta, bold]
+    inactiveBorderColor: [default]
+    optionsTextColor: [blue]
+logs:
+  # last 5 minutes / 300 lines when opening a container's logs (the default re-reads an hour)
+  since: '5m'
+  tail: '300'

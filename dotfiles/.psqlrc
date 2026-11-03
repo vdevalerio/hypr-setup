@@ -1,0 +1,16 @@
+-- psql: readable output. (pgcli has its own settings in ~/.config/pgcli/config.)
+\set QUIET 1
+-- Unicode box drawing; NULL is shown as ∅ instead of an empty cell
+\pset linestyle unicode
+\pset border 2
+\pset null '∅'
+-- A result wider than the screen is printed one column per line instead of wrapping
+\x auto
+-- Long results go through less without wrapping lines (sideways scroll)
+\setenv LESS '-SRXFi'
+\timing on
+-- One history file per database; no duplicate lines; keywords completed in upper case
+\set HISTFILE ~/.psql_history- :DBNAME
+\set HISTCONTROL ignoredups
+\set COMP_KEYWORD_CASE upper
+\unset QUIET

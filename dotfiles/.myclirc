@@ -1,0 +1,14 @@
+# mycli — only what differs from the defaults (the rest is filled in by mycli itself).
+[main]
+# Unicode box drawing instead of +---+ ASCII
+table_format = psql_unicode
+syntax_style = dracula
+# Wide result? Show it one column per line instead of wrapping the table
+auto_vertical_output = True
+keyword_casing = upper
+less_chatty = True
+wider_completion_menu = True
+# Long results go through the pager (less -SRXF: no line wrap, sideways scroll)
+pager = less -SRXF
+# Ask before DROP / DELETE / UPDATE without WHERE and friends
+destructive_warning = True

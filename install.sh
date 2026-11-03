@@ -57,6 +57,10 @@ MANAGED=(
     .config/direnv/direnv.toml
     .config/tealdeer/config.toml
     .config/lazygit/config.yml
+    .config/lazydocker/config.yml
+    .config/pgcli/config
+    .myclirc
+    .psqlrc
     .config/btop/btop.conf
     .config/fastfetch/config.jsonc
     .config/gtk-3.0/settings.ini
@@ -120,7 +124,9 @@ PKGS_DEV=(neovim git github-cli base-devel python-pip python-pynvim uv ipython n
 # "waybar" package (in PKGS_DESKTOP) once 0.16 is out.
 # Data profile (./install.sh data — not part of the full install): analysis, SQL, reports
 PKGS_DATA=(dbeaver postgresql mariadb-clients pgcli duckdb libreoffice-fresh
-           docker docker-compose docker-buildx)
+           docker docker-compose docker-buildx
+           lazydocker dive fx jless csvlens visidata grc)   # readable output: containers, JSON, CSV, colors
+AUR_DATA=(lazysql usql)       # TUI database browser; one SQL client for Postgres, MySQL, SQLite...
 UV_TOOLS_DATA=("harlequin[postgres,mysql]" mycli)   # terminal SQL IDE; MySQL client
 
 AUR_PKGS=(mpvpaper bibata-cursor-theme-bin waybar-git)
@@ -378,6 +384,21 @@ setup_data() {
         sudo usermod -aG docker "$USER"
         info "You were added to the docker group: takes effect on next login"
     fi
+
+    step "Docker: readable docker ps / docker images"
+    # merged into the existing ~/.docker/config.json (keeps logins and plugins settings)
+    install -d "$HOME/.docker"
+    [[ -s $HOME/.docker/config.json ]] || echo '{}' > "$HOME/.docker/config.json"
+    jq '.psFormat = "table {{.Names}}\\t{{.Image}}\\t{{.Status}}\\t{{.Ports}}"
+        | .imagesFormat = "table {{.Repository}}\\t{{.Tag}}\\t{{.Size}}\\t{{.CreatedSince}}"' \
+        "$HOME/.docker/config.json" > "$HOME/.docker/config.json.tmp" &&
+        mv "$HOME/.docker/config.json.tmp" "$HOME/.docker/config.json"
+
+    step "AUR: database tools"
+    local p
+    for p in "${AUR_DATA[@]}"; do
+        command -v yay >/dev/null && { yay -S --needed --noconfirm "$p" || warn "Failed to install $p (continuing)"; }
+    done
 
     step "Terminal tools (uv tool)"
     local t
