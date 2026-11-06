@@ -9,3 +9,4 @@ __pycache__/
 *.pyc
 dotfiles/.config/fcitx5/conf/cached_layouts
 /private/
+.cursor/*

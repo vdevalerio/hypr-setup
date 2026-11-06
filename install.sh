@@ -14,6 +14,8 @@
 # │  ./install.sh boot       GRUB theme + Plymouth splash for the theme  │
 # │  ./install.sh claude     Claude Code: status line + settings merge    │
 # │  ./install.sh tts        natural voices (Piper) for Foliate & co.    │
+# │  ./install.sh ssh        remote access over SSH (keys only, firewall)  │
+# │  ./install.sh ssh-key    authorize a public key for remote logins    │
 # │  ./install.sh gaming     Steam, GameMode, MangoHud (needs multilib)  │
 # │  ./install.sh wipe       DESTRUCTIVE: back to a bare Arch (--dry-run) │
 # ╰──────────────────────────────────────────────────────────────────────╯
@@ -24,6 +26,7 @@ SYS_LANG="en_US.UTF-8"        # system language
 CONSOLE_KEYMAP="br-abnt2"     # console (TTY) keyboard
 XKB_LAYOUT="br"               # login screen keyboard (also in hypr/hyprland.lua)
 XKB_MODEL="abnt2"
+SSH_PORT=22                   # port sshd listens on (map any external port to it on the router)
 
 # Personal apps (remove what you don't want). The SUPER+B shortcut opens "brave":
 # if you drop brave-bin, change `browser` in dotfiles/.config/hypr/binds.lua.
@@ -565,6 +568,52 @@ deploy_dotfiles() {
     fi
 }
 
+# Remote access: sshd with keys only + a firewall rule limiting new connections per source.
+# Refuses to run without an authorized key, so password login can never be the only way in.
+setup_ssh() {
+    local keys=$HOME/.ssh/authorized_keys
+    if [[ ! -s $keys ]]; then
+        warn "No key in $keys: nothing would be able to log in. On the machine you will connect FROM:"
+        info "cat ~/.ssh/id_ed25519.pub   (or ssh-keygen -t ed25519 first)"
+        info "then here: ./install.sh ssh-key 'ssh-ed25519 AAAA… you@laptop' and run ./install.sh ssh again."
+        return 1
+    fi
+    step "SSH server (port $SSH_PORT, keys only)"
+    sudo pacman -S --needed --noconfirm openssh
+    sudo install -d -m755 /etc/ssh/sshd_config.d
+    { sed 's/^# Installed by.*/# Installed by `.\/install.sh ssh`./' "$REPO/system/etc/ssh/sshd_config.d/10-hypr-setup.conf"
+      printf 'Port %s\nAllowUsers %s\n' "$SSH_PORT" "$USER"; } |
+        sudo tee /etc/ssh/sshd_config.d/10-hypr-setup.conf >/dev/null
+    sudo sshd -t || { warn "sshd config invalid: not applied"; return 1; }
+    sudo install -d /etc/nftables.d/input
+    # at most 12 new connections per minute from each address (IPv4 and IPv6), the rest is dropped
+    sudo tee /etc/nftables.d/input/ssh.nft >/dev/null <<EOF
+tcp dport $SSH_PORT ct state new meter ssh4 { ip saddr timeout 1m limit rate 12/minute burst 12 packets } accept
+tcp dport $SSH_PORT ct state new meter ssh6 { ip6 saddr timeout 1m limit rate 12/minute burst 12 packets } accept
+EOF
+    sudo nft -c -f /etc/nftables.conf || { warn "firewall rule invalid: removed"; sudo rm -f /etc/nftables.d/input/ssh.nft; return 1; }
+    sudo systemctl enable --now nftables.service sshd.service
+    sudo systemctl restart nftables.service sshd.service
+    command -v tailscale >/dev/null && sudo systemctl try-restart tailscaled.service
+    step "Done. On the router, forward a TCP port to this machine's port $SSH_PORT:"
+    info "this PC (LAN): $(ip -4 -o addr show scope global | awk '{print $2": "$4}' | head -3 | paste -sd' ')"
+    info "from outside:  ssh -p <external port> $USER@<your public IP>"
+    info "Give this PC a fixed LAN address (DHCP reservation) so the forward keeps working."
+}
+
+# Adds a public key (the one you pass) to ~/.ssh/authorized_keys.
+ssh_add_key() {
+    local key=${1:-}
+    if [[ ! $key =~ ^(ssh-ed25519|ssh-rsa|ecdsa-sha2-nistp[0-9]+|sk-ssh-ed25519@openssh.com)\ [A-Za-z0-9+/=]+ ]]; then
+        warn "Pass the PUBLIC key in quotes: ./install.sh ssh-key 'ssh-ed25519 AAAA… you@laptop'"
+        return 1
+    fi
+    install -d -m700 "$HOME/.ssh"
+    touch "$HOME/.ssh/authorized_keys"; chmod 600 "$HOME/.ssh/authorized_keys"
+    grep -qxF "$key" "$HOME/.ssh/authorized_keys" || printf '%s\n' "$key" >> "$HOME/.ssh/authorized_keys"
+    info "Authorized keys: $(wc -l < "$HOME/.ssh/authorized_keys")"
+}
+
 # Gaming (not part of the full install: Steam brings a lot of 32-bit libraries). Needs the multilib
 # repository. Steam itself runs on the integrated GPU (igpu.sh) so the desktop keeps the NVIDIA GPU asleep;
 # each game opts in with the Steam launch option `game %command%` (dGPU + GameMode + MangoHud).
@@ -741,6 +790,8 @@ case "${1:-all}" in
     boot)     need_user; sudo_keepalive; setup_boot ;;
     claude)   need_user; setup_claude ;;
     tts)      need_user; setup_tts ;;
+    ssh)      need_user; sudo_keepalive; setup_ssh ;;
+    ssh-key)  need_user; ssh_add_key "${2:-}" ;;
     gaming)   need_user; sudo_keepalive; setup_gaming ;;
     wipe)     need_user; [[ ${2:-} == --dry-run ]] || sudo_keepalive; wipe_system "${2:-}" ;;
     -h|--help|help) usage ;;

@@ -44,6 +44,8 @@ If you already have configs in your home, the script moves the ones that differ 
 | `./install.sh save` | Copies the **current** configs from your home into `dotfiles/` (use after customizing) |
 | `./install.sh sddm` | (Re)installs the login screen theme (asks for sudo) |
 | `./install.sh extras` | Firewall, zram, automatic maintenance, rollback snapshots, disk health, VPN, lid and battery limit (asks for sudo) |
+| `./install.sh ssh` | Remote access over SSH: keys only, no root, firewall port with a per-source rate limit (asks for sudo; needs an authorized key first, see **Remote access**) |
+| `./install.sh ssh-key '<public key>'` | Authorizes a public key in `~/.ssh/authorized_keys` (no sudo) |
 | `./install.sh data` | Data/dev profile: Docker, SQL clients (`pgcli`, `mycli`, `harlequin`, `lazysql`, `usql`), DuckDB, DBeaver and the tools that make their output readable (see **Containers and databases**) (asks for sudo, not part of the full install) |
 | `./install.sh gaming` | Steam, GameMode and MangoHud; enables multilib (asks for sudo, not part of the full install) |
 | `./install.sh wipe` | **Destructive** factory reset back to a bare Arch: removes all packages outside the base set, the user and its home, history, logs and caches (`--dry-run` shows the plan; asks for the hostname; needs a root password). Tested in the VM only |
@@ -164,6 +166,19 @@ Tested on: Ryzen 7 7735HS + Radeon 680M + RTX 4050 (laptop), Hyprland 0.56.
   - `backup run` (now), `backup status`, `backup list`, `backup restore latest ~/Restored`.
 - **Firewall** (nftables): blocks incoming connections and allows outgoing ones. Rules in
   `system/etc/nftables.conf`, which also explains how to open a port.
+- **Remote access (SSH)** (`./install.sh ssh`, not part of the full install):
+  1. On the machine you will connect **from**: `cat ~/.ssh/id_ed25519.pub` (or `ssh-keygen -t ed25519`).
+  2. Here: `./install.sh ssh-key 'ssh-ed25519 AAAA… you@laptop'`, then `! ./install.sh ssh`
+     (it refuses to run with no authorized key).
+  3. On the router: give this PC a fixed LAN address (DHCP reservation) and forward a TCP port
+     (any external port) to this PC's port 22 (`SSH_PORT` in `install.sh`).
+  4. From outside: `ssh -p <external port> <user>@<public IP>`.
+
+  sshd takes keys only (no passwords, no root, `AllowUsers` = you, 3 attempts, no forwarding;
+  `system/etc/ssh/sshd_config.d/10-hypr-setup.conf`) and the firewall limits new connections to
+  12/minute per address. Works at the login screen too, but not while the laptop is suspended
+  (closing the lid suspends it: see `lid.sh`). Tailscale (already installed) is the alternative that
+  exposes no port at all. Watch attempts with `journalctl -u sshd`.
 - **Automatic:** SSD TRIM (weekly), pacman cache cleanup (keeps the last 3 versions) and
   firmware check (fwupd).
 - **Before every update** pacman saves the package list (with versions) and a copy of `/etc` in
