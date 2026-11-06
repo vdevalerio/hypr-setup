@@ -515,7 +515,9 @@ the password field on a glass card and, at the bottom, the music playing, the ke
   - `]j` / `[j` navigate between cells and `<space> j a` creates a new cell.
   - `<space> j` has the rest: open/close the REPL, run line, selection or file, interrupt…
 - **`.ipynb` notebooks:** open as code with `# %%` cells and save back keeping the outputs.
-- **Data:** CSV/TSV open as a table (`Tab` jumps between columns) and SQL has a database browser (`<space> D`).
+- **Data:** CSV/TSV open as a table with borders, colored columns, a sticky header and a frozen first column (`Tab` jumps between columns, `<leader>uV` opens csvlens full screen) and SQL has a database browser (`<space> D`).
+- **Formatting:** `<leader>cf` formats the whole file and wraps code and comments at 80 columns (Python, Lua, Markdown, shell: shfmt plus a line breaker with `\`). Indentation width and line width per project come from an `.editorconfig` at the project root (this repo has one: 4 spaces, 2 for Lua/Markdown/JSON/YAML).
+- **Diagnostics:** warnings/errors show in full on extra lines under the cursor line (never cut at the window edge); `<leader>cd` opens the float for any line.
 - **Markdown:** tables and headings are rendered inline; they stay rendered while moving the cursor in normal mode and show the real characters only in insert mode (wide cells wrap to fit the window).
 - **Plots:** matplotlib's open in a floating window.
 - **Look:** transparent background, with the wallpaper colors updated live.

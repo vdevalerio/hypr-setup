@@ -141,7 +141,15 @@ return {
     cmd = { "CsvViewEnable", "CsvViewDisable", "CsvViewToggle" },
     opts = {
       parser = { comments = { "#", "//" } },
-      view = { display_mode = "border", header_lnum = 1 },
+      view = {
+        display_mode = "border",
+        header_lnum = 1,
+        spacing = { left = 1, right = 1 },
+        min_column_width = 6,
+        sticky_header = { enabled = true, separator = "━" },
+        -- First column (usually the id) stays put while scrolling sideways
+        sticky_columns = { enabled = true, count = 1 },
+      },
       keymaps = {
         textobject_field_inner = { "if", mode = { "o", "x" } },
         textobject_field_outer = { "af", mode = { "o", "x" } },
@@ -151,15 +159,51 @@ return {
     },
     config = function(_, opts)
       require("csvview").setup(opts)
+      -- Table look: no ruler / relative numbers, the current row stands out
+      local function table_look()
+        vim.opt_local.colorcolumn = ""
+        vim.opt_local.relativenumber = false
+        vim.opt_local.cursorline = true
+        vim.opt_local.sidescrolloff = 8
+        vim.opt_local.list = false
+      end
       vim.api.nvim_create_autocmd("FileType", {
         pattern = { "csv", "tsv" },
-        callback = function() vim.cmd("CsvViewEnable") end,
+        callback = function()
+          table_look()
+          vim.cmd("CsvViewEnable")
+        end,
       })
+      -- Header: bold accent color; delimiters dimmed so the data comes first
+      local function csv_highlights()
+        local function hl(name) return vim.api.nvim_get_hl(0, { name = name, link = false }) end
+        local accent = hl("Title").fg or hl("Function").fg
+        local dim = hl("Comment").fg
+        vim.api.nvim_set_hl(0, "CsvViewHeaderLine", { fg = accent, bold = true, underline = false })
+        vim.api.nvim_set_hl(0, "CsvViewDelimiter", { fg = dim })
+        vim.api.nvim_set_hl(0, "CsvViewStickyHeaderSeparator", { fg = accent })
+      end
+      csv_highlights()
+      vim.api.nvim_create_autocmd("ColorScheme", { callback = csv_highlights })
       if vim.tbl_contains({ "csv", "tsv" }, vim.bo.filetype) then
+        table_look()
         vim.cmd("CsvViewEnable")
       end
     end,
-    keys = { { "<leader>uv", "<cmd>CsvViewToggle<cr>", desc = "Toggle CSV table view" } },
+    keys = {
+      { "<leader>uv", "<cmd>CsvViewToggle<cr>", desc = "Toggle CSV table view" },
+      {
+        -- Full-screen csvlens: search, filter columns, sort, freeze (the file as saved on disk)
+        "<leader>uV",
+        function()
+          if vim.fn.executable("csvlens") == 0 then
+            return vim.notify("csvlens is not installed (./install.sh data)", vim.log.levels.WARN)
+          end
+          Snacks.terminal({ "csvlens", vim.fn.expand("%:p") }, { win = { style = "float", width = 0.95, height = 0.9 } })
+        end,
+        desc = "Open in csvlens (full table browser)",
+      },
+    },
   },
 
   -- Python: less noisy type checking for data analysis (pandas/numpy)

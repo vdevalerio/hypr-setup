@@ -1,0 +1,20 @@
+# Per-project formatting settings, read by Neovim (indent), shfmt, prettier,
+# stylua and the whole-file formatter (<leader>cg). Change a number here to
+# change the indentation width or the line width of a file type.
+root = true
+
+[*]
+indent_style = space
+indent_size = 4
+max_line_length = 80
+trim_trailing_whitespace = true
+insert_final_newline = true
+
+[*.{md,json,jsonc,yml,yaml,toml}]
+indent_size = 2
+
+[*.{lua,css,rasi}]
+indent_size = 2
+
+[*.md]
+trim_trailing_whitespace = false

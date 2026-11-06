@@ -32,7 +32,8 @@ end
 -- Formatters never rewrap comments (ruff leaves them alone): hard-wrap the full-line `#` comments
 -- longer than column 80 with gq (the `comments` option keeps the indent and the `#` leader).
 local function wrap_comments(first, last)
-  if vim.bo.filetype ~= "python" then return end
+  local ft = vim.bo.filetype
+  if ft ~= "python" and not ft:match("sh$") then return end
   local tw, fe = vim.bo.textwidth, vim.bo.formatexpr
   vim.bo.textwidth, vim.bo.formatexpr = 80, "" -- LazyVim's formatexpr would hand gq to a formatter
   for l = last, first, -1 do
@@ -40,6 +41,30 @@ local function wrap_comments(first, last)
     -- skip shebangs, cell markers (# %%) and tool pragmas (# noqa, # type:, # fmt:)
     local plain = text:match("^%s*#%s") and not text:match("^%s*#%s*%%%%")
       and not text:match("^%s*#%s*[%w_]+:%s") and not text:match("^%s*#%s*noqa")
+    -- shell: column-aligned comments (usage tables) wrap with a hanging indent
+    -- under their description column; the shebang is left alone
+    local width = vim.bo.textwidth > 0 and vim.bo.textwidth or 80
+    if plain and ft:match("sh$") and text:match("^#!") then plain = false end
+    local hang = plain and ft:match("sh$") and text:match("^(%s*#%s*%S.-%S%s%s+)%S")
+    if hang and vim.fn.strdisplaywidth(text) > width then
+      local col = vim.fn.strdisplaywidth(hang)
+      local pad = text:match("^%s*#") .. string.rep(" ", col - #text:match("^%s*#"))
+      local new, rest = {}, text
+      while vim.fn.strdisplaywidth(rest) > width do
+        local cut
+        for i = width + 1, col + 2, -1 do
+          if rest:sub(i, i) == " " and rest:sub(i - 1, i - 1) ~= " " then cut = i break end
+        end
+        if not cut then break end
+        new[#new + 1] = rest:sub(1, cut - 1)
+        rest = pad .. rest:sub(cut + 1)
+      end
+      new[#new + 1] = rest
+      vim.api.nvim_buf_set_lines(0, l - 1, l, false, new)
+      plain = false
+    elseif hang then
+      plain = false
+    end
     if plain and vim.fn.strdisplaywidth(text) > 80 then
       vim.cmd(("silent keepjumps keeppatterns %dnormal! gqq"):format(l))
     end
@@ -180,16 +205,151 @@ function M.changed()
   each_range(changed_ranges(), function(a, b) trim(a, b); indent(a, b) end)
 end
 
-function M.all(what)
-  local last = vim.api.nvim_buf_line_count(0)
-  each_range({ { 1, last } }, function(a, b)
-    if what ~= "indent" then trim(a, b) end
-    if what ~= "trim" then indent(a, b) end
-  end)
+function M.trim_all()
+  trim(1, vim.api.nvim_buf_line_count(0))
 end
 
 -- Whole file with any available formatter (range-capable or not, LSP as fallback), wrapping at
 -- column 80; plain re-indent when there is none.
+-- Shell: shfmt never breaks long lines. Split each one that is wider than the width
+-- (`max_line_length` from .editorconfig, default 80) with a trailing `\` at the last
+-- safe spot: after ` && ` / ` || ` / ` | `, else between two words. Quotes, `${}`,
+-- `$()`, comments and heredocs are never split; shfmt then re-indents the new lines.
+local function sh_width() return vim.bo.textwidth > 0 and vim.bo.textwidth or 80 end
+
+-- Split points of `line` as {col_after_which_to_break, is_operator}, quote-aware
+local function sh_splits(line)
+  local pts, stack, q, i, n, awkq = {}, {}, nil, 1, #line, false
+  while i <= n do
+    local c = line:sub(i, i)
+    if q then
+      if c == "\\" and q == '"' then i = i + 1
+      elseif c == q then q = nil
+      elseif awkq and c == " " and line:sub(i - 1, i - 1):match("[;}]") and i < n then
+        -- an awk program may continue on the next line after `;` or `}`
+        pts[#pts + 1] = { i - 1, 3 }
+      end
+    elseif c == "\\" then i = i + 1
+    elseif c == "'" or c == '"' or c == "`" then
+      q = c
+      awkq = c == "'" and line:sub(1, i - 1):match("%f[%w]awk%s[^']*$") ~= nil
+    elseif c == "$" and line:sub(i + 1, i + 1):match("[({]") then
+      -- only a plain `$( … )` can be split inside; `$(( ))` and `${ }` cannot
+      local open = line:sub(i + 1, i + 2)
+      local split = open:sub(1, 1) == "(" and open ~= "(("
+      stack[#stack + 1] = { open:sub(1, 1) == "(" and ")" or "}", split }
+      i = i + 1
+    elseif #stack > 0 and c == stack[#stack][1] then stack[#stack] = nil
+    elseif #stack > 0 and c == "(" then stack[#stack + 1] = { ")", false }
+    elseif c == "#" and #stack == 0 and (i == 1 or line:sub(i - 1, i - 1):match("%s")) then break
+    elseif c == " " and (#stack == 0 or stack[#stack][2]) and i > 1 and not line:sub(i - 1, i - 1):match("%s") then
+      local before = line:sub(1, i - 1)
+      local op = before:match(" &&$") or before:match(" ||$") or before:match(" |$")
+      local sep = before:match("[^\\];;?$")
+      local nxt = line:sub(i + 1, i + 1)
+      if nxt ~= "" and nxt ~= "#" and not before:match("\\$") then
+        -- priority: `;` / `;;` (new line, no `\`) > && || | > any space
+        pts[#pts + 1] = { i - 1, sep and 3 or op and 2 or 1 }
+      end
+    end
+    i = i + 1
+  end
+  return pts
+end
+
+-- `f() { case $1 in a) … ;; b) … ;; esac }` written on one line (or already broken by hand
+-- or by an older run): join it and give every case item its own line; shfmt then indents it.
+local function sh_expand_case(lines, w)
+  local out, i = {}, 1
+  while i <= #lines do
+    local l = lines[i]
+    local head = l:match("^(%s*[%w_%-]+%(%)%s*{)%s+case%s")
+    if head then
+      local j, k = l, i
+      while not j:match("esac%s*;?%s*}%s*$") and k < #lines and k - i < 40 do
+        k = k + 1
+        j = j .. " " .. lines[k]:gsub("^%s+", "")
+      end
+      local body = j:match("^%s*[%w_%-]+%(%)%s*{%s+(case%s.-esac)%s*;?%s*}%s*$")
+      if body and vim.fn.strdisplaywidth(l) > w or (body and k > i) then
+        local word, items = body:match("^(case%s.-%sin)%s+(.*)%s+esac$")
+        if word then
+          out[#out + 1] = head
+          out[#out + 1] = word
+          local from = 1
+          for _, pt in ipairs(sh_splits(items)) do
+            if pt[2] == 3 and items:sub(pt[1] - 1, pt[1]) == ";;" then
+              out[#out + 1] = items:sub(from, pt[1])
+              from = pt[1] + 2
+            end
+          end
+          if from <= #items then out[#out + 1] = items:sub(from) end
+          out[#out + 1] = "esac"
+          out[#out + 1] = "}"
+          i = k + 1
+          goto continue
+        end
+      end
+    end
+    -- `f() { cmd; }` that does not fit: body on its own line, so it can be wrapped
+    local fhead = l:match("^(%s*[%w_%-]+%(%)%s*{)%s+%S")
+    if fhead and not l:match("^%s*#") then
+      local j, k = l, i
+      while j:match("\\%s*$") and k < #lines and k - i < 20 do
+        k = k + 1
+        j = j:gsub("\\%s*$", "") .. " " .. lines[k]:gsub("^%s+", "")
+      end
+      local inner = j:match("^%s*[%w_%-]+%(%)%s*{%s+(.-)%s*;?%s*}%s*$")
+      if inner and not inner:gsub("'[^']*'", ""):gsub('"[^"]*"', ""):find("[{}]") and vim.fn.strdisplaywidth(j) > w then
+        out[#out + 1] = fhead
+        out[#out + 1] = inner
+        out[#out + 1] = "}"
+        i = k + 1
+        goto continue
+      end
+    end
+    out[#out + 1] = l
+    i = i + 1
+    ::continue::
+  end
+  return out
+end
+
+local function wrap_shell(first, last)
+  if not vim.bo.filetype:match("^b?a?sh$") and vim.bo.filetype ~= "zsh" then return end
+  local w, sw = sh_width(), vim.fn.shiftwidth()
+  local lines = sh_expand_case(vim.api.nvim_buf_get_lines(0, first - 1, last, false), w)
+  local out, heredoc = {}, nil
+  for _, l in ipairs(lines) do
+    if heredoc then
+      out[#out + 1] = l
+      if l:match("^%s*(.-)%s*$") == heredoc then heredoc = nil end
+    else
+      local tag = l:match("<<%-?%s*['\"]?([%w_]+)")
+      if tag and not l:match("<<<") then heredoc = tag end
+      local indent = l:match("^%s*")
+      local rest = l
+      local guard = 0
+      while not heredoc and not rest:match("^%s*#") and guard < 20
+        and vim.fn.strdisplaywidth(rest) > w do
+        guard = guard + 1
+        local at, prio
+        for _, pt in ipairs(sh_splits(rest)) do
+          if pt[1] + 2 <= w and pt[1] > #indent + 8 and (not prio or pt[2] >= prio) then
+            at, prio = pt[1], pt[2]
+          end
+        end
+        if not at then break end
+        out[#out + 1] = rest:sub(1, at) .. (prio == 3 and "" or " \\")
+        indent = indent .. string.rep(" ", sw) -- hanging indent (shfmt fixes it later)
+        rest = indent .. rest:sub(at + 2)
+      end
+      out[#out + 1] = rest
+    end
+  end
+  vim.api.nvim_buf_set_lines(0, first - 1, last, false, out)
+end
+
 function M.format_all()
   local view = vim.fn.winsaveview()
   local last = vim.api.nvim_buf_line_count(0)
@@ -206,6 +366,10 @@ function M.format_all()
     local skip = no_indent[vim.bo.filetype] and vim.bo.filetype ~= "markdown"
     local done = ok and not skip
       and conform.format({ async = false, timeout_ms = 5000, lsp_format = "fallback" })
+    if done and vim.bo.filetype:match("sh$") then
+      wrap_shell(1, vim.api.nvim_buf_line_count(0))
+      conform.format({ async = false, timeout_ms = 5000, lsp_format = "fallback" }) -- re-indent the new lines
+    end
     if done then
       local n = vim.api.nvim_buf_line_count(0)
       wrap_comments(1, n)
@@ -223,15 +387,10 @@ function M.setup()
       if vim.g.clean_on_save and vim.bo.modifiable then M.changed() end
     end,
   })
-  vim.api.nvim_create_user_command("CleanTrim", function() M.all("trim") end, { desc = "Trim trailing whitespace (whole file)" })
-  vim.api.nvim_create_user_command("CleanIndent", function() M.all("indent") end, { desc = "Re-indent and wrap at column 80 (whole file)" })
-  vim.api.nvim_create_user_command("CleanAll", function() M.all() end, { desc = "Trim and re-indent (whole file)" })
+  vim.api.nvim_create_user_command("CleanTrim", M.trim_all, { desc = "Trim trailing whitespace (whole file)" })
   vim.api.nvim_create_user_command("FormatAll", M.format_all, { desc = "Format the whole file (formatter, wrap at 80)" })
   local map = vim.keymap.set
-  map("n", "<leader>cw", "<cmd>CleanTrim<cr>", { desc = "Trim trailing whitespace (file)" })
-  map("n", "<leader>ci", "<cmd>CleanIndent<cr>", { desc = "Re-indent + wrap at 80 (file)" })
-  map("n", "<leader>cW", "<cmd>CleanAll<cr>", { desc = "Trim + re-indent + wrap (file)" })
-  map("n", "<leader>cg", "<cmd>FormatAll<cr>", { desc = "Format whole file (global)" })
+  map("n", "<leader>cw", "<cmd>CleanTrim<cr>", { desc = "Trim trailing whitespace" })
   map("n", "<leader>uW", function()
     vim.g.clean_on_save = not vim.g.clean_on_save
     vim.notify("Clean changed lines on save: " .. (vim.g.clean_on_save and "on" or "off"))
