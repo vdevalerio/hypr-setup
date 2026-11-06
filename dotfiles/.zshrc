@@ -137,7 +137,16 @@ _auto_venv() {
         fi
         dir=${dir:h}
     done
-    [[ -n $VIRTUAL_ENV ]] && (( $+functions[deactivate] )) && deactivate
+    if [[ -n $VIRTUAL_ENV ]]; then
+        if (( $+functions[deactivate] )); then
+            deactivate
+        else
+            # Inherited venv (new tmux pane, terminal, exec zsh): no deactivate function exists
+            path=(${path:#$VIRTUAL_ENV/bin})
+            unset VIRTUAL_ENV VIRTUAL_ENV_PROMPT
+        fi
+    fi
+    return 0
 }
 add-zsh-hook chpwd _auto_venv
 _auto_venv

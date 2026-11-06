@@ -45,4 +45,5 @@ Everything in this repo is written in **English** (code, comments, docs, UI stri
 - mpvpaper: one per output with `-p` only (`-a FULL` pauses all outputs). `brightnessctl` needs `-e4` for set and get. `hostname` isn't installed → `uname -n`. Arch `nftables.service` shows inactive even when loaded (oneshot) → restart, not reload.
 - Lid: re-enabling a disabled monitor needs `hyprctl reload`; `lid.sh check` must act only when the lid is physically closed.
 - Mason in headless `install.sh`: LazyVim may already be installing a package → never `p:install()` one that `is_installing()`.
+- A shell started from a venv-activated one (tmux pane, terminal, `exec zsh`) inherits `VIRTUAL_ENV`/PATH but not the `deactivate` function → `_auto_venv` (`.zshrc`) strips `$VIRTUAL_ENV/bin` from `path` by hand, otherwise `cd ~` leaves the venv stuck.
 - Screenshots for self-checks: crop/resize before reading (`magick … -crop … -resize 50%`) — full 1920px images are expensive.
