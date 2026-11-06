@@ -70,7 +70,8 @@ for i, lang in ipairs({ "Portuguese", "English", "Russian", "Japanese" }) do
 end
 
 -- ── Session ──────────────────────────────────────────────────
-bind(M("Escape"),        hl.dsp.exec_cmd("loginctl lock-session"),       "Lock screen")
+bind(M("Escape"),        hl.dsp.exec_cmd(scripts .. "lock.sh normal"),   "Lock screen")
+bind(M("SHIFT + Escape"), hl.dsp.exec_cmd(scripts .. "lock.sh remote"),  "Lock screen, system stays awake (remote)")
 bind(M("X"),             hl.dsp.exec_cmd(scripts .. "powermenu.sh"),     "Power menu")
 bind(M("CTRL + Q"),      hl.dsp.exec_cmd("hyprshutdown || hyprctl dispatch 'hl.dsp.exit()'"), "Exit Hyprland")
 

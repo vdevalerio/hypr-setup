@@ -9,8 +9,13 @@ wallpaper, battery and health watchers, audio follow, power).
 
 ## Lock screen
 
-`SUPER + Esc` (or the power menu) runs `loginctl lock-session`, which calls
-`scripts/lock.sh`: the Quickshell lock screen (`quickshell/lock.qml`) with the
+`scripts/lock.sh` has two modes. `SUPER + Esc` / power menu "Lock" = `normal`;
+`SUPER + SHIFT + Esc` / "Lock (stay awake)" = `remote`: same screen, but it runs
+under `systemd-inhibit --what=sleep:idle:handle-lid-switch`, which lives only while
+locked, so idle-suspend, manual suspend and lid-close suspend are blocked and remote
+sessions survive. The automatic lock (hypridle / `loginctl lock-session`) uses the mode
+in `~/.local/state/hypr-lock-mode` (`lock.sh default remote|normal`, default normal).
+The lock is: the Quickshell lock screen (`quickshell/lock.qml`) with the
 animated wallpaper, your profile picture (`~/.face`, set with `scripts/avatar.sh`),
 clock, now-playing music and battery. If Quickshell fails, `hyprlock` is the
 fallback (`hyprlock.conf`).

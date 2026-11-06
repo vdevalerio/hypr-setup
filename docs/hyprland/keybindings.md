@@ -96,7 +96,8 @@ and `SUPER + ALT + SHIFT + Tab` cycle the tabs forward and back.
 
 | Keys | Action |
 | --- | --- |
-| `SUPER + Esc` | Lock screen |
+| `SUPER + Esc` | Lock screen (normal: the system may suspend) |
+| `SUPER + SHIFT + Esc` | Remote-safe lock: password required, system stays awake |
 | `SUPER + X` | Power menu (includes **Reload Hyprland**: re-reads the config, closes nothing) |
 | `SUPER + CTRL + Q` | Exit Hyprland |
 

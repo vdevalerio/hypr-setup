@@ -132,7 +132,8 @@ Tested on: Ryzen 7 7735HS + Radeon 680M + RTX 4050 (laptop), Hyprland 0.56.
 | SUPER + A | Control center |
 | SUPER + SHIFT + B | Show/hide the bar |
 | SUPER + Esc | Lock screen |
-| SUPER + X | Power menu (lock, reload Hyprland, suspend, log out, reboot, shut down) |
+| SUPER + SHIFT + Esc | Remote-safe lock: asks for the password but the system stays awake |
+| SUPER + X | Power menu (lock, lock (stay awake), reload Hyprland, suspend, log out, reboot, shut down) |
 | SUPER + CTRL + Q | Exit Hyprland |
 
 ### Appearance (live, saved to `~/.config/hypr/look.conf`)
@@ -474,7 +475,12 @@ those on hidden workspaces. Idle windows (that don't redraw) show the app icon.
 
 ## Lock screen
 
-**SUPER + Esc**, or automatically after 5 min idle. Shows the current wallpaper blurred, clock, greeting,
+**SUPER + Esc**, or automatically after 5 min idle.
+Two modes (`scripts/lock.sh [normal|remote|default]`): **normal** (SUPER + Esc) is the usual lock, the machine may
+suspend on idle / lid close; **remote** (SUPER + SHIFT + Esc, or "Lock (stay awake)" in the power menu) shows the same
+screen with a password but holds a systemd inhibitor (sleep, idle, lid switch) only while locked, so SSH /
+Claude Code remote sessions keep running. `lock.sh default remote` makes the idle auto-lock remote-safe too.
+ Shows the current wallpaper blurred, clock, greeting,
 the password field on a glass card and, at the bottom, the music playing, the keyboard layout and the battery.
 
 - **Profile photo** in place of the icon: control center → Appearance → **Photo**. Shows the most recent

@@ -8,11 +8,12 @@ reboot=$'  Reboot'
 shutdown=$'  Shut down'
 
 pkill -x rofi && exit 0
-choice=$(printf '%s\n' "$lock" "$reload" "$suspend" "$logout" "$reboot" "$shutdown" |
-    rofi -dmenu -i -p "Power" -theme-str 'window {width: 320px;} listview {lines: 6;}')
+choice=$(printf '%s\n' "$lock" "$remote" "$reload" "$suspend" "$logout" "$reboot" "$shutdown" |
+    rofi -dmenu -i -p "Power" -theme-str 'window {width: 320px;} listview {lines: 7;}')
 
 case "$choice" in
-    "$lock")     loginctl lock-session ;;
+    "$lock")     ~/.config/hypr/scripts/lock.sh normal ;;
+    "$remote")   ~/.config/hypr/scripts/lock.sh remote ;;
     "$reload")
         hyprctl reload >/dev/null
         errs=$(hyprctl configerrors 2>/dev/null | sed '/^$/d')
