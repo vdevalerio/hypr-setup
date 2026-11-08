@@ -17,6 +17,7 @@ Run any of them from a terminal; most take a sub-command.
 | `clipboard.sh` | Clipboard history (cliphist + rofi) |
 | `keybinds.sh` | The searchable keybind list |
 | `keyboard.sh` | fcitx5 language switching |
+| `tablet.sh` | Which monitor the Wacom / stylus pen is mapped to |
 | `lock.sh`, `lockinfo.sh`, `avatar.sh` | Lock screen and its profile picture |
 | `overview.sh` | Quickshell workspace overview |
 | `powermenu.sh`, `power.sh`, `lid.sh` | Power menu, AC/battery, lid |

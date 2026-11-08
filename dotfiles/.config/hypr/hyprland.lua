@@ -305,6 +305,12 @@ hl.config({
             clickfinger_behavior = true,
             scroll_factor        = 0.6,
         },
+
+        -- Wacom / stylus tablets: map to ONE screen (otherwise the pen spans every monitor and is stretched).
+        -- Change it live with scripts/tablet.sh (map <monitor>|focused|all).
+        tablet = {
+            output = "current",
+        },
     },
 })
 

@@ -1,0 +1,39 @@
+#!/usr/bin/env bash
+# Local speech-to-text with Whisper large-v3 (faster-whisper). GPU (CUDA) when available, else CPU int8.
+#   transcribe audio.ogg [more files…] [-l pt] [-f txt|srt|vtt|json] [-m large-v3] [--cpu]
+# Writes <audio>.txt (or .srt/.vtt/.json) next to each file and prints the text. Language is auto-detected
+# unless -l is given (pass it for short or noisy audio: more accurate).
+unset CUDA_VISIBLE_DEVICES   # the session hides the dGPU from CUDA (igpu.sh); transcribing wants it
+exec ~/.local/share/whisper/bin/python - "$@" <<'PY'
+import sys, os, json, argparse, glob, site
+ap = argparse.ArgumentParser()
+ap.add_argument("files", nargs="+"); ap.add_argument("-l", "--lang"); ap.add_argument("-m", "--model", default="large-v3")
+ap.add_argument("-f", "--format", default="txt", choices=["txt", "srt", "vtt", "json"]); ap.add_argument("--cpu", action="store_true")
+a = ap.parse_args()
+# CUDA libs come from the pip wheels (nvidia-cublas/cudnn); preload them before ctranslate2 needs them
+import ctypes
+for d in site.getsitepackages():
+    for lib in sorted(glob.glob(d + "/nvidia/*/lib/lib*.so*")):
+        try: ctypes.CDLL(lib, mode=ctypes.RTLD_GLOBAL)
+        except OSError: pass
+from faster_whisper import WhisperModel
+def load():
+    if not a.cpu:
+        try: return WhisperModel(a.model, device="cuda", compute_type="float16")
+        except Exception as e: print("CUDA unavailable (%s); using CPU" % str(e)[:80], file=sys.stderr)
+    return WhisperModel(a.model, device="cpu", compute_type="int8", cpu_threads=os.cpu_count())
+m = load()
+def ts(t, sep):
+    h, r = divmod(t, 3600); mi, s = divmod(r, 60)
+    return "%02d:%02d:%06.3f" % (h, mi, s) if sep == "." else ("%02d:%02d:%06.3f" % (h, mi, s)).replace(".", ",")
+for f in a.files:
+    segs, info = m.transcribe(f, language=a.lang, beam_size=5, vad_filter=True, condition_on_previous_text=False)
+    segs = list(segs)
+    print("# %s [%s %.0f%%]" % (f, info.language, info.language_probability * 100), file=sys.stderr)
+    if a.format == "txt": out = "\n".join(s.text.strip() for s in segs) + "\n"
+    elif a.format == "json": out = json.dumps({"language": info.language, "segments": [dict(start=s.start, end=s.end, text=s.text.strip()) for s in segs]}, ensure_ascii=False, indent=1)
+    else:
+        sep = "." if a.format == "vtt" else ","
+        out = ("WEBVTT\n\n" if a.format == "vtt" else "") + "\n".join("%d\n%s --> %s\n%s\n" % (i, ts(s.start, sep), ts(s.end, sep), s.text.strip()) for i, s in enumerate(segs, 1))
+    open(os.path.splitext(f)[0] + "." + a.format, "w").write(out); print(out)
+PY

@@ -1,6 +1,7 @@
 #!/usr/bin/env bash
 # Power menu (SUPER + X or the bar button). "Reload Hyprland" re-reads the config without closing anything.
 lock=$'  Lock'
+remote=$'\U000F0341  Lock (stay awake)'
 reload=$'\U000F0450  Reload Hyprland'
 logout=$'  Log out'
 suspend=$'  Suspend'

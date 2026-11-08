@@ -46,6 +46,7 @@ If you already have configs in your home, the script moves the ones that differ 
 | `./install.sh extras` | Firewall, zram, automatic maintenance, rollback snapshots, disk health, VPN, lid and battery limit (asks for sudo) |
 | `./install.sh ssh` | Remote access over SSH: keys only, no root, firewall port with a per-source rate limit (asks for sudo; needs an authorized key first, see **Remote access**) |
 | `./install.sh ssh-key '<public key>'` | Authorizes a public key in `~/.ssh/authorized_keys` (no sudo) |
+| `./install.sh whisper` | Local speech-to-text: `transcribe audio.ogg` (Whisper large-v3 via faster-whisper, NVIDIA GPU or CPU; ~3 GB model + 2.6 GB venv; see **Transcription**) |
 | `./install.sh data` | Data/dev profile: Docker, SQL clients (`pgcli`, `mycli`, `harlequin`, `lazysql`, `usql`), DuckDB, DBeaver and the tools that make their output readable (see **Containers and databases**) (asks for sudo, not part of the full install) |
 | `./install.sh gaming` | Steam, GameMode and MangoHud; enables multilib (asks for sudo, not part of the full install) |
 | `./install.sh wipe` | **Destructive** factory reset back to a bare Arch: removes all packages outside the base set, the user and its home, history, logs and caches (`--dry-run` shows the plan; asks for the hostname; needs a root password). Tested in the VM only |
@@ -472,6 +473,24 @@ those on hidden workspaces. Idle windows (that don't redraw) show the app icon.
 - Built with Quickshell (`~/.config/quickshell/overview.qml` + `OverviewScreen.qml`), using the theme colors.
   It stays open in the background, on the integrated GPU, to open instantly. Script:
   `~/.config/hypr/scripts/overview.sh [toggle|open|close|start]` (starts the process if it has died).
+
+## Wacom and stylus
+
+**Xournal++** (`xournalpp`) for handwritten notes and PDF annotation. Wacom (and most USB/Bluetooth stylus tablets)
+work out of the box through the kernel driver, `libinput` and `libwacom`; Hyprland reads pressure, tilt and the
+eraser end. The pen is mapped to **one screen** (`input.tablet.output = "current"` in `hyprland.lua`), otherwise
+it would stretch across every monitor. Change it live with `scripts/tablet.sh map <monitor>|focused|all`
+(`tablet.sh list` shows connected tablets). Tips: in Xournal++ enable *Preferences → Input Devices → Pen/Eraser*
+buttons as needed and use *Pressure sensitivity* for pen strokes.
+
+## Transcription
+
+`transcribe audio.ogg [more…] [-l pt] [-f txt|srt|vtt|json] [--cpu]` runs Whisper **large-v3** locally
+(faster-whisper, venv in `~/.local/share/whisper`, model in `~/.cache/huggingface`). It writes the result next to
+each audio (`audio.txt`, `.srt`…) and prints it. The language is auto-detected; pass `-l pt` for short or noisy
+audio. It uses the NVIDIA GPU (~6 s for a short clip, ~1 min per 10 min of audio) and falls back to the CPU (int8,
+several times slower). Any format ffmpeg reads works (ogg/opus from WhatsApp, m4a, mp4, mp3…). Set up with
+`./install.sh whisper`.
 
 ## Lock screen
 

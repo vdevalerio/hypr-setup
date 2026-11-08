@@ -80,6 +80,7 @@ MANAGED=(
     .local/bin/foliate-sentences
     .local/bin/game
     .local/bin/todo
+    .local/bin/transcribe
     .config/gamemode.ini
     .local/share/piper-speechd
     .local/share/fcitx5/themes/hypr-setup
@@ -105,7 +106,8 @@ PKGS_HYPR=(hyprland hyprlock hypridle quickshell qt6-multimedia qt6-multimedia-f
 PKGS_DESKTOP=(rofi rofi-emoji rofi-calc swaync libnotify awww ffmpeg file)
 PKGS_APPS=(kitty yazi poppler resvg 7zip unzip gvfs gvfs-mtp ffmpegthumbnailer file-roller
            firefox mpv imv btop fastfetch libva-utils
-           foliate zathura zathura-pdf-mupdf speech-dispatcher espeak-ng)   # document readers (+ TTS for Foliate)
+           foliate zathura zathura-pdf-mupdf speech-dispatcher espeak-ng   # document readers (+ TTS for Foliate)
+           xournalpp libwacom)   # handwritten notes / PDF annotation with a Wacom or stylus tablet
 PKGS_AUDIO=(pipewire pipewire-pulse pipewire-alsa pipewire-jack wireplumber pavucontrol playerctl sof-firmware)
 PKGS_SYSTEM=(networkmanager network-manager-applet bluez bluez-utils blueman power-profiles-daemon brightnessctl
              ddcutil    # external monitor brightness (DDC/CI)
@@ -635,6 +637,20 @@ setup_gaming() {
     info "In Steam: game → Properties → Launch options →  game %command%"
 }
 
+# Local speech-to-text: faster-whisper (Whisper large-v3) in its own venv, with the CUDA libraries from pip
+# wheels (no system CUDA). `transcribe` (.local/bin) uses the NVIDIA GPU when present, else the CPU (int8).
+setup_whisper() {
+    step "Speech-to-text: Whisper large-v3 (faster-whisper)"
+    command -v uv >/dev/null || sudo pacman -S --needed --noconfirm uv ffmpeg
+    local venv=$HOME/.local/share/whisper
+    [[ -x $venv/bin/python ]] || uv venv "$venv" --python 3.12 -q
+    # av is pinned: faster-whisper 1.2.1 calls av.open(metadata_errors=…), dropped in newer PyAV
+    uv pip install -q --python "$venv/bin/python" faster-whisper "av==15.1.0" \
+        nvidia-cublas-cu12 nvidia-cudnn-cu12
+    "$venv/bin/python" -c 'from huggingface_hub import snapshot_download as d; d("Systran/faster-whisper-large-v3")' ||
+        warn "model download failed (it is fetched on first use)"
+}
+
 # Natural text-to-speech: Piper plus our own speech-dispatcher module. The stock sd_generic module
 # strips SSML, so clients (Foliate) never get index marks and cannot highlight the word being read;
 # .local/share/piper-speechd/sd_piper emits them. Voice per language: SUPER + SHIFT + V (voice.sh).
@@ -790,6 +806,7 @@ case "${1:-all}" in
     boot)     need_user; sudo_keepalive; setup_boot ;;
     claude)   need_user; setup_claude ;;
     tts)      need_user; setup_tts ;;
+    whisper)  need_user; setup_whisper ;;
     ssh)      need_user; sudo_keepalive; setup_ssh ;;
     ssh-key)  need_user; ssh_add_key "${2:-}" ;;
     gaming)   need_user; sudo_keepalive; setup_gaming ;;
