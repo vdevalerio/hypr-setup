@@ -558,6 +558,7 @@ the password field on a glass card and, at the bottom, the music playing, the ke
 - **Data:** CSV/TSV open as a table with borders, colored columns, a sticky header and a frozen first column (`Tab` jumps between columns, `<leader>uV` opens csvlens full screen) and SQL has a database browser (`<space> D`).
 - **Formatting:** `<leader>cf` formats the whole file and wraps code and comments at 80 columns (Python, Lua, Markdown, shell: shfmt plus a line breaker with `\`). Indentation width and line width per project come from an `.editorconfig` at the project root (this repo has one: 4 spaces, 2 for Lua/Markdown/JSON/YAML).
 - **Diagnostics:** warnings/errors show in full on extra lines under the cursor line (never cut at the window edge); `<leader>cd` opens the float for any line.
+- **Mermaid:** ` ```mermaid ` blocks in Markdown are drawn as diagrams right below the code (Snacks.image + `mmdc`, kitty graphics protocol, works inside tmux thanks to `allow-passthrough`). Cached, re-rendered only when the block changes. `<leader>uI` shows the image under the cursor in a float. Installed by `./install.sh nvim`.
 - **Markdown:** tables and headings are rendered inline; they stay rendered while moving the cursor in normal mode and show the real characters only in insert mode (wide cells wrap to fit the window).
 - **Plots:** matplotlib's open in a floating window.
 - **Look:** transparent background, with the wallpaper colors updated live.

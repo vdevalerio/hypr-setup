@@ -693,6 +693,15 @@ setup_nvim() {
     step "Neovim: plugins (versions pinned in lazy-lock.json)"
     nvim --headless "+Lazy! restore" +qa >/dev/null 2>&1 || nvim --headless "+Lazy! sync" +qa >/dev/null 2>&1 || true
 
+    step "Neovim: Mermaid renderer (mermaid-cli)"
+    # Snacks.image turns ```mermaid blocks into pictures with `mmdc`; puppeteer's postinstall (the headless
+    # Chrome download) is blocked by npm's allow-scripts, so it is run by hand
+    if ! command -v mmdc >/dev/null && command -v npm >/dev/null; then
+        npm i -g --prefix "$HOME/.local" @mermaid-js/mermaid-cli >/dev/null 2>&1 &&
+            (cd "$HOME/.local/lib/node_modules/@mermaid-js/mermaid-cli/node_modules/puppeteer" && node install.mjs >/dev/null 2>&1) ||
+            warn "mermaid-cli failed (retry: ./install.sh nvim)"
+    fi
+
     step "Neovim: Portuguese spell dictionary"
     # The runtime ships only en; nvim would ask to download pt on first use
     local spell="$HOME/.local/share/nvim/site/spell"

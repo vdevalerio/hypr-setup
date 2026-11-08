@@ -28,6 +28,11 @@ the repo. The compiled `.spl` files are rebuilt automatically and git-ignored.
   normal mode (anti-conceal is off, `plugins/markdown.lua`); insert mode shows
   the real characters for editing. Cells wider than the window wrap onto
   several lines, also on the cursor line. `markdown-toc` can generate a table of contents.
+- **Mermaid:** a ` ```mermaid ` block is drawn as a diagram right below its code
+  (`plugins/mermaid.lua`: Snacks.image + `mmdc`, kitty graphics protocol, also inside
+  tmux). Diagrams are cached and re-rendered only when the block changes;
+  `<leader>uI` shows the image under the cursor in a float. Needs `mmdc`
+  (`./install.sh nvim` installs it).
 
 ## Man pages
 

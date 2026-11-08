@@ -40,6 +40,8 @@ return {
     end,
     opts = {
       anti_conceal = { enabled = false },
+      -- the default thin border adds virtual lines that cover Snacks.image diagrams (see mermaid.lua)
+      code = { border = "none" },
       win_options = { concealcursor = { rendered = "nvc" } },
     },
   },
