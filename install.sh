@@ -140,10 +140,10 @@ AUR_BATTERY=(acer-wmi-battery-dkms-git)
 
 # Neovim: syntax parsers and language servers (Mason)
 TS_PARSERS=(python sql csv markdown markdown_inline toml yaml json rst requirements lua bash regex vim vimdoc
-            dockerfile git_config gitcommit diff)
+            dockerfile git_config gitcommit diff go gomod gowork gosum)
 MASON_PKGS=(basedpyright ruff debugpy json-lsp yaml-language-server taplo marksman lua-language-server
             dockerfile-language-server docker-compose-language-service stylua shfmt sqlfluff hadolint
-            markdownlint-cli2 markdown-toc prettier)
+            markdownlint-cli2 markdown-toc prettier gopls gofumpt goimports gomodifytags impl delve)
 
 # ── Utilities ───────────────────────────────────────────────────────────
 step() { printf '\n\e[1;35m==>\e[0m \e[1m%s\e[0m\n' "$*"; }

@@ -57,6 +57,15 @@ move, `<C-space>` opens docs/forces completion, `<C-e>` dismisses.
 installed by `install.sh` is `MASON_PKGS` in the repo. Treesitter parsers:
 `:TSInstall <lang>`, list in `TS_PARSERS`.
 
+## Go
+
+The LazyVim `lang.go` extra (`lazyvim.json`) gives `gopls` (completion, diagnostics, inlay
+hints, go to definition), formatting on save with `goimports` + `gofumpt` (adds/removes
+imports, tabs as `gofmt` wants: `.editorconfig` has `indent_style = tab` for `*.go`),
+`gomodifytags` / `impl`, Delve debugging (`<leader>d`, `nvim-dap-go`) and tests with
+`neotest-golang` (`<leader>t`: run nearest, file, debug test). Tree-sitter parsers `go`,
+`gomod`, `gowork`, `gosum`. Everything is installed by `./install.sh nvim` (needs `go`).
+
 ## Debugging
 
 `debugpy` is installed through Mason for the Python adapter. The debugger keys
