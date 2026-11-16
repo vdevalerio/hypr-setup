@@ -4,6 +4,12 @@
 
 Keyboard-driven, themed from the system colors (`~/.config/zathura/colors`).
 
+It is the default app for PDFs: yazi opens them with an explicit `pdf` opener (`yazi.toml`, so
+it does not depend on the xdg default), and `mimeapps.list` makes it the default for
+`application/pdf` and `application/oxps` everywhere else. If a PDF opens in the browser
+again, run `xdg-mime default org.pwmt.zathura-pdf-mupdf.desktop application/pdf`
+(browsers and some apps can reclaim the default).
+
 | Keys | Action |
 | --- | --- |
 | `j` `k` / `h` `l` | Scroll |

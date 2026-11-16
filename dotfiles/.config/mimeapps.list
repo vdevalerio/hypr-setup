@@ -6,3 +6,5 @@ x-scheme-handler/https=brave-browser.desktop
 x-scheme-handler/about=brave-browser.desktop
 x-scheme-handler/unknown=brave-browser.desktop
 inode/directory=yazi-kitty.desktop
+application/pdf=org.pwmt.zathura-pdf-mupdf.desktop
+application/oxps=org.pwmt.zathura-pdf-mupdf.desktop

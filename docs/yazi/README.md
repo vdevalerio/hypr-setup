@@ -37,7 +37,7 @@ and `resvg`.
 | `a` | Create (end with `/` for a directory) |
 | `r` | Rename |
 | `;` / `:` | Run a shell command |
-| `o` / `Enter` | Open |
+| `o` / `Enter` | Open (PDFs open in Zathura) |
 | `O` | Open with… |
 | `Tab` | File info |
 | `Ctrl+s` | Cancel a running search |

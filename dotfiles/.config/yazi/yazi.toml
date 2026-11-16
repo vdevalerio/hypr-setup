@@ -14,3 +14,14 @@ mouse_events   = [ "click", "scroll", "drag" ]
 max_width     = 1200
 max_height    = 1600
 image_quality = 85
+
+# PDFs open in zathura (not the browser), whatever the xdg default is. `reveal`/`edit` stay as they are.
+[opener]
+pdf = [
+    { run = 'setsid -f zathura "$@"', desc = "Zathura", for = "unix", orphan = true },
+]
+
+[open]
+prepend_rules = [
+    { mime = "application/pdf", use = [ "pdf", "reveal" ] },
+]
