@@ -289,7 +289,10 @@ Tested on: Ryzen 7 7735HS + Radeon 680M + RTX 4050 (laptop), Hyprland 0.56.
   (an area). In control center → Tools there is also "with microphone". While recording, `󰑋 0:12`
   shows in red on the bar (click to stop). Videos in `~/Videos/Recordings`.
 - **Copy text from the screen (OCR):** SUPER + CTRL + S, select the area and the text goes to the
-  clipboard. Portuguese and English; Japanese and Russian via control center → Tools.
+  clipboard. The languages are **your keyboard languages** (`~/.config/fcitx5/profile`: today Portuguese, English,
+  Russian, Japanese) plus English: add a keyboard language and the OCR picks it up. Missing models are downloaded by
+  themselves (tessdata_best, into `~/.local/share/tessdata`, no sudo). `ocr.sh langs` shows what is used; the
+  control-center entries (Japanese / Russian) still force a single language.
 - **Sharing your screen in meetings** (Meet, Teams, Zoom in the browser): the browser opens a small window to
   choose the screen, the window or an area. Test before an important meeting at
   https://webrtc.github.io/samples/src/content/getusermedia/getdisplaymedia/

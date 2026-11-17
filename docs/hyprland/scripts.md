@@ -13,7 +13,7 @@ Run any of them from a terminal; most take a sub-command.
 | `osd.sh` | On-screen indicators for volume, mic, caps lock |
 | `screenshot.sh` | `region`, `screen`, `edit` (satty) into `~/Pictures/Screenshots` |
 | `record.sh` | Screen recording with gpu-screen-recorder into `~/Videos/Recordings` |
-| `ocr.sh` | Text from a screen area (tesseract); `ocr.sh jpn` for Japanese |
+| `ocr.sh` | Text from a screen area (tesseract); languages follow the fcitx5 keyboard list, models auto-download; `ocr.sh jpn` forces one, `ocr.sh langs` lists |
 | `clipboard.sh` | Clipboard history (cliphist + rofi) |
 | `keybinds.sh` | The searchable keybind list |
 | `keyboard.sh` | fcitx5 language switching |
