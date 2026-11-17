@@ -20,6 +20,7 @@ style in `style.css`; `colors.css` and `font.css` are generated. It runs under
 | Workspaces | Click to switch; right-click lists the open windows |
 | Volume | Click mute · right-click pavucontrol · scroll volume |
 | Battery | Scroll changes the brightness of the monitor under the cursor |
+| Clipboard | Number of items in the history; hover for the latest ones; click opens the picker (`clipboard.sh`) |
 | To-do | Hover for the tasks · click opens the to-do menu ([todo](../todo/README.md)) |
 | Clock | Hover for the calendar |
 | CPU / memory / disk | Click opens the system monitor (`sysmon.sh top`) |

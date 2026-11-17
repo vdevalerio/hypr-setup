@@ -14,7 +14,7 @@ when fcitx5 is typing Russian or Japanese. Press `SUPER + F1` for the live list.
 | `SUPER + Tab` | Workspace overview |
 | `SUPER + E` | File manager (yazi in kitty) |
 | `SUPER + B` | Browser (Brave) |
-| `SUPER + V` | Clipboard history |
+| `SUPER + V` | Clipboard history (also the clipboard button in the bar). `Enter` copies the item, `Shift+Delete` removes it, `Alt+Delete` clears everything. Keeps the last 750 items (text and images) |
 | `SUPER + SHIFT + V` | Text-to-speech voice picker |
 | `SUPER + ;` | Emoji picker |
 | `SUPER + =` | Calculator |

@@ -126,7 +126,7 @@ Tested on: Ryzen 7 7735HS + Radeon 680M + RTX 4050 (laptop), Hyprland 0.56.
 | SUPER + CTRL + T | To-do list (Rofi) |
 | ALT + Tab | Window list |
 | SUPER + E / B | Files (yazi) / browser |
-| SUPER + V | Clipboard history |
+| SUPER + V | Clipboard history: every copy of the last 750 (text and images), also the clipboard button in the bar (Enter copies, Shift+Del removes, Alt+Del clears) |
 | SUPER + ; / = | Emoji / calculator |
 | SUPER + N / SHIFT + N | Notification center / clear |
 | SUPER + SHIFT + C | Color picker (copies the color) |

@@ -5,9 +5,9 @@
     "layer": "top",
     "position": "top",
     "height": 38,
-    "margin-top": 4,      // margins = window gaps_out (updated by look.sh gaps)
-    "margin-left": 4,
-    "margin-right": 4,
+    "margin-top": 7,      // margins = window gaps_out (updated by look.sh gaps)
+    "margin-left": 7,
+    "margin-right": 7,
     "spacing": 8,
     "reload_style_on_change": true,
 
@@ -35,7 +35,7 @@
     },
     "group/actions": {
         "orientation": "horizontal",
-        "modules": ["custom/recording", "custom/notification", "custom/control", "custom/power"]
+        "modules": ["custom/clipboard", "custom/recording", "custom/notification", "custom/control", "custom/power"]
     },
 
     // ── Left ─────────────────────────────────────────────
@@ -233,6 +233,14 @@
     },
 
     // Screen recording in progress (hidden when not recording)
+    // Clipboard history: number of items, latest ones in the tooltip, click opens the picker
+    "custom/clipboard": {
+        "exec": "~/.config/hypr/scripts/clipboard.sh status",
+        "return-type": "json",
+        "interval": 10,
+        "format": "\udb80\udd4c {}",
+        "on-click": "setsid -f ~/.config/hypr/scripts/clipboard.sh"
+    },
     "custom/todo": {
         "exec": "~/.config/hypr/scripts/todo.sh status",
         "return-type": "json",
