@@ -242,6 +242,9 @@ setup_system() {
         echo auto | sudo tee /sys/bus/pci/devices/$NV_ID/power/control >/dev/null || true
     fi
 
+    step "Login attempts: 10 wrong passwords before the 10-minute lock (pam_faillock)"
+    sudo install -Dm644 "$REPO/system/etc/security/faillock.conf" /etc/security/faillock.conf
+
     step "External monitor brightness (DDC/CI): i2c-dev module"
     echo i2c-dev | sudo tee /etc/modules-load.d/i2c-dev.conf >/dev/null
     sudo modprobe i2c-dev || true

@@ -9,6 +9,8 @@ wallpaper, battery and health watchers, audio follow, power).
 
 ## Lock screen
 
+Failed logins are limited by `pam_faillock` (`/etc/security/faillock.conf`, repo copy `system/etc/security/faillock.conf`: deny 10, fail_interval 900 s, unlock_time 600 s; shared by lock screen, tty and SDDM). The Quickshell lock screen runs `scripts/faillock.sh` (prints `used deny remaining_seconds`) after each failure to show attempts left or a countdown, and refuses to submit while locked. SDDM shows no counter. The lock screen also shows the current fcitx5 layout under the field (polled via `keyboard.sh status`).
+
 `scripts/lock.sh` has two modes. `SUPER + Esc` / power menu "Lock" = `normal`;
 `SUPER + SHIFT + Esc` / "Lock (stay awake)" = `remote`: same screen, but it runs
 under `systemd-inhibit --what=sleep:idle:handle-lid-switch`, which lives only while

@@ -5,6 +5,7 @@
 import QtQuick
 import Quickshell
 import Quickshell.Wayland
+import Quickshell.Io
 import Quickshell.Services.Pam
 
 ShellRoot {
@@ -15,11 +16,16 @@ ShellRoot {
     property bool failed: false
     property bool busy: false
     property bool unlocking: false
+    // pam_faillock state (scripts/faillock.sh): failures used, limit, seconds until unlock
+    property int used: 0
+    property int deny: 10
+    property int lockedFor: 0
+    readonly property bool locked: lockedFor > 0
 
     Theme { id: colors }
 
     function submit() {
-        if (password.length === 0 || busy) return
+        if (password.length === 0 || busy || locked) return
         busy = true
         failed = false
         pam.start()
@@ -37,9 +43,27 @@ ShellRoot {
             } else {
                 root.failed = true
                 root.password = ""
+                flProc.running = true
             }
         }
-        onError: () => { root.busy = false; root.failed = true; root.password = "" }
+        onError: () => { root.busy = false; root.failed = true; root.password = ""; flProc.running = true }
+    }
+
+    Process {
+        id: flProc
+        command: [Quickshell.env("HOME") + "/.config/hypr/scripts/faillock.sh"]
+        stdout: StdioCollector {
+            onStreamFinished: {
+                const p = text.trim().split(" ").map(Number)
+                if (p.length === 3 && !p.some(isNaN)) { root.used = p[0]; root.deny = p[1]; root.lockedFor = p[2] }
+            }
+        }
+    }
+    Component.onCompleted: flProc.running = true
+    // Countdown while locked; re-check when it reaches zero
+    Timer {
+        interval: 1000; repeat: true; running: root.lockedFor > 0
+        onTriggered: { root.lockedFor -= 1; if (root.lockedFor <= 0) flProc.running = true }
     }
 
     // Fades out with a short transition and only then releases the session

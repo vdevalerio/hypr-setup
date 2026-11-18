@@ -16,6 +16,7 @@ Item {
     readonly property string sddmDynamic: "/usr/share/sddm/themes/hypr-setup/dynamic"
     property date now: new Date()
     property bool capsLock: false
+    property string layout: ""
     property string battery: ""
     property string realName: ""
 
@@ -27,6 +28,7 @@ Item {
         var name = (surface.realName || Quickshell.env("USER") || "").split(" ")[0]
         return g + (name ? ", " + name : "")
     }
+    function mmss(t) { return Math.floor(t / 60) + ":" + ("0" + t % 60).slice(-2) }
     function glyph(cp) { return String.fromCodePoint(cp) }
 
     // User account full name (GECOS field), as on the login screen
@@ -43,6 +45,15 @@ Item {
         stdout: StdioCollector { onStreamFinished: surface.capsLock = text.trim() !== "" && text.trim() !== "0" }
     }
     Timer { interval: 500; running: true; repeat: true; triggeredOnStart: true; onTriggered: capsProc.running = true }
+    // Keyboard layout (fcitx5), polled with caps lock: typing in the wrong one is a common cause of "wrong password"
+    Process {
+        id: layoutProc
+        command: ["sh", "-c", Quickshell.env("HOME") + "/.config/hypr/scripts/keyboard.sh status"]
+        stdout: StdioCollector {
+            onStreamFinished: { try { surface.layout = JSON.parse(text).text } catch (e) {} }
+        }
+    }
+    Timer { interval: 500; running: true; repeat: true; triggeredOnStart: true; onTriggered: layoutProc.running = true }
     Process {
         id: batProc
         command: ["sh", "-c", "cat /sys/class/power_supply/BAT*/capacity 2>/dev/null | head -1"]
@@ -180,9 +191,9 @@ Item {
             color: "#55000000"
 
             // Gradient border (as in hyprlock): gradient cut into a ring by a mask
-            readonly property color c1: surface.shell.failed ? surface.theme.red
+            readonly property color c1: (surface.shell.failed || surface.shell.locked) ? surface.theme.red
                                       : surface.capsLock ? surface.theme.yellow : surface.theme.mauve
-            readonly property color c2: surface.shell.failed ? surface.theme.red
+            readonly property color c2: (surface.shell.failed || surface.shell.locked) ? surface.theme.red
                                       : surface.capsLock ? surface.theme.yellow : surface.theme.blue
             Rectangle {
                 id: fieldGradient
@@ -253,12 +264,24 @@ Item {
                 anchors.centerIn: parent
                 visible: input.text.length === 0
                 text: surface.shell.busy ? surface.glyph(0xF0450) + "  Checking…"
-                    : surface.shell.failed ? surface.glyph(0xF0026) + "  Wrong password"
+                    : surface.shell.locked ? surface.glyph(0xF033E) + "  Locked · " + surface.mmss(surface.shell.lockedFor)
+                    : surface.shell.failed ? surface.glyph(0xF0026) + "  Wrong · " + (surface.shell.deny - surface.shell.used) + " left"
                     : surface.capsLock ? surface.glyph(0xF0BEA) + "  Caps Lock is on"
                     : surface.glyph(0xF033E) + "  Password"
-                color: surface.shell.failed ? surface.theme.red : "#99ffffff"
+                color: (surface.shell.failed || surface.shell.locked) ? surface.theme.red : "#99ffffff"
                 font { family: surface.theme.mono; pixelSize: 14 * surface.s; italic: !surface.shell.failed }
             }
+        }
+
+        // Current keyboard layout, under the password field
+        Text {
+            visible: surface.layout !== ""
+            anchors.horizontalCenter: field.horizontalCenter
+            anchors.top: field.bottom
+            anchors.topMargin: 10 * surface.s
+            text: surface.glyph(0xF030C) + "  " + surface.layout
+            color: "#bbffffff"
+            font { family: surface.theme.mono; pixelSize: 13 * surface.s }
         }
 
         // Footer: battery
