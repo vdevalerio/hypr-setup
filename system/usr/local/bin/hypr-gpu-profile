@@ -12,8 +12,13 @@ power-saver) dpm=low; pm=auto; plat=low-power ;;
 esac
 # Firmware thermal profile (acer_wmi predator_v4): the embedded controller then runs the fan curve for it
 # (quiet/low-power = low RPM, performance = turbo fans) and still follows the temperature inside that curve.
+# The firmware may refuse a value (this model answers EIO to "performance"): try the next best one.
+case $1 in performance) plats="performance balanced-performance" ;; *) plats=$plat ;; esac
 for f in /sys/class/platform-profile/*/profile; do
-    [ -w "$f" ] && grep -qw "$plat" "${f%profile}choices" && echo "$plat" > "$f"
+    [ -w "$f" ] || continue
+    for p in $plats; do
+        grep -qw "$p" "${f%profile}choices" && echo "$p" > "$f" 2>/dev/null && break
+    done
 done
 for d in /sys/bus/pci/devices/*; do
     [ "$(cat "$d/class" 2>/dev/null)" = 0x030000 ] || [ "$(cat "$d/class" 2>/dev/null)" = 0x038000 ] || continue
