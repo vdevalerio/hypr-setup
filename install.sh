@@ -12,6 +12,7 @@
 # │  ./install.sh extras     firewall, zram, fallback kernel, battery... │
 # │  ./install.sh data       data profile: SQL, DuckDB, Docker...        │
 # │  ./install.sh boot       GRUB theme + Plymouth splash for the theme  │
+# │  ./install.sh faillock   login attempt limit (10 tries, 10 min lock)   │
 # │  ./install.sh claude     Claude Code: status line + settings merge    │
 # │  ./install.sh tts        natural voices (Piper) for Foliate & co.    │
 # │  ./install.sh ssh        remote access over SSH (keys only, firewall)  │
@@ -224,6 +225,11 @@ install_aur() {
     done
 }
 
+setup_faillock() {
+    step "Login attempts: 10 wrong passwords before the 10-minute lock (pam_faillock)"
+    sudo install -Dm644 "$REPO/system/etc/security/faillock.conf" /etc/security/faillock.conf
+}
+
 setup_system() {
     if [[ -n $IGPU_ID && -n $NV_ID ]]; then
         step "Hybrid GPU: links /dev/dri/igpu e /dev/dri/dgpu"
@@ -242,8 +248,7 @@ setup_system() {
         echo auto | sudo tee /sys/bus/pci/devices/$NV_ID/power/control >/dev/null || true
     fi
 
-    step "Login attempts: 10 wrong passwords before the 10-minute lock (pam_faillock)"
-    sudo install -Dm644 "$REPO/system/etc/security/faillock.conf" /etc/security/faillock.conf
+    setup_faillock
 
     step "External monitor brightness (DDC/CI): i2c-dev module"
     echo i2c-dev | sudo tee /etc/modules-load.d/i2c-dev.conf >/dev/null
@@ -815,6 +820,7 @@ case "${1:-all}" in
     sddm)     need_user; setup_sddm ;;
     extras)   need_user; sudo_keepalive; setup_extras ;;
     data)     need_user; sudo_keepalive; setup_data ;;
+    faillock) need_user; sudo_keepalive; setup_faillock ;;
     boot)     need_user; sudo_keepalive; setup_boot ;;
     claude)   need_user; setup_claude ;;
     tts)      need_user; setup_tts ;;

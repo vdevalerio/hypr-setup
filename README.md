@@ -503,7 +503,7 @@ suspend on idle / lid close; **remote** (SUPER + SHIFT + Esc, or "Lock (stay awa
 screen with a password but holds a systemd inhibitor (sleep, idle, lid switch) only while locked, so SSH /
 Claude Code remote sessions keep running. `lock.sh default remote` makes the idle auto-lock remote-safe too.
 Wrong passwords are counted by `pam_faillock` (`system/etc/security/faillock.conf`: **10 attempts**, counted over 15 min,
-then a 10-minute lock that also applies to tty and SDDM; `install.sh system` deploys it). The field shows
+then a 10-minute lock that also applies to tty and SDDM; `install.sh faillock` deploys it (also part of `all`)). The field shows
 "Wrong · N left" and, once locked, "Locked · m:ss" with a countdown (`scripts/faillock.sh`); a correct password is
 rejected by PAM while locked, so the lock screen doesn't even try.
 The active keyboard layout (fcitx5: PT / EN / RU / JA) is shown under the field, since typing in the wrong layout is a common cause of "wrong password".
