@@ -1,0 +1,2 @@
+# Lets the desktop session switch the GPU power profile without a password prompt.
+%wheel ALL=(root) NOPASSWD: /usr/local/bin/hypr-gpu-profile performance, /usr/local/bin/hypr-gpu-profile balanced, /usr/local/bin/hypr-gpu-profile power-saver

@@ -12,6 +12,7 @@
 # │  ./install.sh extras     firewall, zram, fallback kernel, battery... │
 # │  ./install.sh data       data profile: SQL, DuckDB, Docker...        │
 # │  ./install.sh boot       GRUB theme + Plymouth splash for the theme  │
+# │  ./install.sh gpuprofile GPU side of the power profile (sudoers helper)│
 # │  ./install.sh faillock   login attempt limit (10 tries, 10 min lock)   │
 # │  ./install.sh claude     Claude Code: status line + settings merge    │
 # │  ./install.sh tts        natural voices (Piper) for Foliate & co.    │
@@ -230,6 +231,13 @@ setup_faillock() {
     sudo install -Dm644 "$REPO/system/etc/security/faillock.conf" /etc/security/faillock.conf
 }
 
+setup_gpuprofile() {
+    step "GPU power profile helper (sudoers: wheel may run hypr-gpu-profile without a password)"
+    sudo install -Dm755 "$REPO/system/usr/local/bin/hypr-gpu-profile" /usr/local/bin/hypr-gpu-profile
+    sudo install -Dm440 "$REPO/system/etc/sudoers.d/hypr-gpu-profile" /etc/sudoers.d/hypr-gpu-profile
+    sudo visudo -cf /etc/sudoers.d/hypr-gpu-profile
+}
+
 setup_system() {
     if [[ -n $IGPU_ID && -n $NV_ID ]]; then
         step "Hybrid GPU: links /dev/dri/igpu e /dev/dri/dgpu"
@@ -249,6 +257,7 @@ setup_system() {
     fi
 
     setup_faillock
+    setup_gpuprofile
 
     step "External monitor brightness (DDC/CI): i2c-dev module"
     echo i2c-dev | sudo tee /etc/modules-load.d/i2c-dev.conf >/dev/null
@@ -821,6 +830,7 @@ case "${1:-all}" in
     extras)   need_user; sudo_keepalive; setup_extras ;;
     data)     need_user; sudo_keepalive; setup_data ;;
     faillock) need_user; sudo_keepalive; setup_faillock ;;
+    gpuprofile) need_user; sudo_keepalive; setup_gpuprofile ;;
     boot)     need_user; sudo_keepalive; setup_boot ;;
     claude)   need_user; setup_claude ;;
     tts)      need_user; setup_tts ;;

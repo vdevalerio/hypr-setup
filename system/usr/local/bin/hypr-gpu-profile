@@ -1,0 +1,24 @@
+#!/bin/sh
+# hypr-gpu-profile performance|balanced|power-saver — GPU side of the power profile (run through sudo, see
+# /etc/sudoers.d/hypr-gpu-profile; the only accepted arguments are the three profile names).
+#   performance: iGPU clocks pinned high, dGPU kept awake (no wake-up latency), NVIDIA Dynamic Boost
+#   balanced:    everything automatic
+#   power-saver: iGPU clocks pinned low, dGPU runtime-suspends as soon as it is idle
+case "$1" in
+performance) dpm=high; pm=on ;;
+balanced) dpm=auto; pm=auto ;;
+power-saver) dpm=low; pm=auto ;;
+*) echo "usage: $0 performance|balanced|power-saver" >&2; exit 2 ;;
+esac
+for d in /sys/bus/pci/devices/*; do
+    [ "$(cat "$d/class" 2>/dev/null)" = 0x030000 ] || [ "$(cat "$d/class" 2>/dev/null)" = 0x038000 ] || continue
+    case "$(cat "$d/vendor")" in
+    0x1002) [ -w "$d/power_dpm_force_performance_level" ] && echo "$dpm" > "$d/power_dpm_force_performance_level" ;;
+    0x10de) echo "$pm" > "$d/power/control" ;;
+    esac
+done
+if systemctl cat nvidia-powerd.service >/dev/null 2>&1; then
+    if [ "$1" = performance ]; then systemctl start nvidia-powerd.service 2>/dev/null
+    else systemctl stop nvidia-powerd.service 2>/dev/null; fi
+fi
+exit 0

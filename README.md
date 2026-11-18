@@ -418,7 +418,7 @@ The `󰒓` button (or **SUPER + A**) opens the **control center**, a panel below
   show/hide the bar.
 - **Do not disturb**, **Keep screen awake** (pauses the automatic lock) and **Night light** (warmer screen).
 - **Brightness** (per monitor) and **Displays** (position, resolution, scale, rotation, mirroring, on/off).
-- **Power profile**, **Wi-Fi**, **Bluetooth** (on/off and pairing), **Audio mixer**
+- **Power profile** (CPU + GPU, like Acer's Nitro modes: *performance* pins the iGPU clocks high, keeps the NVIDIA GPU awake and starts Dynamic Boost (`nvidia-powerd`) if installed; *balanced* leaves it all automatic; *power saver* pins the iGPU low and lets the NVIDIA GPU suspend; the GPU part needs `./install.sh gpuprofile`), **Wi-Fi**, **Bluetooth** (on/off and pairing), **Audio mixer**
   and **Keyboard** (language and fcitx5 settings).
 - **Tools:** screenshots, color picker, clipboard, emoji, calculator, system monitor and shortcuts.
 

@@ -145,7 +145,7 @@ power_profile_menu() {
     add "󰁍" "Back" "" "exec $0 main 4"
     for p in performance balanced power-saver; do
         case $p in performance) icon=󰓅 ;; balanced) icon=󰾅 ;; *) icon=󰌪 ;; esac
-        add "$icon" "$p" "$([ "$p" = "$cur" ] && echo "● active")" "powerprofilesctl set $p; exec $0 main 4"
+        add "$icon" "$p" "$([ "$p" = "$cur" ] && echo "● active")" "~/.config/hypr/scripts/profile.sh set $p; exec $0 main 4"
     done
     show "Power profile" power-profile
 }

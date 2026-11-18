@@ -15,10 +15,10 @@ state() { [ "$(cat "$BAT/status")" = Discharging ] && echo battery || echo ac; }
 apply() {
     if [ "$1" = battery ]; then
         powerprofilesctl get > "$SAVED" 2>/dev/null
-        powerprofilesctl set power-saver 2>/dev/null
+        "$(dirname "$0")/profile.sh" set power-saver 2>/dev/null
         msg="Screen at 60 Hz · power saver"
     else
-        local p; p=$(cat "$SAVED" 2>/dev/null); powerprofilesctl set "${p:-balanced}" 2>/dev/null
+        local p; p=$(cat "$SAVED" 2>/dev/null); "$(dirname "$0")/profile.sh" set "${p:-balanced}" 2>/dev/null
         msg="Screen at full refresh rate · ${p:-balanced}"
     fi
     hyprctl reload >/dev/null                             # monitors.lua picks the mode from the state
