@@ -105,6 +105,11 @@ temp)
         [[ $temp =~ ^[0-9]+$ ]] && tip+="\n<b>$name</b>  ${temp}°C"
     done < <(gpus)
     h=$(hwmon_by_name nvme) && tip+="\n<b>NVMe</b>  $(milli "$h/temp1_input")°C"
+    if h=$(hwmon_by_name acer) && [[ -r $h/fan1_input ]]; then   # acer_wmi predator_v4 (install.sh thermal)
+        tip+="\n<b>Fans</b>  CPU $(<"$h/fan1_input") rpm  ·  GPU $(<"$h/fan2_input") rpm"
+        pf=$(cat /sys/class/platform-profile/*/profile 2>/dev/null | head -1)
+        [[ -n $pf ]] && tip+="\n<b>Thermal profile</b>  $pf"
+    fi
     json "${t}°" "$(printf '%b' "$tip\n\nClick: btop")" "$(klass "$t" $WARN $CRIT)" "$t" ;;
 top)
     pgrep -x btop >/dev/null && exec hyprctl dispatch 'hl.dsp.focus({ window = "class:btop-float" })'

@@ -418,7 +418,7 @@ The `󰒓` button (or **SUPER + A**) opens the **control center**, a panel below
   show/hide the bar.
 - **Do not disturb**, **Keep screen awake** (pauses the automatic lock) and **Night light** (warmer screen).
 - **Brightness** (per monitor) and **Displays** (position, resolution, scale, rotation, mirroring, on/off).
-- **Power profile** (CPU + GPU, like Acer's Nitro modes: *performance* pins the iGPU clocks high, keeps the NVIDIA GPU awake and starts Dynamic Boost (`nvidia-powerd`) if installed; *balanced* leaves it all automatic; *power saver* pins the iGPU low and lets the NVIDIA GPU suspend; the GPU part needs `./install.sh gpuprofile`), **Wi-Fi**, **Bluetooth** (on/off and pairing), **Audio mixer**
+- **Power profile** (CPU + GPU, like Acer's Nitro modes: *performance* pins the iGPU clocks high, keeps the NVIDIA GPU awake and starts Dynamic Boost (`nvidia-powerd`) if installed; *balanced* leaves it all automatic; *power saver* pins the iGPU low and lets the NVIDIA GPU suspend; the GPU part needs `./install.sh gpuprofile`). On the Acer Nitro the profile also sets the **firmware thermal profile** (`low-power` / `balanced` / `performance`, i.e. quiet / default / turbo fans): the embedded controller runs the fan curve and still follows the temperature inside it. The kernel exposes no per-fan PWM, so a custom curve isn't possible; `./install.sh thermal` enables the interface (`acer_wmi predator_v4=1`) and the temperature tooltip in the bar shows both fan speeds and the thermal profile, **Wi-Fi**, **Bluetooth** (on/off and pairing), **Audio mixer**
   and **Keyboard** (language and fcitx5 settings).
 - **Tools:** screenshots, color picker, clipboard, emoji, calculator, system monitor and shortcuts.
 

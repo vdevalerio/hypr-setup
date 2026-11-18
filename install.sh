@@ -13,6 +13,7 @@
 # │  ./install.sh data       data profile: SQL, DuckDB, Docker...        │
 # │  ./install.sh boot       GRUB theme + Plymouth splash for the theme  │
 # │  ./install.sh gpuprofile GPU side of the power profile (sudoers helper)│
+# │  ./install.sh thermal    Acer Nitro fan sensors + thermal profile     │
 # │  ./install.sh faillock   login attempt limit (10 tries, 10 min lock)   │
 # │  ./install.sh claude     Claude Code: status line + settings merge    │
 # │  ./install.sh tts        natural voices (Piper) for Foliate & co.    │
@@ -236,6 +237,14 @@ setup_gpuprofile() {
     sudo install -Dm755 "$REPO/system/usr/local/bin/hypr-gpu-profile" /usr/local/bin/hypr-gpu-profile
     sudo install -Dm440 "$REPO/system/etc/sudoers.d/hypr-gpu-profile" /etc/sudoers.d/hypr-gpu-profile
     sudo visudo -cf /etc/sudoers.d/hypr-gpu-profile
+}
+
+setup_thermal() {
+    step "Acer Nitro thermal interface (acer_wmi predator_v4: fan sensors + platform profile)"
+    sudo install -Dm644 "$REPO/system/etc/modprobe.d/acer-wmi.conf" /etc/modprobe.d/acer-wmi.conf
+    sudo modprobe -r acer_wmi || true
+    sudo modprobe acer_wmi || true
+    ls /sys/class/platform-profile/ || true
 }
 
 setup_system() {
@@ -831,6 +840,7 @@ case "${1:-all}" in
     data)     need_user; sudo_keepalive; setup_data ;;
     faillock) need_user; sudo_keepalive; setup_faillock ;;
     gpuprofile) need_user; sudo_keepalive; setup_gpuprofile ;;
+    thermal)  need_user; sudo_keepalive; setup_thermal ;;
     boot)     need_user; sudo_keepalive; setup_boot ;;
     claude)   need_user; setup_claude ;;
     tts)      need_user; setup_tts ;;

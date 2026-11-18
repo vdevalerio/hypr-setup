@@ -1,15 +1,20 @@
 #!/bin/sh
 # hypr-gpu-profile performance|balanced|power-saver — GPU side of the power profile (run through sudo, see
 # /etc/sudoers.d/hypr-gpu-profile; the only accepted arguments are the three profile names).
-#   performance: iGPU clocks pinned high, dGPU kept awake (no wake-up latency), NVIDIA Dynamic Boost
-#   balanced:    everything automatic
-#   power-saver: iGPU clocks pinned low, dGPU runtime-suspends as soon as it is idle
+#   performance: firmware profile performance (turbo fans), iGPU clocks pinned high, dGPU kept awake (no wake-up latency), NVIDIA Dynamic Boost
+#   balanced:    firmware balanced, everything automatic
+#   power-saver: firmware low-power (quiet fans), iGPU clocks pinned low, dGPU runtime-suspends as soon as it is idle
 case "$1" in
-performance) dpm=high; pm=on ;;
-balanced) dpm=auto; pm=auto ;;
-power-saver) dpm=low; pm=auto ;;
+performance) dpm=high; pm=on; plat=performance ;;
+balanced) dpm=auto; pm=auto; plat=balanced ;;
+power-saver) dpm=low; pm=auto; plat=low-power ;;
 *) echo "usage: $0 performance|balanced|power-saver" >&2; exit 2 ;;
 esac
+# Firmware thermal profile (acer_wmi predator_v4): the embedded controller then runs the fan curve for it
+# (quiet/low-power = low RPM, performance = turbo fans) and still follows the temperature inside that curve.
+for f in /sys/class/platform-profile/*/profile; do
+    [ -w "$f" ] && grep -qw "$plat" "${f%profile}choices" && echo "$plat" > "$f"
+done
 for d in /sys/bus/pci/devices/*; do
     [ "$(cat "$d/class" 2>/dev/null)" = 0x030000 ] || [ "$(cat "$d/class" 2>/dev/null)" = 0x038000 ] || continue
     case "$(cat "$d/vendor")" in
