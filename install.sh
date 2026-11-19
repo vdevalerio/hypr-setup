@@ -244,6 +244,10 @@ setup_thermal() {
     sudo install -Dm644 "$REPO/system/etc/modprobe.d/acer-wmi.conf" /etc/modprobe.d/acer-wmi.conf
     sudo modprobe -r acer_wmi || true
     sudo modprobe acer_wmi || true
+    sudo install -Dm644 "$REPO/system/etc/systemd/system/power-profiles-daemon.service.d/block-platform-profile.conf" \
+        /etc/systemd/system/power-profiles-daemon.service.d/block-platform-profile.conf
+    sudo systemctl daemon-reload
+    sudo systemctl restart power-profiles-daemon.service
     ls /sys/class/platform-profile/ || true
 }
 
