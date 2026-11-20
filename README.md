@@ -221,6 +221,7 @@ Tested on: Ryzen 7 7735HS + Radeon 680M + RTX 4050 (laptop), Hyprland 0.56.
 
 - **Volume, mute, microphone, brightness and Caps Lock keys** show a quick notification with the level
   (`scripts/osd.sh`).
+- **Desktop GPU** (`scripts/gpu.sh status|dgpu|igpu`, applies at the next login): by default the desktop is rendered by the dedicated NVIDIA GPU (smooth under heavy load; the internal panel is wired to the Radeon, so frames are copied over). `gpu.sh igpu` goes back to rendering on the Radeon, which saves battery (NVIDIA then stays asleep for `prime-run <app>`).
 - **Plugged in vs. battery** (`scripts/power.sh`): when unplugged, the laptop screen drops to 60 Hz and the power
   profile to *power saver*; when plugged back in, the screen returns to 165 Hz and to the profile you were using. To pin a
   refresh rate, set the monitor's `mode=` in Displays. Fullscreen games and videos use adaptive sync (VRR).

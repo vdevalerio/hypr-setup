@@ -87,8 +87,23 @@ end
 
 local igpu = first_existing({ "/dev/dri/igpu", "/dev/dri/amd-igpu" })
 local dgpu = first_existing({ "/dev/dri/dgpu", "/dev/dri/nvidia-dgpu" })
+-- gpu.conf (scripts/gpu.sh): GPU=dgpu renders the desktop on the NVIDIA GPU (the internal panel is wired to the
+-- iGPU, so frames are copied over); GPU=igpu keeps it on the integrated one. The first device is the renderer.
+local function gpu_mode()
+    local f = io and io.open and io.open(os.getenv("HOME") .. "/.config/hypr/gpu.conf", "r")
+    if not f then return "igpu" end
+    local text = f:read("*a") or ""
+    f:close()
+    return text:match("GPU=(%a+)") or "igpu"
+end
+
 if igpu then
-    hl.env("AQ_DRM_DEVICES", dgpu and (igpu .. ":" .. dgpu) or igpu)
+    if dgpu and gpu_mode() == "dgpu" then
+        hl.env("AQ_DRM_DEVICES", dgpu .. ":" .. igpu)
+        hl.env("__GLX_VENDOR_LIBRARY_NAME", "nvidia") -- Xwayland / GLX apps on NVIDIA
+    else
+        hl.env("AQ_DRM_DEVICES", dgpu and (igpu .. ":" .. dgpu) or igpu)
+    end
 end
 
 
