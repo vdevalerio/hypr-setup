@@ -39,6 +39,7 @@ Everything in this repo is written in **English** (code, comments, docs, UI stri
 ## Gotchas (learned the hard way)
 - **Never start session daemons from Claude's shell** (waybar, bar.sh, mpvpaper, quickshell…): they outlive logout with a stale `HYPRLAND_INSTANCE_SIGNATURE`. Use `hyprctl dispatch 'hl.dsp.exec_cmd("…")'`.
 - `pkill -f <pattern>` matches Claude's own shell → use the bracket trick (`pkill -f '[q]s -p …'`). `pkill rofi` matches power-profiles-daemon → `pkill -x rofi`.
+- `waybar-git` is linked against system libs (sndio, …): after a `pacman -Syu` that bumps a soname it dies at startup (`error while loading shared libraries: libsndio.so.7`) and `bar.sh` loops forever → rebuild it with `yay -S --rebuild waybar-git`. Diagnose by running `waybar` through `hyprctl dispatch 'hl.dsp.exec_cmd("sh -c \"waybar > /tmp/w.log 2>&1\"")'`.
 - Waybar on-click commands get SIGTTOU-frozen (session on tty1) → wrap in `setsid -f`. `on-click` on `hyprland/workspaces` never fires. `{icon}`/format-icons don't work on custom modules. The built-in `mpris` module segfaults → `custom/media`.
 - Rofi 2.0: no `@references` inside `linear-gradient()` (breaks every menu); test theme edits by opening a menu and screenshotting.
 - Private-use Nerd glyphs (U+E000–F8FF) written by the model come out empty → use JSON/QML escapes or Material Design glyphs (U+F0000+); check bytes with `od`.
